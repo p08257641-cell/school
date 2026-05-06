@@ -3,7 +3,7 @@ import { Response } from 'express';
 import pool from '../db.ts';
 import { AuthRequest } from '../middleware/auth.ts';
 import { recordAuditLog } from '../lib/audit.ts';
-import SMSService from '../services/SMSService.ts';
+import { SMSService } from '../services/SMSService.ts';
 
 // INVENTORY
 export const getInventory = async (req: AuthRequest, res: Response) => {
