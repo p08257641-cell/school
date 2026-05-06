@@ -2188,289 +2188,233 @@ export function FinanceDashboard({
 
 export function BusDriverDashboard({ routes = [], onDropOff, onPickUp }: { routes?: any[], onDropOff?: (studentId: string) => Promise<void>, onPickUp?: (studentId: string) => Promise<void> }) {
   const { t } = useLanguage();
-  const [selectedRoute, setSelectedRoute] = useState<any>(null);
+  const [selectedRoute, setSelectedRoute] = useState<any>(routes.length === 1 ? routes[0] : null);
   const [routeStudents, setRouteStudents] = useState<any[]>([]);
   const [isLoadingStudents, setIsLoadingStudents] = useState(false);
   const [actionId, setActionId] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'pickup' | 'dropoff' | 'history'>('pickup');
+  const [tripMode, setTripMode] = useState<'pickup' | 'dropoff'>('pickup');
   const [history, setHistory] = useState<any[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+  const [sidebarTab, setSidebarTab] = useState<'routes' | 'history'>('routes');
 
-  useEffect(() => {
-    if (selectedRoute) {
-      loadStudents(selectedRoute.id);
-    }
-  }, [selectedRoute]);
-
-  useEffect(() => {
-    if (activeTab === 'history') {
-      loadHistory();
-    }
-  }, [activeTab]);
+  useEffect(() => { if (selectedRoute) loadStudents(selectedRoute.id); }, [selectedRoute]);
+  useEffect(() => { if (sidebarTab === 'history') loadHistory(); }, [sidebarTab]);
+  useEffect(() => { if (routes.length === 1 && !selectedRoute) setSelectedRoute(routes[0]); }, [routes]);
 
   const loadStudents = async (id: string) => {
     setIsLoadingStudents(true);
-    try {
-      const { fetchRouteStudents } = await import('../lib/api');
-      const data = await fetchRouteStudents(id);
-      setRouteStudents(data);
-    } catch (err) {
-      console.error("Failed to load route students:", err);
-    } finally {
-      setIsLoadingStudents(false);
-    }
+    try { const { fetchRouteStudents } = await import('../lib/api'); setRouteStudents(await fetchRouteStudents(id)); }
+    catch (err) { console.error(err); }
+    finally { setIsLoadingStudents(false); }
   };
 
   const loadHistory = async () => {
     setIsLoadingHistory(true);
-    try {
-      const { fetchTransportHistory } = await import('../lib/api');
-      const data = await fetchTransportHistory();
-      setHistory(data);
-    } catch (err) {
-      console.error("Failed to load transport history:", err);
-    } finally {
-      setIsLoadingHistory(false);
-    }
+    try { const { fetchTransportHistory } = await import('../lib/api'); setHistory(await fetchTransportHistory()); }
+    catch (err) { console.error(err); }
+    finally { setIsLoadingHistory(false); }
   };
 
-  const tabs = [
-    { id: 'pickup' as const, label: '🌅 Morning Pickup', color: 'blue' },
-    { id: 'dropoff' as const, label: '🌆 Afternoon Drop-off', color: 'emerald' },
-    { id: 'history' as const, label: '📋 Trip History', color: 'violet' },
-  ];
-
-  const getStatusForTab = () => activeTab === 'pickup' ? 'picked_up' : 'dropped';
-  const getActionLabel = () => activeTab === 'pickup' ? 'Mark Picked Up' : 'Mark Dropped';
-  const getDoneLabel = () => activeTab === 'pickup' ? 'On Board' : 'Arrived';
+  const pickedCount = routeStudents.filter(s => s.transport_status === 'picked_up').length;
+  const droppedCount = routeStudents.filter(s => s.transport_status === 'dropped').length;
+  const totalStudents = routeStudents.length;
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold text-zinc-900 dark:text-white">{t('transport_portal')}</h1>
-        <p className="text-zinc-500 mt-1">{t('route_overview')}</p>
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard title={t('total_routes')} value={routes.length.toString()} change="Active" trend="up" icon={Truck} color="bg-indigo-600" />
-        <StatCard title={t('total_students')} value={routeStudents.length.toString()} change={selectedRoute ? "Current Route" : "All Routes"} trend="up" icon={Users} color="bg-blue-600" />
-        <StatCard title={t('schedule')} value="On Time" change="Live" trend="up" icon={Clock} color="bg-emerald-600" />
-        <StatCard title="Bus Alerts" value="0" change="System" trend="up" icon={Bell} color="bg-amber-600" />
-      </div>
-
-      {/* Tab Selector */}
-      <div className="flex items-center gap-2 bg-zinc-100 dark:bg-zinc-800/50 p-1.5 rounded-2xl w-fit">
-        {tabs.map(tab => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={cn(
-              "px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all",
-              activeTab === tab.id
-                ? `bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white shadow-sm`
-                : "text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"
-            )}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
-
-      {activeTab === 'history' ? (
-        /* HISTORY TAB */
-        <div className="p-6 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[2rem] shadow-sm">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h3 className="text-xl font-bold text-zinc-900 dark:text-white">Transport Activity Log</h3>
-              <p className="text-sm text-zinc-500">Recent pickup and drop-off records</p>
-            </div>
-            <button onClick={loadHistory} className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-xl text-zinc-500 transition-colors">
-              <RefreshCw className={cn("w-5 h-5", isLoadingHistory && "animate-spin")} />
-            </button>
-          </div>
-          {isLoadingHistory ? (
-            <div className="flex flex-col items-center justify-center py-16 gap-4">
-              <div className="w-10 h-10 border-4 border-violet-600 border-t-transparent rounded-full animate-spin" />
-              <p className="text-sm text-zinc-500 font-bold uppercase tracking-widest">Loading History...</p>
-            </div>
-          ) : history.length === 0 ? (
-            <div className="text-center py-16 text-zinc-400 italic">No transport history yet.</div>
-          ) : (
-            <div className="space-y-3 max-h-[60vh] overflow-y-auto custom-scrollbar">
-              {history.map((entry, i) => (
-                <div key={entry.id || i} className="flex items-center gap-4 p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-800">
-                  <div className={cn(
-                    "w-10 h-10 rounded-xl flex items-center justify-center text-white shrink-0",
-                    entry.action === 'pick_up' ? 'bg-blue-600' : 'bg-emerald-600'
-                  )}>
-                    {entry.action === 'pick_up' ? <ArrowUp className="w-5 h-5" /> : <ArrowDown className="w-5 h-5" />}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-bold text-sm text-zinc-900 dark:text-white truncate">{entry.student_name}</p>
-                    <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                      <span className={cn(
-                        "text-[10px] font-black uppercase px-2 py-0.5 rounded-md",
-                        entry.action === 'pick_up'
-                          ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600'
-                          : 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600'
-                      )}>
-                        {entry.action === 'pick_up' ? 'Picked Up' : 'Dropped Off'}
-                      </span>
-                      <span className="text-[10px] text-zinc-400">{entry.location}</span>
-                    </div>
-                  </div>
-                  <div className="text-right shrink-0">
-                    <p className="text-[10px] font-bold text-zinc-500">
-                      {entry.created_at ? new Date(entry.created_at).toLocaleDateString() : ''}
-                    </p>
-                    <p className="text-[10px] text-zinc-400">
-                      {entry.created_at ? new Date(entry.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-black text-zinc-900 dark:text-white tracking-tight">{t('transport_portal')}</h1>
+          <p className="text-sm text-zinc-500 mt-1">{t('route_overview')}</p>
         </div>
-      ) : (
-        /* PICKUP / DROPOFF TABS */
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-1 p-6 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[2rem] shadow-sm">
-            <h3 className="text-lg font-bold text-zinc-900 dark:text-white mb-6">Your Routes</h3>
-            <div className="space-y-3">
-              {routes.length > 0 ? routes.map((route, i) => (
-                <button
-                  key={i}
-                  onClick={() => setSelectedRoute(route)}
-                  className={cn(
-                    "w-full flex items-center gap-4 p-4 rounded-2xl border transition-all text-left",
-                    selectedRoute?.id === route.id
-                      ? "bg-indigo-50 border-indigo-200 dark:bg-indigo-900/20 dark:border-indigo-500/50"
-                      : "bg-white dark:bg-zinc-900 border-zinc-100 dark:border-zinc-800 hover:border-zinc-300"
-                  )}
-                >
-                  <div className={cn(
-                    "w-10 h-10 rounded-xl flex items-center justify-center",
-                    selectedRoute?.id === route.id ? "bg-indigo-600 text-white" : "bg-zinc-100 dark:bg-zinc-800 text-zinc-400"
-                  )}>
-                    <Truck className="w-5 h-5" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-bold text-zinc-900 dark:text-white uppercase tracking-tight">{route.route_name}</p>
-                    <p className="text-xs text-zinc-500 font-medium">{route.vehicle_no}</p>
-                  </div>
-                  <ChevronRight className="w-4 h-4 text-zinc-300" />
-                </button>
-              )) : (
-                <div className="py-8 text-center text-zinc-400 italic text-sm">
-                  No routes assigned.
-                </div>
-              )}
-            </div>
+        <div className="flex items-center gap-3 text-xs text-zinc-400 font-medium">
+          <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" /> {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+        </div>
+      </div>
+
+      {/* Morning / Afternoon Toggle */}
+      <div className="flex items-center justify-center">
+        <div className="inline-flex bg-zinc-100 dark:bg-zinc-800 p-1 rounded-2xl">
+          <button onClick={() => setTripMode('pickup')} className={cn(
+            "flex items-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 rounded-xl text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all",
+            tripMode === 'pickup' ? "bg-blue-600 text-white shadow-lg shadow-blue-600/25" : "text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"
+          )}>
+            <ArrowUp className="w-4 h-4" /> <span className="hidden sm:inline">Morning</span> Pickup
+          </button>
+          <button onClick={() => setTripMode('dropoff')} className={cn(
+            "flex items-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 rounded-xl text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all",
+            tripMode === 'dropoff' ? "bg-emerald-600 text-white shadow-lg shadow-emerald-600/25" : "text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"
+          )}>
+            <ArrowDown className="w-4 h-4" /> <span className="hidden sm:inline">Afternoon</span> Drop-off
+          </button>
+        </div>
+      </div>
+
+      {/* Stats Row */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <StatCard title={t('total_routes')} value={routes.length.toString()} change="Active" trend="up" icon={Truck} color="bg-indigo-600" />
+        <StatCard title="On Route" value={totalStudents.toString()} change={selectedRoute?.route_name || '—'} trend="up" icon={Users} color="bg-zinc-700" />
+        <StatCard title="Picked Up" value={`${pickedCount}/${totalStudents}`} change={totalStudents > 0 ? `${Math.round(pickedCount/totalStudents*100)}%` : '0%'} trend="up" icon={ArrowUp} color="bg-blue-600" />
+        <StatCard title="Dropped Off" value={`${droppedCount}/${totalStudents}`} change={totalStudents > 0 ? `${Math.round(droppedCount/totalStudents*100)}%` : '0%'} trend="up" icon={ArrowDown} color="bg-emerald-600" />
+      </div>
+
+      {/* Main Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* SIDEBAR */}
+        <div className="lg:col-span-3 space-y-3">
+          <div className="flex bg-zinc-100 dark:bg-zinc-800/50 p-1 rounded-xl">
+            <button onClick={() => setSidebarTab('routes')} className={cn("flex-1 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all", sidebarTab === 'routes' ? "bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white shadow-sm" : "text-zinc-500 hover:text-zinc-700")}>Routes</button>
+            <button onClick={() => setSidebarTab('history')} className={cn("flex-1 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all", sidebarTab === 'history' ? "bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white shadow-sm" : "text-zinc-500 hover:text-zinc-700")}>History</button>
           </div>
-
-          <div className="lg:col-span-2 p-6 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[2.5rem] shadow-sm">
-            <div className="flex items-center justify-between mb-8">
-              <div>
-                <h3 className="text-xl font-bold text-zinc-900 dark:text-white">
-                  {activeTab === 'pickup' ? '🌅 Morning Manifest' : '🌆 Afternoon Manifest'}
-                </h3>
-                <p className="text-sm text-zinc-500">
-                  {selectedRoute ? `Currently viewing ${selectedRoute.route_name}` : 'Select a route to view students'}
-                </p>
+          <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-sm overflow-hidden">
+            {sidebarTab === 'routes' ? (
+              <div className="p-3 space-y-1.5 max-h-[55vh] overflow-y-auto custom-scrollbar">
+                {routes.length > 0 ? routes.map((route, i) => (
+                  <button key={i} onClick={() => setSelectedRoute(route)} className={cn(
+                    "w-full flex items-center gap-3 p-3 rounded-xl border transition-all text-left",
+                    selectedRoute?.id === route.id ? "bg-indigo-50 border-indigo-200 dark:bg-indigo-900/20 dark:border-indigo-500/50" : "border-transparent hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
+                  )}>
+                    <div className={cn("w-9 h-9 rounded-lg flex items-center justify-center shrink-0", selectedRoute?.id === route.id ? "bg-indigo-600 text-white" : "bg-zinc-100 dark:bg-zinc-800 text-zinc-400")}>
+                      <Truck className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs font-bold text-zinc-900 dark:text-white truncate">{route.route_name}</p>
+                      <p className="text-[10px] text-zinc-400 truncate">{route.vehicle_number || route.vehicle_no || '—'}</p>
+                    </div>
+                  </button>
+                )) : (<div className="py-10 text-center text-zinc-400 italic text-xs">No routes assigned.</div>)}
               </div>
-              {selectedRoute && (
-                <button onClick={() => loadStudents(selectedRoute.id)} className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-xl text-zinc-500 transition-colors">
-                  <RefreshCw className={cn("w-5 h-5", isLoadingStudents && "animate-spin")} />
-                </button>
+            ) : (
+              <div className="p-3">
+                <div className="flex items-center justify-between px-1 mb-2">
+                  <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Activity Log</span>
+                  <button onClick={loadHistory} className="p-1 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg text-zinc-400 transition-colors">
+                    <RefreshCw className={cn("w-3.5 h-3.5", isLoadingHistory && "animate-spin")} />
+                  </button>
+                </div>
+                <div className="space-y-1 max-h-[50vh] overflow-y-auto custom-scrollbar">
+                  {isLoadingHistory ? (
+                    <div className="flex items-center justify-center py-12"><div className="w-6 h-6 border-2 border-violet-600 border-t-transparent rounded-full animate-spin" /></div>
+                  ) : history.length === 0 ? (
+                    <div className="text-center py-12 text-zinc-400 italic text-xs">No history yet.</div>
+                  ) : history.slice(0, 50).map((entry, i) => (
+                    <div key={entry.id || i} className="flex items-start gap-2.5 p-2.5 rounded-xl hover:bg-zinc-50 dark:hover:bg-zinc-800/30 transition-colors">
+                      <div className={cn("w-7 h-7 rounded-lg flex items-center justify-center text-white shrink-0 mt-0.5", entry.action === 'pick_up' ? 'bg-blue-500' : 'bg-emerald-500')}>
+                        {entry.action === 'pick_up' ? <ArrowUp className="w-3.5 h-3.5" /> : <ArrowDown className="w-3.5 h-3.5" />}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[11px] font-bold text-zinc-800 dark:text-zinc-200 truncate">{entry.student_name}</p>
+                        <div className="flex items-center gap-1 mt-0.5">
+                          <span className={cn("text-[8px] font-black uppercase px-1 py-px rounded", entry.action === 'pick_up' ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-500' : 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-500')}>
+                            {entry.action === 'pick_up' ? 'Pick' : 'Drop'}
+                          </span>
+                          <span className="text-[9px] text-zinc-400 truncate">{entry.location}</span>
+                        </div>
+                        <p className="text-[9px] text-zinc-400 mt-0.5">{entry.created_at ? new Date(entry.created_at).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : ''}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* MAIN CONTENT */}
+        <div className="lg:col-span-9">
+          <div className={cn(
+            "rounded-[2rem] border shadow-sm overflow-hidden transition-colors",
+            tripMode === 'pickup'
+              ? "bg-gradient-to-b from-blue-50/30 to-white dark:from-blue-950/10 dark:to-zinc-900 border-blue-100 dark:border-blue-900/30"
+              : "bg-gradient-to-b from-emerald-50/30 to-white dark:from-emerald-950/10 dark:to-zinc-900 border-emerald-100 dark:border-emerald-900/30"
+          )}>
+            <div className="p-5 sm:p-6 border-b border-zinc-100 dark:border-zinc-800/50">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center text-white", tripMode === 'pickup' ? 'bg-blue-600' : 'bg-emerald-600')}>
+                    {tripMode === 'pickup' ? <ArrowUp className="w-5 h-5" /> : <ArrowDown className="w-5 h-5" />}
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-black text-zinc-900 dark:text-white">{tripMode === 'pickup' ? '🌅 Morning Pickup' : '🌆 Afternoon Drop-off'}</h3>
+                    <p className="text-xs text-zinc-500">{selectedRoute ? selectedRoute.route_name : 'Select a route'}{selectedRoute && totalStudents > 0 && ` — ${tripMode === 'pickup' ? pickedCount : droppedCount} of ${totalStudents} done`}</p>
+                  </div>
+                </div>
+                {selectedRoute && (
+                  <button onClick={() => loadStudents(selectedRoute.id)} className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-xl text-zinc-400 transition-colors">
+                    <RefreshCw className={cn("w-4 h-4", isLoadingStudents && "animate-spin")} />
+                  </button>
+                )}
+              </div>
+              {selectedRoute && totalStudents > 0 && (
+                <div className="mt-4">
+                  <div className="w-full bg-zinc-200/60 dark:bg-zinc-800 rounded-full h-2 overflow-hidden">
+                    <motion.div initial={{ width: 0 }} animate={{ width: `${((tripMode === 'pickup' ? pickedCount : droppedCount) / totalStudents) * 100}%` }} transition={{ duration: 0.5, ease: "easeOut" }} className={cn("h-full rounded-full", tripMode === 'pickup' ? 'bg-blue-500' : 'bg-emerald-500')} />
+                  </div>
+                </div>
               )}
             </div>
 
-            {isLoadingStudents ? (
-              <div className="flex flex-col items-center justify-center py-20 gap-4">
-                <div className="w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
-                <p className="text-sm text-zinc-500 font-bold uppercase tracking-widest">Loading Manifest...</p>
-              </div>
-            ) : !selectedRoute ? (
-              <div className="flex flex-col items-center justify-center py-20 text-center">
-                <div className="w-16 h-16 bg-zinc-50 dark:bg-zinc-800 rounded-3xl flex items-center justify-center mb-4">
-                  <MapPin className="w-8 h-8 text-zinc-300" />
+            <div className="p-4 sm:p-6">
+              {isLoadingStudents ? (
+                <div className="flex flex-col items-center justify-center py-16 gap-3">
+                  <div className={cn("w-10 h-10 border-4 border-t-transparent rounded-full animate-spin", tripMode === 'pickup' ? 'border-blue-600' : 'border-emerald-600')} />
+                  <p className="text-xs text-zinc-500 font-bold uppercase tracking-widest">Loading Manifest...</p>
                 </div>
-                <p className="text-zinc-500 font-medium italic">Please select a route from the sidebar.</p>
-              </div>
-            ) : routeStudents.length === 0 ? (
-              <div className="text-center py-20 text-zinc-400 italic">No students assigned to this route.</div>
-            ) : (
-              <div className="space-y-4">
-                {routeStudents.map((student) => {
-                  const isDone = (activeTab === 'pickup' && student.transport_status === 'picked_up') ||
-                                 (activeTab === 'dropoff' && student.transport_status === 'dropped');
-                  return (
-                    <div key={student.id} className="flex items-center justify-between p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-2xl border border-zinc-100 dark:border-zinc-800 group hover:border-indigo-500/30 transition-all">
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-white dark:bg-zinc-900 rounded-xl flex items-center justify-center font-black text-indigo-600 border border-zinc-100 dark:border-zinc-800 shadow-sm">
-                          {student.name?.[0]}
-                        </div>
-                        <div>
-                          <h4 className="font-bold text-zinc-900 dark:text-white uppercase tracking-tight">{student.name}</h4>
-                          <div className="flex items-center gap-2 mt-1 flex-wrap">
-                            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded-md">
-                              {student.pickup_location || 'Standard Stop'}
-                            </span>
-                            {student.transport_status === 'picked_up' && (
-                              <span className="flex items-center gap-1 text-[10px] font-bold text-blue-600 uppercase">
-                                <CheckCircle2 className="w-3 h-3" /> On Board
-                              </span>
-                            )}
-                            {student.transport_status === 'dropped' && (
-                              <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-600 uppercase">
-                                <CheckCircle2 className="w-3 h-3" /> Dropped
-                              </span>
-                            )}
+              ) : !selectedRoute ? (
+                <div className="flex flex-col items-center justify-center py-16 text-center">
+                  <div className="w-14 h-14 bg-zinc-100 dark:bg-zinc-800 rounded-2xl flex items-center justify-center mb-3"><MapPin className="w-7 h-7 text-zinc-300" /></div>
+                  <p className="text-sm text-zinc-500 font-medium">Select a route to view students</p>
+                  <p className="text-xs text-zinc-400 mt-1">Choose from the sidebar</p>
+                </div>
+              ) : routeStudents.length === 0 ? (
+                <div className="text-center py-16 text-zinc-400 italic text-sm">No students assigned to this route.</div>
+              ) : (
+                <div className="space-y-2.5">
+                  {routeStudents.map((student) => {
+                    const isDone = (tripMode === 'pickup' && student.transport_status === 'picked_up') || (tripMode === 'dropoff' && student.transport_status === 'dropped');
+                    return (
+                      <motion.div key={student.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className={cn(
+                        "flex items-center justify-between p-3 sm:p-4 rounded-2xl border transition-all",
+                        isDone ? "bg-zinc-50/50 dark:bg-zinc-800/20 border-zinc-100 dark:border-zinc-800" : "bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 hover:shadow-md"
+                      )}>
+                        <div className="flex items-center gap-3 min-w-0 flex-1">
+                          <div className={cn("w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center font-black text-sm shrink-0 border shadow-sm", isDone ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-400 border-zinc-200 dark:border-zinc-700" : "bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 border-indigo-100 dark:border-indigo-800/50")}>
+                            {student.name?.[0]}
+                          </div>
+                          <div className="min-w-0">
+                            <h4 className={cn("font-bold text-sm truncate", isDone ? "text-zinc-400" : "text-zinc-900 dark:text-white")}>{student.name}</h4>
+                            <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                              <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider bg-zinc-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded">{student.pickup_location || 'Standard Stop'}</span>
+                              {student.transport_status === 'picked_up' && <span className="flex items-center gap-0.5 text-[9px] font-black text-blue-500 uppercase"><CheckCircle2 className="w-2.5 h-2.5" /> On Board</span>}
+                              {student.transport_status === 'dropped' && <span className="flex items-center gap-0.5 text-[9px] font-black text-emerald-500 uppercase"><CheckCircle2 className="w-2.5 h-2.5" /> Home</span>}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                      <button
-                        disabled={actionId === student.id || isDone}
-                        onClick={async () => {
+                        <button disabled={actionId === student.id || isDone} onClick={async () => {
                           setActionId(student.id);
-                          try {
-                            if (activeTab === 'pickup') {
-                              await onPickUp?.(student.id);
-                            } else {
-                              await onDropOff?.(student.id);
-                            }
-                            await loadStudents(selectedRoute.id);
-                          } finally {
-                            setActionId(null);
-                          }
-                        }}
-                        className={cn(
-                          "px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all",
-                          isDone
-                            ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-400 cursor-default"
-                            : activeTab === 'pickup'
-                              ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20 hover:scale-[1.02] active:scale-[0.98]"
-                              : "bg-emerald-600 text-white shadow-lg shadow-emerald-600/20 hover:scale-[1.02] active:scale-[0.98]"
-                        )}
-                      >
-                        {actionId === student.id ? (
-                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mx-auto" />
-                        ) : isDone ? getDoneLabel() : getActionLabel()}
-                      </button>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+                          try { if (tripMode === 'pickup') await onPickUp?.(student.id); else await onDropOff?.(student.id); await loadStudents(selectedRoute.id); } finally { setActionId(null); }
+                        }} className={cn(
+                          "px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl font-black text-[9px] sm:text-[10px] uppercase tracking-widest transition-all shrink-0 ml-2",
+                          isDone ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-400 cursor-default"
+                            : tripMode === 'pickup' ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20 hover:bg-blue-700 active:scale-95"
+                            : "bg-emerald-600 text-white shadow-lg shadow-emerald-600/20 hover:bg-emerald-700 active:scale-95"
+                        )}>
+                          {actionId === student.id ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mx-auto" />
+                            : isDone ? (tripMode === 'pickup' ? '✓ Aboard' : '✓ Home')
+                            : (tripMode === 'pickup' ? 'Pick Up' : 'Drop Off')}
+                        </button>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }
-
-
 export function LibrarianDashboard({ books = [], bookLoans = [] }: { books?: any[], bookLoans?: BorrowRecord[] }) {
   const { t } = useLanguage();
   
