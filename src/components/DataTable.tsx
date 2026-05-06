@@ -453,8 +453,8 @@ export function DataTable<T extends { id: string | number }>({
               ? (isViewOnly ? t('view_record_title').replace('{title}', title) : t('edit_record_title').replace('{title}', title))
               : ((props as any).modalTitle || t('add_new_record_title').replace('{title}', title))
           }
-          maxWidth={isViewOnly && detailsMaxWidth ? detailsMaxWidth : undefined}
-          maxHeight={isViewOnly && detailsMaxWidth ? "max-h-[85vh]" : undefined}
+          maxWidth={detailsMaxWidth || undefined}
+          maxHeight={detailsMaxWidth ? "max-h-[85vh]" : undefined}
           footer={
             <>
               <button

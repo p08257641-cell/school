@@ -840,7 +840,7 @@ export const markStudentDroppedOff = async (req: AuthRequest, res: Response) => 
 
     // 1. Get Student and Org Details
     const studentRes = await client.query(`
-      SELECT s.name, s.parent_contact, s.transport_pickup_location, o.transport_sms_enabled, o.name as school_name
+      SELECT s.name, s.contact, s.transport_pickup_location, o.transport_sms_enabled, o.name as school_name
       FROM students s
       JOIN organizations o ON s.org_id = o.id
       WHERE s.id = $1 AND s.org_id = $2
@@ -856,9 +856,9 @@ export const markStudentDroppedOff = async (req: AuthRequest, res: Response) => 
     );
 
     // 3. Send SMS if enabled
-    if (student.transport_sms_enabled && student.parent_contact) {
+    if (student.transport_sms_enabled && student.contact) {
       const message = `Hello, your child ${student.name} has been dropped off at ${student.transport_pickup_location || 'the designated stop'}. Thank you for choosing ${student.school_name}.`;
-      await SMSService.sendSMS(orgId, student.parent_contact, message);
+      await SMSService.sendSMS(orgId, student.contact, message);
     }
 
     await client.query('COMMIT');

@@ -1186,6 +1186,8 @@ export const HRModules = {
       "HOD",
       "FINANCE",
       "LIBRARIAN",
+      "BUS_DRIVER",
+      "TRANSPORTATION",
       "NON_STAFF",
       "HOSTEL",
       "STUDENT_CLUBS",
@@ -2131,6 +2133,7 @@ export const HRModules = {
                   <option value="FINANCE">FINANCE</option>
                   <option value="LIBRARIAN">LIBRARIAN</option>
                   <option value="BUS_DRIVER">BUS DRIVER</option>
+                  <option value="TRANSPORTATION">TRANSPORTATION</option>
                   <option value="NON_STAFF">NON_STAFF</option>
                   <option value="HOSTEL">HOSTEL</option>
                   <option value="STUDENT_CLUBS">STUDENT_CLUBS</option>
@@ -2143,7 +2146,7 @@ export const HRModules = {
             <div className="space-y-3 pt-2">
               <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider">{t('additional_roles')}</label>
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 p-3 md:p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-2xl border border-zinc-200 dark:border-zinc-700">
-                {['SCHOOL_ADMIN', 'STAFF', 'HOD', 'FINANCE', 'LIBRARIAN', 'BUS_DRIVER', 'NON_STAFF', 'HOSTEL', 'STUDENT_CLUBS', 'ASSETS_EQUIPMENT', 'HEALTH', 'DISCIPLINE']
+                {['SCHOOL_ADMIN', 'STAFF', 'HOD', 'FINANCE', 'LIBRARIAN', 'BUS_DRIVER', 'TRANSPORTATION', 'NON_STAFF', 'HOSTEL', 'STUDENT_CLUBS', 'ASSETS_EQUIPMENT', 'HEALTH', 'DISCIPLINE']
                   .filter(roleOption => roleOption !== currentRole)
                   .map(roleOption => (
                     <label key={roleOption} className="flex items-center gap-3 cursor-pointer group">
