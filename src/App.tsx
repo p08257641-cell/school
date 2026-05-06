@@ -1871,12 +1871,14 @@ export default function App() {
           case "BUS_DRIVER":
             return (
               <BusDriverDashboard 
-                routes={transportRoutes} 
+                routes={transportRoutes.filter(r => 
+                  String(r.driver_name).toLowerCase() === String(currentUser?.name || '').toLowerCase()
+                )} 
                 onDropOff={async (studentId) => {
                   try {
                     const { markStudentDroppedOff } = await import("./lib/api");
                     await markStudentDroppedOff(studentId);
-                    showToast("Student marked as dropped off. SMS sent if enabled.", "success");
+                    showToast("Student marked as dropped off. SMS sent to parent.", "success");
                     loadData();
                   } catch (err) {
                     console.error("Failed to mark drop off:", err);
