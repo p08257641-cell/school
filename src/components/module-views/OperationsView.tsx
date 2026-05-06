@@ -24,9 +24,10 @@ import {
 import { UserRole, Ward } from '../../types';
 import { downloadInventoryTemplate, parseInventoryExcel } from '../../lib/excel';
 import { useLanguage } from '../../lib/LanguageContext';
+import { SearchableSelect } from '../UI';
 
 export const OperationsModules = {
-  Transport: ({ role, currentStudentId, wards, onWardSelect, data, assignments = [], students, onApprove, onSave, onDelete, onRefresh }: { role?: UserRole, currentStudentId?: string, wards?: Ward[], onWardSelect?: (id: string) => void, data?: any[], assignments?: any[], students?: any[], onApprove?: (assignment: any) => void, onSave?: (data: any) => void, onDelete?: (item: any) => void, onRefresh?: () => void }) => {
+  Transport: ({ role, currentStudentId, wards, onWardSelect, data, assignments = [], students, staff = [], onApprove, onSave, onDelete, onRefresh }: { role?: UserRole, currentStudentId?: string, wards?: Ward[], onWardSelect?: (id: string) => void, data?: any[], assignments?: any[], students?: any[], staff?: any[], onApprove?: (assignment: any) => void, onSave?: (data: any) => void, onDelete?: (item: any) => void, onRefresh?: () => void }) => {
     const { currency } = useLanguage();
     const [viewingStudents, setViewingStudents] = useState<any | null>(null);
     const [routeStudents, setRouteStudents] = useState<any[]>([]);
@@ -310,11 +311,22 @@ export const OperationsModules = {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-zinc-500 uppercase">Driver Name</label>
-                  <input 
-                    name="driver_name" 
-                    defaultValue={item?.driver_name} 
+                  <SearchableSelect
+                    name="driver_name"
+                    defaultValue={item?.driver_name}
                     disabled={isViewOnly}
-                    className="w-full px-4 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm"
+                    options={staff.map((s: any) => ({
+                      value: s.name,
+                      label: s.name,
+                      sublabel: `${s.role}${s.phone ? ` • ${s.phone}` : ''}`
+                    }))}
+                    onValueChange={(val) => {
+                      const selectedStaff = staff.find((s: any) => s.name === val);
+                      if (selectedStaff?.phone) {
+                        const phoneInput = document.getElementsByName('driver_phone')[0] as HTMLInputElement;
+                        if (phoneInput) phoneInput.value = selectedStaff.phone;
+                      }
+                    }}
                   />
                 </div>
                 <div className="space-y-1.5">
