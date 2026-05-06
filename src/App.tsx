@@ -1885,6 +1885,17 @@ export default function App() {
                     showToast("Failed to mark drop off", "error");
                   }
                 }}
+                onPickUp={async (studentId) => {
+                  try {
+                    const { markStudentPickedUp } = await import("./lib/api");
+                    await markStudentPickedUp(studentId);
+                    showToast("Student marked as picked up. SMS sent to parent.", "success");
+                    loadData();
+                  } catch (err) {
+                    console.error("Failed to mark pick up:", err);
+                    showToast("Failed to mark pick up", "error");
+                  }
+                }}
               />
             );
           case "LIBRARIAN":

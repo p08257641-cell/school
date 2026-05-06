@@ -762,6 +762,16 @@ export const markStudentDroppedOff = async (studentId: string) => {
   return response.data;
 };
 
+export const markStudentPickedUp = async (studentId: string) => {
+  const response = await api.post('/ops/transport/pick-up', { student_id: studentId });
+  return response.data;
+};
+
+export const fetchTransportHistory = async () => {
+  const response = await api.get('/ops/transport/history');
+  return response.data;
+};
+
 // Hostels
 export const fetchHostels = async () => {
   const response = await api.get('/ops/hostels');

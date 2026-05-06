@@ -838,9 +838,8 @@ export const markStudentDroppedOff = async (req: AuthRequest, res: Response) => 
     await client.query('BEGIN');
     const orgId = req.user.org_id;
 
-    // 1. Get Student and Org Details
     const studentRes = await client.query(`
-      SELECT s.name, s.contact, s.transport_pickup_location, o.transport_sms_enabled, o.name as school_name
+      SELECT s.name, s.contact, s.transport_pickup_location, o.name as school_name
       FROM students s
       JOIN organizations o ON s.org_id = o.id
       WHERE s.id = $1 AND s.org_id = $2
@@ -849,19 +848,25 @@ export const markStudentDroppedOff = async (req: AuthRequest, res: Response) => 
     if (studentRes.rows.length === 0) throw new Error('Student not found');
     const student = studentRes.rows[0];
 
-    // 2. Update status
     await client.query(
       "UPDATE students SET transport_status = 'dropped' WHERE id = $1 AND org_id = $2",
       [student_id, orgId]
     );
 
-    // 3. Send SMS if enabled
-    if (student.transport_sms_enabled && student.contact) {
-      const message = `Hello, your child ${student.name} has been dropped off at ${student.transport_pickup_location || 'the designated stop'}. Thank you for choosing ${student.school_name}.`;
-      await SMSService.sendSMS(orgId, student.contact, message);
-    }
+    // Log to transport_history
+    await client.query(
+      "INSERT INTO transport_history (org_id, student_id, student_name, action, location, performed_by) VALUES ($1, $2, $3, 'drop_off', $4, $5)",
+      [orgId, student_id, student.name, student.transport_pickup_location || 'Designated Stop', req.user.id]
+    );
 
     await client.query('COMMIT');
+
+    // Send SMS (fire-and-forget, after commit)
+    if (student.contact) {
+      const message = `Hello, your child ${student.name} has been dropped off at ${student.transport_pickup_location || 'the designated stop'}. Thank you - ${student.school_name}.`;
+      SMSService.sendSMS(orgId, student.contact, message).catch(err => console.error('[SMS] Drop-off notification failed:', err.message));
+    }
+
     await recordAuditLog(req.user.id, 'TRANSPORT_DROP_OFF', `Marked student ${student.name} as dropped off`, orgId, req.ip || '');
     res.json({ message: 'Student marked as dropped off successfully' });
   } catch (err: any) {
@@ -869,6 +874,70 @@ export const markStudentDroppedOff = async (req: AuthRequest, res: Response) => 
     res.status(500).json({ error: err.message });
   } finally {
     client.release();
+  }
+};
+
+export const markStudentPickedUp = async (req: AuthRequest, res: Response) => {
+  const { student_id } = req.body;
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const orgId = req.user.org_id;
+
+    const studentRes = await client.query(`
+      SELECT s.name, s.contact, s.transport_pickup_location, o.name as school_name
+      FROM students s
+      JOIN organizations o ON s.org_id = o.id
+      WHERE s.id = $1 AND s.org_id = $2
+    `, [student_id, orgId]);
+
+    if (studentRes.rows.length === 0) throw new Error('Student not found');
+    const student = studentRes.rows[0];
+
+    await client.query(
+      "UPDATE students SET transport_status = 'picked_up' WHERE id = $1 AND org_id = $2",
+      [student_id, orgId]
+    );
+
+    // Log to transport_history
+    await client.query(
+      "INSERT INTO transport_history (org_id, student_id, student_name, action, location, performed_by) VALUES ($1, $2, $3, 'pick_up', $4, $5)",
+      [orgId, student_id, student.name, student.transport_pickup_location || 'Designated Stop', req.user.id]
+    );
+
+    await client.query('COMMIT');
+
+    // Send SMS (fire-and-forget, after commit)
+    if (student.contact) {
+      const message = `Hello, your child ${student.name} has been picked up from ${student.transport_pickup_location || 'the designated stop'}. They are on the way to school. - ${student.school_name}.`;
+      SMSService.sendSMS(orgId, student.contact, message).catch(err => console.error('[SMS] Pick-up notification failed:', err.message));
+    }
+
+    await recordAuditLog(req.user.id, 'TRANSPORT_PICK_UP', `Marked student ${student.name} as picked up`, orgId, req.ip || '');
+    res.json({ message: 'Student marked as picked up successfully' });
+  } catch (err: any) {
+    await client.query('ROLLBACK');
+    res.status(500).json({ error: err.message });
+  } finally {
+    client.release();
+  }
+};
+
+export const getTransportHistory = async (req: AuthRequest, res: Response) => {
+  try {
+    const orgId = req.user.org_id;
+    const result = await pool.query(
+      `SELECT th.*, u.name as performed_by_name
+       FROM transport_history th
+       LEFT JOIN users u ON th.performed_by = u.id
+       WHERE th.org_id = $1
+       ORDER BY th.created_at DESC
+       LIMIT 200`,
+      [orgId]
+    );
+    res.json(result.rows);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
   }
 };
 

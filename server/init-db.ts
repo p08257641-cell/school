@@ -564,6 +564,19 @@ export async function init() {
     `);
 
     await client.query(`
+      CREATE TABLE IF NOT EXISTS transport_history (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        org_id UUID REFERENCES organizations(id),
+        student_id UUID REFERENCES students(id),
+        student_name TEXT,
+        action TEXT NOT NULL,
+        location TEXT,
+        performed_by UUID,
+        created_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+
+    await client.query(`
       CREATE TABLE IF NOT EXISTS hostels (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         name VARCHAR(255) NOT NULL,
