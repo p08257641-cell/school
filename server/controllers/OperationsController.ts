@@ -3,6 +3,7 @@ import { Response } from 'express';
 import pool from '../db.ts';
 import { AuthRequest } from '../middleware/auth.ts';
 import { recordAuditLog } from '../lib/audit.ts';
+import SMSService from '../services/SMSService.ts';
 
 // INVENTORY
 export const getInventory = async (req: AuthRequest, res: Response) => {
@@ -827,6 +828,47 @@ export const getHostelAssignments = async (req: AuthRequest, res: Response) => {
     res.json(result.rows);
   } catch (err: any) {
     res.status(500).json({ error: err.message });
+  }
+};
+
+export const markStudentDroppedOff = async (req: AuthRequest, res: Response) => {
+  const { student_id } = req.body;
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const orgId = req.user.org_id;
+
+    // 1. Get Student and Org Details
+    const studentRes = await client.query(`
+      SELECT s.name, s.parent_contact, s.transport_pickup_location, o.transport_sms_enabled, o.name as school_name
+      FROM students s
+      JOIN organizations o ON s.org_id = o.id
+      WHERE s.id = $1 AND s.org_id = $2
+    `, [student_id, orgId]);
+
+    if (studentRes.rows.length === 0) throw new Error('Student not found');
+    const student = studentRes.rows[0];
+
+    // 2. Update status
+    await client.query(
+      "UPDATE students SET transport_status = 'dropped' WHERE id = $1 AND org_id = $2",
+      [student_id, orgId]
+    );
+
+    // 3. Send SMS if enabled
+    if (student.transport_sms_enabled && student.parent_contact) {
+      const message = `Hello, your child ${student.name} has been dropped off at ${student.transport_pickup_location || 'the designated stop'}. Thank you for choosing ${student.school_name}.`;
+      await SMSService.sendSMS(orgId, student.parent_contact, message);
+    }
+
+    await client.query('COMMIT');
+    await recordAuditLog(req.user.id, 'TRANSPORT_DROP_OFF', `Marked student ${student.name} as dropped off`, orgId, req.ip || '');
+    res.json({ message: 'Student marked as dropped off successfully' });
+  } catch (err: any) {
+    await client.query('ROLLBACK');
+    res.status(500).json({ error: err.message });
+  } finally {
+    client.release();
   }
 };
 

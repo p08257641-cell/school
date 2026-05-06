@@ -301,6 +301,7 @@ router.post('/ops/transport/:id/assign', checkRole(['SUPER_ADMIN', 'SCHOOL_ADMIN
 router.post('/ops/transport/unassign', checkRole(['SUPER_ADMIN', 'SCHOOL_ADMIN']), OperationsController.unassignStudentFromTransport);
 router.post('/ops/transport/approve', checkRole(['SUPER_ADMIN', 'SCHOOL_ADMIN']), OperationsController.approveTransportRequest);
 router.post('/ops/transport/reject', checkRole(['SUPER_ADMIN', 'SCHOOL_ADMIN']), OperationsController.rejectTransportRequest);
+router.post('/ops/transport/drop-off', checkRole(['SUPER_ADMIN', 'SCHOOL_ADMIN', 'BUS_DRIVER']), OperationsController.markStudentDroppedOff);
 
 // HOSTELS
 router.get('/ops/hostels', OperationsController.getHostels);

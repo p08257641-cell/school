@@ -126,6 +126,9 @@ export async function init() {
         IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'organizations' AND column_name = 'expiry_date') THEN
           ALTER TABLE organizations ADD COLUMN expiry_date DATE;
         END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'organizations' AND column_name = 'transport_sms_enabled') THEN
+          ALTER TABLE organizations ADD COLUMN transport_sms_enabled BOOLEAN DEFAULT FALSE;
+        END IF;
       END $$;
     `);
 
