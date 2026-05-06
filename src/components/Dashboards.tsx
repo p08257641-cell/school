@@ -2193,12 +2193,8 @@ export function BusDriverDashboard({ routes = [], onDropOff, onPickUp }: { route
   const [isLoadingStudents, setIsLoadingStudents] = useState(false);
   const [actionId, setActionId] = useState<string | null>(null);
   const [tripMode, setTripMode] = useState<'pickup' | 'dropoff'>('pickup');
-  const [history, setHistory] = useState<any[]>([]);
-  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
-  const [sidebarTab, setSidebarTab] = useState<'routes' | 'history'>('routes');
 
   useEffect(() => { if (selectedRoute) loadStudents(selectedRoute.id); }, [selectedRoute]);
-  useEffect(() => { if (sidebarTab === 'history') loadHistory(); }, [sidebarTab]);
   useEffect(() => { if (routes.length === 1 && !selectedRoute) setSelectedRoute(routes[0]); }, [routes]);
 
   const loadStudents = async (id: string) => {
@@ -2206,13 +2202,6 @@ export function BusDriverDashboard({ routes = [], onDropOff, onPickUp }: { route
     try { const { fetchRouteStudents } = await import('../lib/api'); setRouteStudents(await fetchRouteStudents(id)); }
     catch (err) { console.error(err); }
     finally { setIsLoadingStudents(false); }
-  };
-
-  const loadHistory = async () => {
-    setIsLoadingHistory(true);
-    try { const { fetchTransportHistory } = await import('../lib/api'); setHistory(await fetchTransportHistory()); }
-    catch (err) { console.error(err); }
-    finally { setIsLoadingHistory(false); }
   };
 
   const pickedCount = routeStudents.filter(s => s.transport_status === 'picked_up').length;
@@ -2262,61 +2251,26 @@ export function BusDriverDashboard({ routes = [], onDropOff, onPickUp }: { route
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* SIDEBAR */}
         <div className="lg:col-span-3 space-y-3">
-          <div className="flex bg-zinc-100 dark:bg-zinc-800/50 p-1 rounded-xl">
-            <button onClick={() => setSidebarTab('routes')} className={cn("flex-1 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all", sidebarTab === 'routes' ? "bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white shadow-sm" : "text-zinc-500 hover:text-zinc-700")}>Routes</button>
-            <button onClick={() => setSidebarTab('history')} className={cn("flex-1 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all", sidebarTab === 'history' ? "bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white shadow-sm" : "text-zinc-500 hover:text-zinc-700")}>History</button>
-          </div>
           <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-sm overflow-hidden">
-            {sidebarTab === 'routes' ? (
-              <div className="p-3 space-y-1.5 max-h-[55vh] overflow-y-auto custom-scrollbar">
-                {routes.length > 0 ? routes.map((route, i) => (
-                  <button key={i} onClick={() => setSelectedRoute(route)} className={cn(
-                    "w-full flex items-center gap-3 p-3 rounded-xl border transition-all text-left",
-                    selectedRoute?.id === route.id ? "bg-indigo-50 border-indigo-200 dark:bg-indigo-900/20 dark:border-indigo-500/50" : "border-transparent hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
-                  )}>
-                    <div className={cn("w-9 h-9 rounded-lg flex items-center justify-center shrink-0", selectedRoute?.id === route.id ? "bg-indigo-600 text-white" : "bg-zinc-100 dark:bg-zinc-800 text-zinc-400")}>
-                      <Truck className="w-4 h-4" />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-xs font-bold text-zinc-900 dark:text-white truncate">{route.route_name}</p>
-                      <p className="text-[10px] text-zinc-400 truncate">{route.vehicle_number || route.vehicle_no || '—'}</p>
-                    </div>
-                  </button>
-                )) : (<div className="py-10 text-center text-zinc-400 italic text-xs">No routes assigned.</div>)}
-              </div>
-            ) : (
-              <div className="p-3">
-                <div className="flex items-center justify-between px-1 mb-2">
-                  <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Activity Log</span>
-                  <button onClick={loadHistory} className="p-1 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg text-zinc-400 transition-colors">
-                    <RefreshCw className={cn("w-3.5 h-3.5", isLoadingHistory && "animate-spin")} />
-                  </button>
-                </div>
-                <div className="space-y-1 max-h-[50vh] overflow-y-auto custom-scrollbar">
-                  {isLoadingHistory ? (
-                    <div className="flex items-center justify-center py-12"><div className="w-6 h-6 border-2 border-violet-600 border-t-transparent rounded-full animate-spin" /></div>
-                  ) : history.length === 0 ? (
-                    <div className="text-center py-12 text-zinc-400 italic text-xs">No history yet.</div>
-                  ) : history.slice(0, 50).map((entry, i) => (
-                    <div key={entry.id || i} className="flex items-start gap-2.5 p-2.5 rounded-xl hover:bg-zinc-50 dark:hover:bg-zinc-800/30 transition-colors">
-                      <div className={cn("w-7 h-7 rounded-lg flex items-center justify-center text-white shrink-0 mt-0.5", entry.action === 'pick_up' ? 'bg-blue-500' : 'bg-emerald-500')}>
-                        {entry.action === 'pick_up' ? <ArrowUp className="w-3.5 h-3.5" /> : <ArrowDown className="w-3.5 h-3.5" />}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-[11px] font-bold text-zinc-800 dark:text-zinc-200 truncate">{entry.student_name}</p>
-                        <div className="flex items-center gap-1 mt-0.5">
-                          <span className={cn("text-[8px] font-black uppercase px-1 py-px rounded", entry.action === 'pick_up' ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-500' : 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-500')}>
-                            {entry.action === 'pick_up' ? 'Pick' : 'Drop'}
-                          </span>
-                          <span className="text-[9px] text-zinc-400 truncate">{entry.location}</span>
-                        </div>
-                        <p className="text-[9px] text-zinc-400 mt-0.5">{entry.created_at ? new Date(entry.created_at).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : ''}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+            <div className="p-3 bg-zinc-50 dark:bg-zinc-800/50 border-b border-zinc-100 dark:border-zinc-800">
+              <h3 className="text-xs font-black text-zinc-600 dark:text-zinc-300 uppercase tracking-widest">Assigned Routes</h3>
+            </div>
+            <div className="p-3 space-y-1.5 max-h-[55vh] overflow-y-auto custom-scrollbar">
+              {routes.length > 0 ? routes.map((route, i) => (
+                <button key={i} onClick={() => setSelectedRoute(route)} className={cn(
+                  "w-full flex items-center gap-3 p-3 rounded-xl border transition-all text-left",
+                  selectedRoute?.id === route.id ? "bg-indigo-50 border-indigo-200 dark:bg-indigo-900/20 dark:border-indigo-500/50" : "border-transparent hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
+                )}>
+                  <div className={cn("w-9 h-9 rounded-lg flex items-center justify-center shrink-0", selectedRoute?.id === route.id ? "bg-indigo-600 text-white" : "bg-zinc-100 dark:bg-zinc-800 text-zinc-400")}>
+                    <Truck className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold text-zinc-900 dark:text-white truncate">{route.route_name}</p>
+                    <p className="text-[10px] text-zinc-400 truncate">{route.vehicle_number || route.vehicle_no || '—'}</p>
+                  </div>
+                </button>
+              )) : (<div className="py-10 text-center text-zinc-400 italic text-xs">No routes assigned.</div>)}
+            </div>
           </div>
         </div>
 

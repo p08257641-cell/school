@@ -2355,4 +2355,93 @@ export const OperationsModules = {
       </div>
     );
   },
+
+  TripHistory: ({ role }: { role?: UserRole }) => {
+    const { t } = useLanguage();
+    const [history, setHistory] = useState<any[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    const loadHistory = async () => {
+      setIsLoading(true);
+      try {
+        const { fetchTransportHistory } = await import('../../lib/api');
+        setHistory(await fetchTransportHistory());
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    React.useEffect(() => {
+      loadHistory();
+    }, []);
+
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-black text-zinc-900 dark:text-white uppercase tracking-tight">Trip History</h2>
+            <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Recent pickup and drop-off activity logs</p>
+          </div>
+          <button onClick={loadHistory} className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-xl transition-colors text-zinc-500">
+            <Activity className={cn("w-6 h-6", isLoading && "animate-spin")} />
+          </button>
+        </div>
+
+        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-sm overflow-hidden p-4 sm:p-6">
+          {isLoading ? (
+            <div className="flex flex-col items-center justify-center py-20 gap-4">
+              <div className="w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+              <p className="text-sm text-zinc-500 font-bold uppercase tracking-widest">Loading History...</p>
+            </div>
+          ) : history.length === 0 ? (
+            <div className="text-center py-20">
+              <div className="w-16 h-16 bg-zinc-50 dark:bg-zinc-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Activity className="w-8 h-8 text-zinc-300" />
+              </div>
+              <p className="text-zinc-500 font-medium">No transport history recorded yet.</p>
+            </div>
+          ) : (
+            <div className="space-y-3 max-h-[70vh] overflow-y-auto custom-scrollbar pr-2">
+              {history.map((entry, i) => (
+                <div key={entry.id || i} className="flex flex-col sm:flex-row sm:items-center gap-4 p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-800 hover:border-indigo-500/30 transition-all">
+                  <div className={cn(
+                    "w-12 h-12 rounded-xl flex items-center justify-center text-white shrink-0",
+                    entry.action === 'pick_up' ? 'bg-blue-600 shadow-lg shadow-blue-600/20' : 'bg-emerald-600 shadow-lg shadow-emerald-600/20'
+                  )}>
+                    <Navigation className={cn("w-5 h-5", entry.action === 'pick_up' ? "-rotate-45" : "rotate-135")} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-black text-sm text-zinc-900 dark:text-white uppercase tracking-tight">{entry.student_name}</p>
+                    <div className="flex items-center gap-2 mt-1 flex-wrap">
+                      <span className={cn(
+                        "text-[10px] font-black uppercase px-2 py-0.5 rounded-md border",
+                        entry.action === 'pick_up'
+                          ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 border-blue-100 dark:border-blue-900/50'
+                          : 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 border-emerald-100 dark:border-emerald-900/50'
+                      )}>
+                        {entry.action === 'pick_up' ? 'Picked Up' : 'Dropped Off'}
+                      </span>
+                      <span className="flex items-center gap-1 text-[10px] font-bold text-zinc-500 bg-white dark:bg-zinc-900 px-2 py-0.5 rounded-md border border-zinc-200 dark:border-zinc-700">
+                        <MapPin className="w-3 h-3" /> {entry.location || 'Standard Stop'}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between sm:block text-left sm:text-right shrink-0">
+                    <p className="text-xs font-bold text-zinc-900 dark:text-white bg-white dark:bg-zinc-900 sm:bg-transparent px-3 py-1.5 sm:px-0 sm:py-0 rounded-lg sm:rounded-none border sm:border-none border-zinc-200 dark:border-zinc-800">
+                      {entry.created_at ? new Date(entry.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
+                    </p>
+                    <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider mt-1 sm:mt-0">
+                      {entry.created_at ? new Date(entry.created_at).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' }) : ''}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  },
 };

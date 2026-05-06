@@ -3222,6 +3222,10 @@ export default function App() {
         />
       ),
 
+      "Trip History": (
+        <OperationsModules.TripHistory role={currentRole} />
+      ),
+
       Hostel: (
         <OperationsModules.Hostel
           role={currentRole}
