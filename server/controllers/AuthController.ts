@@ -7,35 +7,37 @@ import { recordAuditLog } from '../lib/audit.ts';
 const JWT_SECRET = process.env.JWT_SECRET || 'your_super_secret_key';
 
 export const login = async (req: express.Request, res: express.Response) => {
-  const { email, password } = req.body;
+  const { email: identifier, password } = req.body;
 
   try {
+    // Check users table (with staff phone link)
     let result = await pool.query(`
       SELECT u.*, s.additional_roles 
       FROM users u 
       LEFT JOIN staff s ON u.email = s.email 
-      WHERE u.email = $1
-    `, [email]);
+      WHERE u.email = $1 OR u.email = (SELECT email FROM staff WHERE phone = $1 LIMIT 1)
+    `, [identifier]);
+    
     let user = result.rows[0];
     let role = user?.role;
     let additionalRoles = user?.additional_roles || [];
 
     if (!user) {
-      // Check students table if not in users
-      result = await pool.query('SELECT * FROM students WHERE email = $1', [email]);
+      // Check students table (Student Login - by email or admission no)
+      result = await pool.query('SELECT * FROM students WHERE email = $1 OR admission_no = $1', [identifier]);
       user = result.rows[0];
       if (user) {
         role = 'STUDENT';
       } else {
-        // Check for Parent login in students table
-        result = await pool.query('SELECT * FROM students WHERE parent_email = $1 LIMIT 1', [email]);
+        // Check for Parent login in students table (by email or contact number)
+        result = await pool.query('SELECT * FROM students WHERE parent_email = $1 OR contact = $1 OR secondary_parent_contact = $1 LIMIT 1', [identifier]);
         user = result.rows[0];
         if (user) {
           role = 'PARENT';
           // Use parent_password for comparison
           user.password = user.parent_password;
-          // Set email to parent_email for frontend ward filtering
-          user.email = user.parent_email;
+          // Set email to parent_email (fallback to contact) for frontend ward filtering
+          user.email = user.parent_email || user.contact;
         }
       }
     }

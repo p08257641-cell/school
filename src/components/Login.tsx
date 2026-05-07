@@ -72,17 +72,17 @@ export default function Login({ onLogin, onBack }: LoginProps) {
           )}
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-4 mb-1 block">{t('email_address')}</label>
+              <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-4 mb-1 block">{t('email_or_phone')}</label>
               <div className="relative">
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400" />
                 <input
-                  type="email"
+                  type="text"
                   required
                   autoComplete="off"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full pl-12 pr-6 py-4 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all text-sm"
-                  placeholder="admin@school.com"
+                  placeholder={t('email_or_phone') + '...'}
                 />
               </div>
             </div>

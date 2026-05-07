@@ -5459,16 +5459,18 @@ export const HRModules = {
     const parentsMap = React.useMemo(() => {
       const map = new Map<string, { name: string; email: string; contact: string; children: Student[] }>();
       students.forEach(s => {
-        const email = s.parent_email || 'no-email@system.com';
-        if (!map.has(email)) {
-          map.set(email, {
+        // Use contact (phone) as primary key for linking families, fallback to email
+        const key = s.contact || s.parent_email || 'unknown-parent';
+        
+        if (!map.has(key)) {
+          map.set(key, {
             name: s.parent_name || 'Unknown Parent',
-            email: email,
+            email: s.parent_email || 'N/A',
             contact: s.contact || 'N/A',
             children: []
           });
         }
-        map.get(email)!.children.push(s);
+        map.get(key)!.children.push(s);
       });
       return Array.from(map.values());
     }, [students]);
