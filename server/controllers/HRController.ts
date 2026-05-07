@@ -325,19 +325,24 @@ export const createPayroll = async (req: AuthRequest, res: Response) => {
 
 // RUN PAYROLL - auto-generate payroll entries for all active staff from their salaries
 export const runPayroll = async (req: AuthRequest, res: Response) => {
-  const { month_year } = req.body;
+  const { month_year, staff_ids } = req.body;
   try {
     const orgId = req.user.org_id;
-    // Get all active staff
-    const staffResult = await pool.query(
-      `SELECT s.id, s.name, s.salary, s.allowances, s.deductions
-       FROM staff s
-       WHERE s.org_id = $1 AND s.status = 'Active' AND (s.salary IS NOT NULL AND s.salary > 0)`,
-      [orgId]
-    );
+    // Get active staff (optionally filtered by staff_ids)
+    let query = `SELECT s.id, s.name, s.salary, s.allowances, s.deductions
+                 FROM staff s
+                 WHERE s.org_id = $1 AND s.status = 'Active' AND (s.salary IS NOT NULL AND s.salary > 0)`;
+    const params: any[] = [orgId];
+
+    if (staff_ids && Array.isArray(staff_ids) && staff_ids.length > 0) {
+      query += ` AND s.id = ANY($2)`;
+      params.push(staff_ids);
+    }
+
+    const staffResult = await pool.query(query, params);
 
     if (staffResult.rows.length === 0) {
-      return res.status(400).json({ error: 'No active staff with salary found. Please set salaries in Staff Management first.' });
+      return res.status(400).json({ error: 'No matching active staff with salary found. Please check your selection and staff salaries.' });
     }
 
     const inserted: any[] = [];

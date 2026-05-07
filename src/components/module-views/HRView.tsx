@@ -3951,12 +3951,15 @@ export const HRModules = {
     organization?: any;
     onSave?: (data: any) => void;
     onDelete?: (item: any) => void;
-    onRunPayroll?: (monthYear: string) => void;
+    onRunPayroll?: (monthYear: string, staffIds?: string[]) => void;
   }) => {
     const { currency, t } = useLanguage();
     const [selectedMonth, setSelectedMonth] = useState<string>("");
     const [showSalary, setShowSalary] = useState(false);
     const [viewMode, setViewMode] = useState<'admin' | 'self'>(role === 'STAFF' ? 'self' : 'admin');
+    const [isRunPayrollModalOpen, setIsRunPayrollModalOpen] = useState(false);
+    const [runMonth, setRunMonth] = useState(`${new Date().toLocaleString("default", { month: "long" })} ${new Date().getFullYear()}`);
+    const [selectedStaffIds, setSelectedStaffIds] = useState<string[]>([]);
 
     const handlePrintPayslip = (item: any) => {
       const printWindow = window.open("", "_blank");
@@ -4242,17 +4245,74 @@ export const HRModules = {
               </div>
             </div>
             <button
-              onClick={() => {
-                const now = new Date();
-                const monthStr = `${now.toLocaleString("default", { month: "long" })} ${now.getFullYear()}`;
-                onRunPayroll?.(monthStr);
-              }}
+              onClick={() => setIsRunPayrollModalOpen(true)}
               className="px-6 py-2 bg-indigo-600 text-white rounded-xl font-bold text-sm flex items-center gap-2 hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-500/20"
             >
               <Zap className="w-4 h-4" />
               {t('run_payroll')}
             </button>
           </div>
+
+          {/* Run Payroll Modal */}
+          <Modal
+            isOpen={isRunPayrollModalOpen}
+            onClose={() => setIsRunPayrollModalOpen(false)}
+            title={t('run_payroll')}
+          >
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest pl-1">Target Month / Year</label>
+                <input 
+                  type="text" 
+                  value={runMonth}
+                  onChange={(e) => setRunMonth(e.target.value)}
+                  placeholder="e.g. May 2026"
+                  className="w-full px-4 py-2 bg-zinc-100 dark:bg-zinc-800 border-none rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 transition-all"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest pl-1">Select Staff (Leave empty for all active staff)</label>
+                <div className="max-h-60 overflow-y-auto border border-zinc-200 dark:border-zinc-800 rounded-2xl p-2 space-y-1">
+                  {(staffList || []).filter(s => s.status === 'Active').map(staff => (
+                    <label key={staff.id} className="flex items-center gap-3 p-2 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 rounded-lg cursor-pointer transition-colors group">
+                      <input 
+                        type="checkbox"
+                        checked={selectedStaffIds.includes(staff.id)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedStaffIds([...selectedStaffIds, staff.id]);
+                          } else {
+                            setSelectedStaffIds(selectedStaffIds.filter(id => id !== staff.id));
+                          }
+                        }}
+                        className="w-4 h-4 rounded border-zinc-300 text-indigo-600 focus:ring-indigo-500"
+                      />
+                      <div className="flex flex-col">
+                        <span className="text-sm font-bold text-zinc-700 dark:text-zinc-300 group-hover:text-indigo-600 transition-colors">{staff.name}</span>
+                        <span className="text-[10px] text-zinc-400 uppercase font-medium">{staff.role} • {staff.department_name || 'Academic'}</span>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+                <p className="text-[10px] text-zinc-400 italic mt-2 pl-1">
+                  * Only active staff with defined salaries will be processed.
+                </p>
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  onClick={() => {
+                    onRunPayroll?.(runMonth, selectedStaffIds);
+                    setIsRunPayrollModalOpen(false);
+                  }}
+                  className="flex-1 py-3 bg-indigo-600 text-white rounded-xl font-bold text-sm hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-500/20"
+                >
+                  Generate Payroll Records
+                </button>
+              </div>
+            </div>
+          </Modal>
 
           <DataTable
             title={t('payroll_history')}

@@ -2955,9 +2955,9 @@ export default function App() {
           )}
           onSave={(data) => handleEntitySave("payroll", data)}
           onDelete={(item) => handleEntityDelete("payroll", item)}
-          onRunPayroll={async (monthYear) => {
+          onRunPayroll={async (monthYear, staffIds) => {
             try {
-              const result = await runPayroll(monthYear);
+              const result = await runPayroll(monthYear, staffIds);
               (window as any).showToast?.(
                 result.message || "Payroll generated!",
                 "success",

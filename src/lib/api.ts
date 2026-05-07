@@ -293,8 +293,8 @@ export const deletePayroll = async (id: string) => {
   return response.data;
 };
 
-export const runPayroll = async (monthYear: string) => {
-  const response = await api.post('/hr/payroll/run', { month_year: monthYear });
+export const runPayroll = async (monthYear: string, staffIds?: string[]) => {
+  const response = await api.post('/hr/payroll/run', { month_year: monthYear, staff_ids: staffIds });
   return response.data;
 };
 
