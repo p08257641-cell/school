@@ -12,13 +12,32 @@ interface ProfileProps {
   orgCount?: number;
   partnerCount?: number;
   totalUsers?: number;
+  studentsCount?: number;
+  staffCount?: number;
+  departmentsCount?: number;
+  organization?: any;
 }
 
-export const Profile = ({ currentUser, orgCount = 0, partnerCount = 0, totalUsers = 0 }: ProfileProps) => {
-  const stats = [
+export const Profile = ({ 
+  currentUser, 
+  orgCount = 0, 
+  partnerCount = 0, 
+  totalUsers = 0,
+  studentsCount = 0,
+  staffCount = 0,
+  departmentsCount = 0,
+  organization
+}: ProfileProps) => {
+  const isSuperAdmin = currentUser?.role === 'SUPER_ADMIN';
+
+  const stats = isSuperAdmin ? [
     { label: 'Organizations', value: orgCount, icon: Building2, color: 'text-indigo-600', bg: 'bg-indigo-50 dark:bg-indigo-900/20' },
     { label: 'Partners', value: partnerCount, icon: Users, color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-900/20' },
     { label: 'System Users', value: totalUsers, icon: Activity, color: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-900/20' },
+  ] : [
+    { label: 'Total Students', value: studentsCount, icon: GraduationCap, color: 'text-indigo-600', bg: 'bg-indigo-50 dark:bg-indigo-900/20' },
+    { label: 'Total Staff', value: staffCount, icon: Briefcase, color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-900/20' },
+    { label: 'Departments', value: departmentsCount, icon: Layers, color: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-900/20' },
   ];
 
   return (
@@ -52,7 +71,7 @@ export const Profile = ({ currentUser, orgCount = 0, partnerCount = 0, totalUser
           <div className="text-center md:text-left space-y-2">
             <div className="flex flex-wrap items-center justify-center md:justify-start gap-3">
               <h1 className="text-4xl font-black tracking-tight text-zinc-900 dark:text-white">
-                {currentUser?.name || 'Super Administrator'}
+                {currentUser?.name || (isSuperAdmin ? 'Super Administrator' : 'School Administrator')}
               </h1>
               <span className="px-4 py-1 bg-indigo-600 text-white text-[10px] font-bold uppercase tracking-[0.2em] rounded-full shadow-lg shadow-indigo-200 dark:shadow-none">
                 {currentUser?.role || 'SUPER_ADMIN'}
@@ -62,6 +81,12 @@ export const Profile = ({ currentUser, orgCount = 0, partnerCount = 0, totalUser
               <Mail className="w-5 h-5" />
               {currentUser?.email || 'admin@schoolgo.com'}
             </p>
+            {!isSuperAdmin && organization && (
+              <p className="text-zinc-400 font-bold text-sm flex items-center justify-center md:justify-start gap-2 uppercase tracking-widest mt-1">
+                <Building2 className="w-4 h-4 text-indigo-500" />
+                {organization.name}
+              </p>
+            )}
             <div className="flex items-center justify-center md:justify-start gap-6 pt-4">
               <div className="flex -space-x-3">
                 {[1, 2, 3, 4].map((i) => (
@@ -71,7 +96,9 @@ export const Profile = ({ currentUser, orgCount = 0, partnerCount = 0, totalUser
                   +12
                 </div>
               </div>
-              <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Platform Activity Leader</p>
+              <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest">
+                {isSuperAdmin ? 'Platform Activity Leader' : 'School Administration Team'}
+              </p>
             </div>
           </div>
         </div>
@@ -101,10 +128,10 @@ export const Profile = ({ currentUser, orgCount = 0, partnerCount = 0, totalUser
               {[
                 { label: 'Full Name', value: currentUser?.name || 'N/A', icon: User },
                 { label: 'Email Address', value: currentUser?.email || 'N/A', icon: Mail },
-                { label: 'System Access', value: 'Root / Global', icon: Shield },
-                { label: 'Account Tier', value: 'Enterprise Elite', icon: TrendingUp },
+                { label: 'System Access', value: isSuperAdmin ? 'Root / Global' : 'Organization Administrative', icon: Shield },
+                { label: 'Account Tier', value: isSuperAdmin ? 'Enterprise Elite' : (organization?.plan || 'Premium'), icon: TrendingUp },
                 { label: 'Platform Status', value: 'Active / Verified', icon: Globe },
-                { label: 'Member Since', value: 'Jan 2024', icon: Receipt },
+                { label: 'Member Since', value: currentUser?.created_at ? new Date(currentUser.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'Jan 2024', icon: Receipt },
               ].map((item, i) => (
                 <div key={i} className="flex items-start gap-4">
                   <div className="p-2 bg-zinc-50 dark:bg-zinc-800 rounded-xl">
@@ -125,8 +152,12 @@ export const Profile = ({ currentUser, orgCount = 0, partnerCount = 0, totalUser
           <div className="p-8 bg-indigo-600 rounded-[2.5rem] shadow-xl text-white relative overflow-hidden group">
             <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 blur-3xl -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-700" />
             <div className="relative">
-              <h3 className="text-xl font-bold mb-2">Platform Master</h3>
-              <p className="text-indigo-100 text-sm mb-6 leading-relaxed">You have complete control over all organizations, partners, and system modules.</p>
+              <h3 className="text-xl font-bold mb-2">{isSuperAdmin ? 'Platform Master' : 'School Admin'}</h3>
+              <p className="text-indigo-100 text-sm mb-6 leading-relaxed">
+                {isSuperAdmin 
+                  ? 'You have complete control over all organizations, partners, and system modules.'
+                  : 'You have full administrative oversight of your school, staff, and student records.'}
+              </p>
               <button className="w-full py-3 bg-white text-indigo-600 rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-indigo-50 transition-colors shadow-lg shadow-indigo-900/20">
                 View Audit Logs
               </button>
@@ -143,7 +174,7 @@ export const Profile = ({ currentUser, orgCount = 0, partnerCount = 0, totalUser
                   </div>
                   <div>
                     <p className="text-sm font-bold text-zinc-900 dark:text-white">Change Password</p>
-                    <p className="text-[10px] text-zinc-400 font-medium">Keep your root access secure</p>
+                    <p className="text-[10px] text-zinc-400 font-medium">Keep your access secure</p>
                   </div>
                 </div>
               </button>
@@ -155,7 +186,7 @@ export const Profile = ({ currentUser, orgCount = 0, partnerCount = 0, totalUser
                   </div>
                   <div>
                     <p className="text-sm font-bold text-zinc-900 dark:text-white">Push Notifications</p>
-                    <p className="text-[10px] text-zinc-400 font-medium">Manage system alerts</p>
+                    <p className="text-[10px] text-zinc-400 font-medium">Manage your alerts</p>
                   </div>
                 </div>
               </button>

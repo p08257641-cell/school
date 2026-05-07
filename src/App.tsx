@@ -3784,6 +3784,14 @@ export default function App() {
             partnerCount={partnerList?.length || 0}
             totalUsers={platformUsers.length}
           />
+        ) : currentRole === "SCHOOL_ADMIN" ? (
+          <Profile
+            currentUser={currentUser}
+            studentsCount={studentList.length}
+            staffCount={staffList.length}
+            departmentsCount={departments.length}
+            organization={organization}
+          />
         ) : staffData?.profile?.length ? (
           <StaffHRModules.StaffProfile
             data={staffData.profile}

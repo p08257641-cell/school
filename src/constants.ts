@@ -256,6 +256,7 @@ export const NAVIGATION_CONFIG: NavItem[] = [
     icon: Settings,
     roles: ['SUPER_ADMIN', 'SCHOOL_ADMIN', 'HOD', 'STAFF', 'STUDENT', 'PARENT', 'FINANCE', 'BUS_DRIVER', 'LIBRARIAN', 'NON_STAFF', 'HR', 'PARTNER'],
     children: [
+      { title: 'My Profile', href: 'profile', roles: ['SCHOOL_ADMIN'], icon: User },
       { title: 'School Profile', href: 'School Profile', roles: ['SCHOOL_ADMIN'], icon: Building2 },
       { title: 'Change Password', href: 'Change Password', roles: ['SUPER_ADMIN', 'SCHOOL_ADMIN', 'HOD', 'STAFF', 'STUDENT', 'PARENT', 'FINANCE', 'BUS_DRIVER', 'LIBRARIAN', 'NON_STAFF', 'PARTNER'], icon: ShieldCheck },
       { title: 'Notification Settings', href: 'Notification Settings', roles: ['SUPER_ADMIN', 'SCHOOL_ADMIN', 'HOD', 'STAFF', 'STUDENT', 'PARENT', 'FINANCE', 'BUS_DRIVER', 'LIBRARIAN', 'NON_STAFF', 'PARTNER'], icon: Bell },
