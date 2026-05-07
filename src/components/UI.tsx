@@ -39,12 +39,12 @@ export function Modal({ isOpen, onClose, title, children, footer, maxWidth = "ma
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             className={cn(
-              "relative w-full bg-white dark:bg-zinc-900 rounded-3xl shadow-2xl overflow-hidden border border-zinc-200 dark:border-zinc-800 flex flex-col",
+              "relative w-full bg-white dark:bg-zinc-900 rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden border border-zinc-200 dark:border-zinc-800 flex flex-col",
               maxWidth
             )}
           >
-            <div className="flex items-center justify-between p-6 border-b border-zinc-100 dark:border-zinc-800">
-              <h3 className="text-xl font-bold text-zinc-900 dark:text-white">{title}</h3>
+            <div className="flex items-center justify-between p-4 sm:p-6 border-b border-zinc-100 dark:border-zinc-800">
+              <h3 className="text-lg sm:text-xl font-bold text-zinc-900 dark:text-white">{title}</h3>
               <button
                 onClick={onClose}
                 className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-xl text-zinc-500 transition-colors"
@@ -52,11 +52,11 @@ export function Modal({ isOpen, onClose, title, children, footer, maxWidth = "ma
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <div className={cn("p-6 overflow-y-auto custom-scrollbar", maxHeight)}>
+            <div className={cn("p-4 sm:p-6 overflow-y-auto custom-scrollbar", maxHeight)}>
               {children}
             </div>
             {footer && (
-              <div className="p-6 border-t border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-800/30 flex items-center justify-end gap-3">
+              <div className="p-4 sm:p-6 border-t border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-800/30 flex flex-col sm:flex-row items-center sm:justify-end gap-3">
                 {footer}
               </div>
             )}
@@ -145,7 +145,7 @@ export function ConfirmationModal({
         <>
           <button
             onClick={onClose}
-            className="px-4 py-2 text-sm font-bold text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-xl transition-colors"
+            className="w-full sm:w-auto px-4 py-2 text-sm font-bold text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-xl transition-colors order-2 sm:order-1"
           >
             {finalCancelText}
           </button>
@@ -155,7 +155,7 @@ export function ConfirmationModal({
               onClose();
             }}
             className={cn(
-              "px-6 py-2 text-white text-sm font-bold rounded-xl transition-colors",
+              "w-full sm:w-auto px-6 py-2 text-white text-sm font-bold rounded-xl transition-colors order-1 sm:order-2",
               type === 'error' ? "bg-red-600 hover:bg-red-700" :
                 type === 'warning' ? "bg-amber-500 hover:bg-amber-600" :
                   "bg-indigo-600 hover:bg-indigo-700"
@@ -277,12 +277,12 @@ export function SearchableSelect({
         type="button"
         disabled={disabled}
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between px-4 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm text-left outline-none focus:ring-2 focus:ring-indigo-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full flex items-center justify-between px-3 sm:px-4 py-2.5 sm:py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm text-left outline-none focus:ring-2 focus:ring-indigo-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        <span className={cn("truncate", (!selected || (Array.isArray(selected) && selected.length === 0)) && "text-zinc-400")}>
+        <span className={cn("truncate max-w-[calc(100%-20px)]", (!selected || (Array.isArray(selected) && selected.length === 0)) && "text-zinc-400")}>
           {getButtonText()}
         </span>
-        <ChevronDown className={cn("w-4 h-4 text-zinc-400 transition-transform", isOpen && "rotate-180")} />
+        <ChevronDown className={cn("w-4 h-4 text-zinc-400 shrink-0 transition-transform", isOpen && "rotate-180")} />
       </button>
 
       <AnimatePresence>
@@ -291,7 +291,7 @@ export function SearchableSelect({
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="absolute z-50 w-full mt-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-xl overflow-hidden"
+            className="absolute z-50 w-full mt-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-xl overflow-hidden min-w-[200px]"
           >
             <div className="p-2 border-b border-zinc-100 dark:border-zinc-800">
               <div className="relative">

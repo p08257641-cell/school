@@ -456,7 +456,7 @@ export default function Layout({
         </header>
 
         {/* Content Area */}
-        <main className="flex-1 p-3 sm:p-4 md:p-8 overflow-y-auto">
+        <main className="flex-1 p-2 sm:p-4 md:p-8 overflow-y-auto">
           <div className="max-w-7xl mx-auto">
             <div className="flex flex-wrap items-center gap-y-1 gap-x-2 text-[10px] sm:text-xs text-zinc-400 mb-6 uppercase tracking-widest font-bold">
               <span className="hover:text-indigo-600 cursor-pointer transition-colors shrink-0">{t('home')}</span>

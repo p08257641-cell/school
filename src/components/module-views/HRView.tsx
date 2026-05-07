@@ -248,7 +248,13 @@ export const HRModules = {
           };
 
           return (
-            <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-4 sm:p-10 overflow-x-auto custom-scrollbar">
+            <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-4 sm:p-10 overflow-x-auto custom-scrollbar relative">
+              <div className="sm:hidden absolute top-4 right-4 animate-pulse pointer-events-none">
+                <div className="flex items-center gap-1.5 px-2 py-1 bg-zinc-900/10 dark:bg-white/10 rounded-lg backdrop-blur-sm">
+                  <span className="text-[8px] font-bold uppercase tracking-widest text-zinc-500">Scroll</span>
+                  <ArrowRight className="w-2.5 h-2.5 text-zinc-500" />
+                </div>
+              </div>
               <div className="min-w-max flex flex-col items-center">
                 {/* School Admin / Root Node - HIDDEN IN SCOPED VIEW */}
                 {!scopedDeptId && (

@@ -9,6 +9,8 @@ interface Column<T> {
   header: string;
   accessor: keyof T | ((item: T) => React.ReactNode);
   className?: string;
+  hiddenOnMobile?: boolean;
+  hiddenOnTablet?: boolean;
 }
 
 interface DataTableProps<T> {
@@ -64,6 +66,14 @@ export function DataTable<T extends { id: string | number }>({
   const [isModalOpen, setIsModalOpen] = useState(!!initialViewItem);
   const [isViewOnly, setIsViewOnly] = useState(!!initialViewItem);
   const [editingItem, setEditingItem] = useState<T | undefined>(initialViewItem);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 640);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useEffect(() => {
     if (initialViewItem) {
@@ -256,11 +266,71 @@ export function DataTable<T extends { id: string | number }>({
         </div>
 
         <div className="overflow-x-auto custom-scrollbar">
-          <table className="w-full text-left border-collapse min-w-[600px] sm:min-w-0">
+          {isMobile ? (
+            <div className="divide-y divide-zinc-100 dark:divide-zinc-800">
+              {paginatedData.length === 0 ? (
+                <div className="px-6 py-12 text-center text-zinc-500 italic">
+                  {t('no_records_found')}
+                </div>
+              ) : paginatedData.map((item) => (
+                <div key={item.id} className="p-4 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1 min-w-0">
+                      {columns.slice(0, 2).map((col, i) => (
+                        <div key={i} className={cn("text-sm", i === 0 ? "font-bold text-zinc-900 dark:text-white" : "text-zinc-500 mt-0.5")}>
+                          {typeof col.accessor === 'function' ? col.accessor(item) : (item[col.accessor] as React.ReactNode)}
+                        </div>
+                      ))}
+                    </div>
+                    {(onView || onEdit || onDelete || extraActions || (autoModal && (autoViewModal || renderDetails || renderForm))) && (
+                      <div className="relative inline-block text-left">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (activeDropdown === item.id) {
+                              setActiveDropdown(null);
+                              setAnchorRect(null);
+                              setDropdownStyles({ position: 'fixed', visibility: 'hidden' });
+                            } else {
+                              const rect = e.currentTarget.getBoundingClientRect();
+                              setActiveDropdown(item.id);
+                              setAnchorRect(rect);
+                              setDropdownStyles({ position: 'fixed', visibility: 'hidden' });
+                            }
+                          }}
+                          className="p-1.5 text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
+                        >
+                          <MoreVertical className="w-5 h-5" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Additional fields shown in detail layout on mobile */}
+                  <div className="grid grid-cols-2 gap-y-2 gap-x-4">
+                    {columns.slice(2).map((col, i) => (
+                      <div key={i} className={cn(col.hiddenOnMobile ? "hidden" : "flex flex-col")}>
+                        <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">{col.header}</span>
+                        <div className="text-xs text-zinc-600 dark:text-zinc-400 mt-0.5">
+                          {typeof col.accessor === 'function' ? col.accessor(item) : (item[col.accessor] as React.ReactNode)}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <table className="w-full text-left border-collapse min-w-[600px] sm:min-w-0">
             <thead>
               <tr className="bg-zinc-50/50 dark:bg-zinc-800/30">
                 {columns.map((col, i) => (
-                  <th key={i} className={cn("px-6 py-4 text-xs font-bold text-zinc-500 uppercase tracking-wider", col.className)}>
+                  <th key={i} className={cn(
+                    "px-6 py-4 text-xs font-bold text-zinc-500 uppercase tracking-wider",
+                    col.hiddenOnMobile && "hidden sm:table-cell",
+                    col.hiddenOnTablet && "hidden lg:table-cell",
+                    col.className
+                  )}>
                     {col.header}
                   </th>
                 ))}
@@ -285,7 +355,12 @@ export function DataTable<T extends { id: string | number }>({
                   )}
                 >
                   {columns.map((col, i) => (
-                    <td key={i} className={cn("px-6 py-4 text-sm text-zinc-600 dark:text-zinc-400", col.className)}>
+                    <td key={i} className={cn(
+                      "px-6 py-4 text-sm text-zinc-600 dark:text-zinc-400",
+                      col.hiddenOnMobile && "hidden sm:table-cell",
+                      col.hiddenOnTablet && "hidden lg:table-cell",
+                      col.className
+                    )}>
                       {typeof col.accessor === 'function' ? col.accessor(item) : (item[col.accessor] as React.ReactNode)}
                     </td>
                   ))}
@@ -373,7 +448,8 @@ export function DataTable<T extends { id: string | number }>({
                 </tr>
               ))}
             </tbody>
-          </table>
+            </table>
+          )}
         </div>
 
         <div className="p-4 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-between">

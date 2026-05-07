@@ -99,7 +99,7 @@ function StatCard({ title, value, change, trend, icon: Icon, color, onClick }: S
     <div
       onClick={onClick}
       className={cn(
-        "p-6 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300",
+        "p-4 sm:p-6 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300",
         onClick && "cursor-pointer hover:border-indigo-500/50 hover:bg-indigo-50/5 dark:hover:bg-indigo-900/5 scale-100 hover:scale-[1.02] active:scale-[0.98]"
       )}
     >
@@ -116,8 +116,8 @@ function StatCard({ title, value, change, trend, icon: Icon, color, onClick }: S
         </div>
       </div>
       <div>
-        <p className="text-sm text-zinc-500 dark:text-zinc-400 font-medium">{title}</p>
-        <h3 className="text-2xl font-bold text-zinc-900 dark:text-white mt-1 uppercase tracking-tight">{value}</h3>
+        <p className="text-[10px] sm:text-sm text-zinc-500 dark:text-zinc-400 font-medium">{title}</p>
+        <h3 className="text-xl sm:text-2xl font-bold text-zinc-900 dark:text-white mt-1 uppercase tracking-tight">{value}</h3>
       </div>
     </div>
   );
@@ -535,60 +535,53 @@ function SMSPurchasePanel({ organization, onRefresh }: { organization: any, onRe
           </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-zinc-100 dark:border-zinc-800">
-                <th className="px-4 py-4 text-left text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Date</th>
-                <th className="px-4 py-4 text-left text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Type</th>
-                <th className="px-4 py-4 text-right text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Units</th>
-                <th className="px-4 py-4 text-right text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Balance</th>
-                <th className="px-4 py-4 text-left text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Status</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-zinc-50 dark:divide-zinc-800/50">
-              {isLoading ? (
-                Array(3).fill(0).map((_, i) => (
-                  <tr key={i} className="animate-pulse">
-                    <td colSpan={5} className="px-4 py-4 h-12 bg-zinc-50/50 dark:bg-zinc-800/30 rounded-xl" />
-                  </tr>
-                ))
-              ) : transactions.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="px-4 py-12 text-center text-zinc-400 font-medium">No transactions found</td>
-                </tr>
-              ) : (
-                transactions.map((tx) => (
-                  <tr key={tx.id} className="group hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors">
-                    <td className="px-4 py-4 text-xs font-bold text-zinc-600 dark:text-zinc-400">
-                      {new Date(tx.created_at).toLocaleDateString()}
-                    </td>
-                    <td className="px-4 py-4">
-                      <span className={cn(
-                        "px-2 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest",
-                        tx.type === 'Purchase' ? "bg-emerald-50 text-emerald-600" : "bg-blue-50 text-blue-600"
-                      )}>
-                        {tx.type}
-                      </span>
-                    </td>
-                    <td className="px-4 py-4 text-right text-xs font-black text-zinc-900 dark:text-white">
-                      +{tx.amount?.toLocaleString()}
-                    </td>
-                    <td className="px-4 py-4 text-right text-xs font-bold text-zinc-500">
-                      {tx.new_balance?.toLocaleString()}
-                    </td>
-                    <td className="px-4 py-4">
-                      <div className="flex items-center gap-1.5">
-                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                        <span className="text-[10px] font-bold text-emerald-600 uppercase">Completed</span>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+        <DataTable
+          title="Transaction History"
+          data={transactions}
+          columns={[
+            { 
+              header: "Date", 
+              accessor: (tx) => new Date(tx.created_at).toLocaleDateString(),
+              hiddenOnMobile: false 
+            },
+            { 
+              header: "Type", 
+              accessor: (tx) => (
+                <span className={cn(
+                  "px-2 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest",
+                  tx.type === 'Purchase' ? "bg-emerald-50 text-emerald-600" : "bg-blue-50 text-blue-600"
+                )}>
+                  {tx.type}
+                </span>
+              ),
+              hiddenOnMobile: false
+            },
+            { 
+              header: "Units", 
+              accessor: (tx) => `+${tx.amount?.toLocaleString()}`,
+              className: "text-right font-black",
+              hiddenOnMobile: false
+            },
+            { 
+              header: "Balance", 
+              accessor: (tx) => tx.new_balance?.toLocaleString(),
+              className: "text-right font-bold text-zinc-500",
+              hiddenOnMobile: true
+            },
+            { 
+              header: "Status", 
+              accessor: (tx) => (
+                <div className="flex items-center gap-1.5">
+                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                  <span className="text-[10px] font-bold text-emerald-600 uppercase">Completed</span>
+                </div>
+              ),
+              hiddenOnMobile: true
+            }
+          ]}
+          hideExport
+          itemsPerPage={5}
+        />
       </div>
     </div>
   );
