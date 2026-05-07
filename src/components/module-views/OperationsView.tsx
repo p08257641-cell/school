@@ -2426,6 +2426,9 @@ export const OperationsModules = {
                       <span className="flex items-center gap-1 text-[10px] font-bold text-zinc-500 bg-white dark:bg-zinc-900 px-2 py-0.5 rounded-md border border-zinc-200 dark:border-zinc-700">
                         <MapPin className="w-3 h-3" /> {entry.location || 'Standard Stop'}
                       </span>
+                      <span className="flex items-center gap-1 text-[10px] font-bold text-zinc-500 bg-white dark:bg-zinc-900 px-2 py-0.5 rounded-md border border-zinc-200 dark:border-zinc-700">
+                        <User className="w-3 h-3 text-indigo-500" /> {entry.performed_by_name || 'Driver'}
+                      </span>
                     </div>
                   </div>
                   <div className="flex items-center justify-between sm:block text-left sm:text-right shrink-0">
