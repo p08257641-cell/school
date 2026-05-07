@@ -3956,6 +3956,7 @@ export const HRModules = {
     const { currency, t } = useLanguage();
     const [selectedMonth, setSelectedMonth] = useState<string>("");
     const [showSalary, setShowSalary] = useState(false);
+    const [viewMode, setViewMode] = useState<'admin' | 'self'>(role === 'STAFF' ? 'self' : 'admin');
 
     const handlePrintPayslip = (item: any) => {
       const printWindow = window.open("", "_blank");
@@ -4106,14 +4107,36 @@ export const HRModules = {
       };
     });
 
-    const isStaff = role === "STAFF";
-    const staffName = currentUser ? currentUser.name : "John Doe";
+    const isSelfView = role === "STAFF" || viewMode === 'self';
+    const staffName = currentUser ? currentUser.name : "";
 
-    if (isStaff) {
+    if (isSelfView) {
       // Staff view (existing or simplified)
       const myPayroll = mappedData.filter((p) => p.name === staffName);
       return (
         <div className="space-y-6">
+          {role === 'SCHOOL_ADMIN' && (
+            <div className="flex items-center gap-2 p-1 bg-zinc-100 dark:bg-zinc-800 w-fit rounded-xl mb-4">
+              <button 
+                onClick={() => setViewMode('admin')}
+                className={cn(
+                  "px-4 py-2 text-xs font-bold rounded-lg transition-all",
+                  viewMode === 'admin' ? "bg-white dark:bg-zinc-900 shadow-sm text-indigo-600" : "text-zinc-500"
+                )}
+              >
+                Manage Staff
+              </button>
+              <button 
+                onClick={() => setViewMode('self')}
+                className={cn(
+                  "px-4 py-2 text-xs font-bold rounded-lg transition-all",
+                  viewMode === 'self' ? "bg-white dark:bg-zinc-900 shadow-sm text-indigo-600" : "text-zinc-500"
+                )}
+              >
+                My Self Service
+              </button>
+            </div>
+          )}
           <div className="flex justify-end">
             <button
               onClick={() => setShowSalary(!showSalary)}
@@ -4182,6 +4205,28 @@ export const HRModules = {
     if (!selectedMonth) {
       return (
         <div className="space-y-6">
+          {role === 'SCHOOL_ADMIN' && (
+            <div className="flex items-center gap-2 p-1 bg-zinc-100 dark:bg-zinc-800 w-fit rounded-xl">
+              <button 
+                onClick={() => setViewMode('admin')}
+                className={cn(
+                  "px-4 py-2 text-xs font-bold rounded-lg transition-all",
+                  viewMode === 'admin' ? "bg-white dark:bg-zinc-900 shadow-sm text-indigo-600" : "text-zinc-500"
+                )}
+              >
+                Manage Staff
+              </button>
+              <button 
+                onClick={() => setViewMode('self')}
+                className={cn(
+                  "px-4 py-2 text-xs font-bold rounded-lg transition-all",
+                  viewMode === 'self' ? "bg-white dark:bg-zinc-900 shadow-sm text-indigo-600" : "text-zinc-500"
+                )}
+              >
+                My Self Service
+              </button>
+            </div>
+          )}
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white dark:bg-zinc-900 p-6 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 bg-indigo-50 dark:bg-indigo-900/20 rounded-2xl flex items-center justify-center">
