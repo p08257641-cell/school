@@ -550,7 +550,7 @@ export default function App() {
         fetchSubscriptions(),
         isAdmin || isFinance ? fetchReceipts() : Promise.resolve([]),
         fetchClubs(),
-        currentRole === "SUPER_ADMIN"
+        currentRole === "SUPER_ADMIN" || currentRole === "SCHOOL_ADMIN"
           ? fetchPlatformUsers()
           : Promise.resolve([]),
         isAdmin ? fetchAuditLogs() : Promise.resolve([]),
@@ -2949,6 +2949,7 @@ export default function App() {
           role={currentRole}
           data={payrollEntries}
           staffList={staffList}
+          platformUsers={platformUsers}
           currentUser={currentUser}
           organization={organizations.find(
             (o) => String(o.id) === String(currentUser?.org_id),

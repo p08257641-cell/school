@@ -3938,6 +3938,7 @@ export const HRModules = {
     role,
     data = [],
     staffList = [],
+    platformUsers = [],
     currentUser,
     organization,
     onSave,
@@ -3947,6 +3948,7 @@ export const HRModules = {
     role?: UserRole;
     data?: any[];
     staffList?: any[];
+    platformUsers?: any[];
     currentUser?: any;
     organization?: any;
     onSave?: (data: any) => void;
@@ -3960,6 +3962,29 @@ export const HRModules = {
     const [isRunPayrollModalOpen, setIsRunPayrollModalOpen] = useState(false);
     const [runMonth, setRunMonth] = useState(`${new Date().toLocaleString("default", { month: "long" })} ${new Date().getFullYear()}`);
     const [selectedStaffIds, setSelectedStaffIds] = useState<string[]>([]);
+
+    // Combine staff and platform users who should be eligible for payroll
+    const eligiblePayrollUsers = useMemo(() => {
+      // Start with staff list
+      const staffMap = new Map(staffList.map(s => [s.email?.toLowerCase(), s]));
+      const combined = [...staffList];
+
+      // Add users from platformUsers who aren't already in staffList and aren't students/parents
+      platformUsers.forEach(user => {
+        const userEmail = user.email?.toLowerCase();
+        if (!staffMap.has(userEmail) && user.role !== 'STUDENT' && user.role !== 'PARENT' && user.role !== 'PARTNER') {
+          combined.push({
+            id: user.id, 
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            status: 'Active',
+            is_external_admin: true
+          });
+        }
+      });
+      return combined;
+    }, [staffList, platformUsers]);
 
     const handlePrintPayslip = (item: any) => {
       const printWindow = window.open("", "_blank");
@@ -4272,31 +4297,38 @@ export const HRModules = {
               </div>
 
               <div className="space-y-2">
-                <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest pl-1">Select Staff (Leave empty for all active staff)</label>
+                <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest pl-1">Select Personnel (Leave empty for all active staff)</label>
                 <div className="max-h-60 overflow-y-auto border border-zinc-200 dark:border-zinc-800 rounded-2xl p-2 space-y-1">
-                  {(staffList || []).filter(s => s.status === 'Active').map(staff => (
-                    <label key={staff.id} className="flex items-center gap-3 p-2 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 rounded-lg cursor-pointer transition-colors group">
+                  {eligiblePayrollUsers.filter(s => s.status === 'Active').map(person => (
+                    <label key={person.id} className="flex items-center gap-3 p-2 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 rounded-lg cursor-pointer transition-colors group">
                       <input 
                         type="checkbox"
-                        checked={selectedStaffIds.includes(staff.id)}
+                        checked={selectedStaffIds.includes(person.id)}
                         onChange={(e) => {
                           if (e.target.checked) {
-                            setSelectedStaffIds([...selectedStaffIds, staff.id]);
+                            setSelectedStaffIds([...selectedStaffIds, person.id]);
                           } else {
-                            setSelectedStaffIds(selectedStaffIds.filter(id => id !== staff.id));
+                            setSelectedStaffIds(selectedStaffIds.filter(id => id !== person.id));
                           }
                         }}
                         className="w-4 h-4 rounded border-zinc-300 text-indigo-600 focus:ring-indigo-500"
                       />
                       <div className="flex flex-col">
-                        <span className="text-sm font-bold text-zinc-700 dark:text-zinc-300 group-hover:text-indigo-600 transition-colors">{staff.name}</span>
-                        <span className="text-[10px] text-zinc-400 uppercase font-medium">{staff.role} • {staff.department_name || 'Academic'}</span>
+                        <span className="text-sm font-bold text-zinc-700 dark:text-zinc-300 group-hover:text-indigo-600 transition-colors">{person.name}</span>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[10px] text-zinc-400 uppercase font-medium">{person.role}</span>
+                          {person.department_name && <span className="text-[10px] text-zinc-300">•</span>}
+                          {person.department_name && <span className="text-[10px] text-zinc-400 uppercase font-medium">{person.department_name}</span>}
+                          {person.is_external_admin && (
+                            <span className="px-1.5 py-0.5 bg-amber-50 text-amber-600 text-[8px] font-black rounded uppercase tracking-tighter">Admin Account</span>
+                          )}
+                        </div>
                       </div>
                     </label>
                   ))}
                 </div>
                 <p className="text-[10px] text-zinc-400 italic mt-2 pl-1">
-                  * Only active staff with defined salaries will be processed.
+                  * Only personnel with defined salaries in the system will be processed.
                 </p>
               </div>
 

@@ -293,15 +293,27 @@ export const deleteModule = async (req: AuthRequest, res: Response) => {
   }
 };
 
-// USERS (Platform-wide)
+// USERS (Platform-wide or Organization-wide)
 export const getAllUsers = async (req: AuthRequest, res: Response) => {
   try {
-    const result = await pool.query(`
+    const role = req.user.role;
+    const orgId = req.user.org_id;
+
+    let query = `
       SELECT u.id, u.name, u.email, u.role, u.created_at, o.name as org_name 
       FROM users u
       LEFT JOIN organizations o ON u.org_id = o.id
-      ORDER BY u.created_at DESC
-    `);
+    `;
+    const params: any[] = [];
+
+    if (role !== 'SUPER_ADMIN') {
+      params.push(orgId);
+      query += ` WHERE u.org_id = $1`;
+    }
+
+    query += ` ORDER BY u.created_at DESC`;
+
+    const result = await pool.query(query, params);
     res.json(result.rows);
   } catch (err: any) {
     res.status(500).json({ error: err.message });

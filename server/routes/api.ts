@@ -92,7 +92,7 @@ router.delete('/receipts/:id', checkRole(['SUPER_ADMIN', 'SCHOOL_ADMIN', 'FINANC
 router.get('/modules', OrganizationController.getModules);
 router.patch('/modules/:id', checkRole(['SUPER_ADMIN']), OrganizationController.updateModule);
 router.delete('/modules/:id', checkRole(['SUPER_ADMIN']), OrganizationController.deleteModule);
-router.get('/platform/users', checkRole(['SUPER_ADMIN']), OrganizationController.getAllUsers);
+router.get('/platform/users', checkRole(['SUPER_ADMIN', 'SCHOOL_ADMIN']), OrganizationController.getAllUsers);
 router.post('/platform/users/:id/reset-password', checkRole(['SUPER_ADMIN']), OrganizationController.resetUserPassword);
 router.delete('/platform/users/:id', checkRole(['SUPER_ADMIN']), OrganizationController.deleteUser);
 
