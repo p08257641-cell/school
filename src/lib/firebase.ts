@@ -20,7 +20,7 @@ export const requestForToken = async () => {
 
   try {
     const currentToken = await getToken(messaging, {
-      vapidKey: "YOUR_VAPID_KEY" // Generate this in Project Settings > Cloud Messaging > Web configuration
+      vapidKey: "BJ25i8tJsnRj00v1q10akCIZFZOGoPWNpMDDwdRWbyg2YQR9L1rfpYPGseuWihzWjZVRgia15ulSUZPfuv_jjBg" 
     });
 
     if (currentToken) {
