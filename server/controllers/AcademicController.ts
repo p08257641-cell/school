@@ -3,6 +3,8 @@ import { Response } from 'express';
 import pool from '../db.ts';
 import { AuthRequest } from '../middleware/auth.ts';
 import { recordAuditLog } from '../lib/audit.ts';
+import { sendPushNotification } from '../lib/firebase.ts';
+
 
 // CLASSES
 export const getClasses = async (req: AuthRequest, res: Response) => {
@@ -281,7 +283,7 @@ export const markAttendanceByQR = async (req: AuthRequest, res: Response) => {
 
     // 1. Look up student by admission_no or id
     const studentResult = await pool.query(
-      `SELECT id, name, admission_no, class_id, primary_parent_email as parent_email FROM students 
+      `SELECT id, name, admission_no, class_id, primary_parent_email as parent_email, fcm_token FROM students 
        WHERE org_id = $1 AND (admission_no = $2 OR CAST(id AS TEXT) = $2)
        LIMIT 1`,
       [orgId, qr_data.trim()]
@@ -327,6 +329,16 @@ export const markAttendanceByQR = async (req: AuthRequest, res: Response) => {
               io.to(`parent_${student.parent_email.toLowerCase()}`).emit('attendance_notification', payload);
             }
           }
+
+          // Send Push Notification
+          if (student.fcm_token) {
+            sendPushNotification(
+              student.fcm_token,
+              'Attendance Alert',
+              `${student.name} has just left school.`,
+              { student_id: String(student.id), action: 'clock_out' }
+            ).catch(e => console.error('Push notification failed:', e));
+          }
           
           return res.json({
             ...result.rows[0],
@@ -364,6 +376,16 @@ export const markAttendanceByQR = async (req: AuthRequest, res: Response) => {
         if (student.parent_email) {
           io.to(`parent_${student.parent_email.toLowerCase()}`).emit('attendance_notification', payload);
         }
+      }
+
+      // Send Push Notification
+      if (student.fcm_token) {
+        sendPushNotification(
+          student.fcm_token,
+          'Attendance Alert',
+          `${student.name} has just arrived at school.`,
+          { student_id: String(student.id), action: 'clock_in' }
+        ).catch(e => console.error('Push notification failed:', e));
       }
 
       return res.status(201).json({

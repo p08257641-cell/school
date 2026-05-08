@@ -11,6 +11,7 @@ import {
 } from "./types";
 import { Toast, ToastType, ConfirmationModal, Modal } from "./components/UI";
 import { Calendar, ShieldCheck, X, AlertCircle } from "lucide-react";
+import { requestForToken, onMessageListener } from "./lib/firebase";
 import {
   SuperAdminDashboard,
   SchoolAdminDashboard,
@@ -421,6 +422,28 @@ export default function App() {
              console.log('Attendance update received:', data);
           }
         });
+
+        // Handle FCM Token
+        requestForToken().then(token => {
+          if (token) {
+            fetch(`${API_BASE_URL}/auth/fcm-token`, {
+              method: 'POST',
+              headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+              },
+              body: JSON.stringify({ fcm_token: token })
+            }).catch(e => console.error('Failed to save FCM token:', e));
+          }
+        });
+
+        // Background Message Listener
+        onMessageListener().then((payload: any) => {
+          setToast({
+            message: `📣 ${payload.notification.title}: ${payload.notification.body}`,
+            type: "info"
+          });
+        }).catch(err => console.log('failed: ', err));
       }
     }
   }, [view, pubToken]);
