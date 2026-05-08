@@ -629,11 +629,24 @@ export const markStaffAttendance = async (req: AuthRequest, res: Response) => {
   const { user_id, status, clock_in, clock_out } = req.body;
   try {
     const orgId = req.user.org_id;
+    
+    // Fetch late_time from organization settings
+    const orgSettings = await pool.query('SELECT late_time FROM organizations WHERE id = $1', [orgId]);
+    const lateThreshold = orgSettings.rows[0]?.late_time || '08:00:00';
+    
+    const now = clock_in || new Date().toLocaleTimeString('en-GB', { hour12: false });
+    
+    // Determine status based on clock-in time
+    let scanStatus = status;
+    if (status === 'Present' && now > lateThreshold) {
+        scanStatus = 'Late';
+    }
+
     const result = await pool.query(
       'INSERT INTO staff_attendance (org_id, user_id, status, clock_in, clock_out) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-      [orgId, user_id, status, clock_in, clock_out]
+      [orgId, user_id, scanStatus, clock_in, clock_out]
     );
-    await recordAuditLog(req.user.id, 'MARK_STAFF_ATTENDANCE', `Marked attendance for user ID: ${user_id} (${status})`, orgId, req.ip || '');
+    await recordAuditLog(req.user.id, 'MARK_STAFF_ATTENDANCE', `Marked attendance for user ID: ${user_id} (${scanStatus})`, orgId, req.ip || '');
     res.status(201).json(result.rows[0]);
   } catch (err: any) {
     res.status(500).json({ error: err.message });

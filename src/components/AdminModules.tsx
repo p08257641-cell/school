@@ -2973,7 +2973,18 @@ export function Settings({ role }: { role?: UserRole }) {
                     className="w-full px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500"
                   />
                 </div>
-                <div className="flex items-center gap-3 pt-8">
+                <div className="space-y-2">
+                  <label className="text-sm font-bold text-zinc-700 dark:text-zinc-300">{t('late_arrival_threshold')}</label>
+                  <input
+                    type="time"
+                    step="1"
+                    value={organization?.late_time || '08:00:00'}
+                    onChange={(e) => setOrganization({ ...organization, late_time: e.target.value })}
+                    className="w-full px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 font-mono"
+                  />
+                  <p className="text-[10px] text-zinc-500 italic">Attendance scans after this time will be marked as "Late".</p>
+                </div>
+                <div className="flex items-center gap-3 pt-4">
                   <input
                     type="checkbox"
                     id="include_weekends"
