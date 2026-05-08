@@ -402,7 +402,8 @@ function OrganizationForm({ initialData, isEdit = false, onRefresh, onBack }: { 
     term_start_date: initialData?.term_start_date || '',
     term_end_date: initialData?.term_end_date || '',
     attendance_include_weekends: initialData?.attendance_include_weekends || false,
-    attendance_total_days: initialData?.attendance_total_days || 0
+    attendance_total_days: initialData?.attendance_total_days || 0,
+    late_time: initialData?.late_time || '08:00:00'
   });
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, field: 'logo' | 'signature') => {
@@ -457,7 +458,8 @@ function OrganizationForm({ initialData, isEdit = false, onRefresh, onBack }: { 
           term_start_date: '',
           term_end_date: '',
           attendance_include_weekends: false,
-          attendance_total_days: 0
+          attendance_total_days: 0,
+          late_time: '08:00:00'
         });
       }
       onRefresh?.();
@@ -675,6 +677,16 @@ function OrganizationForm({ initialData, isEdit = false, onRefresh, onBack }: { 
                   value={formData.attendance_total_days}
                   onChange={(e) => setFormData({ ...formData, attendance_total_days: parseInt(e.target.value) || 0 })}
                   placeholder="e.g. 90"
+                  className="w-full px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-zinc-700 dark:text-zinc-300">Late After (Time)</label>
+                <input
+                  type="time"
+                  step="1"
+                  value={formData.late_time}
+                  onChange={(e) => setFormData({ ...formData, late_time: e.target.value })}
                   className="w-full px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500"
                 />
               </div>

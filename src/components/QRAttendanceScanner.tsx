@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
-import { markAttendanceByQR, fetchStudents, fetchStaff } from '../lib/api';
+import { markAttendanceByQR, fetchStudents, fetchStaff, fetchStudentAttendance, fetchStaffAttendance } from '../lib/api';
 import { useLanguage } from '../lib/LanguageContext';
 import { cn } from '../lib/utils';
 import {
@@ -13,6 +13,7 @@ interface ScannedStudent {
     admission_no: string;
     time: string;
     status: 'success' | 'duplicate' | 'error';
+    status_original?: string;
     type?: 'student' | 'staff';
     message?: string;
     action?: 'clock_in' | 'clock_out';
@@ -53,6 +54,60 @@ export default function QRAttendanceScanner({ classes = [], onNavigate, onRefres
         };
         loadData();
     }, []);
+    
+    // Fetch today's scans on mount
+    useEffect(() => {
+        const fetchTodayScans = async () => {
+            if (allPeople.length === 0) return;
+            
+            try {
+                const today = new Date().toISOString().split('T')[0];
+                const [studentAtt, staffAtt] = await Promise.all([
+                    fetchStudentAttendance(),
+                    fetchStaffAttendance()
+                ]);
+
+                const todayStudentScans = studentAtt
+                    .filter((a: any) => a.date?.startsWith(today) && a.clock_in)
+                    .map((a: any) => {
+                        const student = allPeople.find(p => p.id === a.student_id && p.type === 'student');
+                        return {
+                            id: a.id,
+                            name: student?.name || 'Student',
+                            admission_no: student?.admission_no || 'N/A',
+                            time: a.clock_in,
+                            status: 'success',
+                            status_original: a.status,
+                            type: 'student',
+                            action: a.clock_out ? 'clock_out' : 'clock_in'
+                        };
+                    });
+
+                const todayStaffScans = staffAtt
+                    .filter((a: any) => a.date?.startsWith(today) && a.clock_in)
+                    .map((a: any) => {
+                        const staff = allPeople.find(p => p.user_id === a.user_id && p.type === 'staff');
+                        return {
+                            id: a.id,
+                            name: staff?.name || 'Staff',
+                            admission_no: 'Staff',
+                            time: a.clock_in,
+                            status: 'success',
+                            status_original: a.status,
+                            type: 'staff',
+                            action: a.clock_out ? 'clock_out' : 'clock_in'
+                        };
+                    });
+
+                const combined = [...todayStudentScans, ...todayStaffScans].sort((a, b) => b.time.localeCompare(a.time));
+                setScannedList(combined as any);
+            } catch (err) {
+                console.error('Failed to fetch today scans:', err);
+            }
+        };
+
+        fetchTodayScans();
+    }, [allPeople]);
 
     const handleScan = useCallback(async (decodedText: string) => {
         // Debounce: skip if same code scanned within 3 seconds
@@ -75,12 +130,14 @@ export default function QRAttendanceScanner({ classes = [], onNavigate, onRefres
                 admission_no: result.admission_no,
                 time: new Date().toLocaleTimeString(),
                 status: 'success',
+                status_original: result.status,
                 type: result.type,
                 action: result.action
             };
             setScannedList(prev => [entry, ...prev]);
             
-            const actionText = result.action === 'clock_out' ? 'Clocked Out' : 'Clocked In';
+            const isLate = result.status === 'Late';
+            const actionText = result.action === 'clock_out' ? 'Clocked Out' : (isLate ? 'Clocked In (Late)' : 'Clocked In');
             setLastResult({ type: 'success', message: `✓ ${result.student_name} ${actionText.toLowerCase()}` });
             
             // Trigger refresh so attendance counts update in other views
@@ -367,6 +424,9 @@ export default function QRAttendanceScanner({ classes = [], onNavigate, onRefres
                                                 {s.type || 'student'}
                                             </span>
                                             {s.admission_no} • {s.time}
+                                            {s.status_original === 'Late' && (
+                                                <span className="ml-2 text-amber-600 font-bold">(Late)</span>
+                                            )}
                                         </p>
                                         {s.message && s.status !== 'success' && (
                                             <p className="text-[11px] text-zinc-400 mt-0.5">{s.message}</p>

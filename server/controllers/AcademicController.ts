@@ -269,6 +269,16 @@ export const markAttendanceByQR = async (req: AuthRequest, res: Response) => {
     const today = new Date().toISOString().split('T')[0];
     const now = new Date().toLocaleTimeString('en-GB', { hour12: false });
 
+    // Fetch late_time from organization settings
+    const orgSettings = await pool.query('SELECT late_time FROM organizations WHERE id = $1', [orgId]);
+    const lateThreshold = orgSettings.rows[0]?.late_time || '08:00:00';
+    
+    // Determine status based on clock-in time
+    let scanStatus = status;
+    if (status === 'Present' && now > lateThreshold) {
+        scanStatus = 'Late';
+    }
+
     // 1. Look up student by admission_no or id
     const studentResult = await pool.query(
       `SELECT id, name, admission_no, class_id FROM students 
@@ -323,7 +333,7 @@ export const markAttendanceByQR = async (req: AuthRequest, res: Response) => {
       // Create attendance record (Clock In)
       const result = await pool.query(
         'INSERT INTO student_attendance (org_id, student_id, status, clock_in, remarks) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-        [orgId, student.id, status, now, 'Marked via QR scan']
+        [orgId, student.id, scanStatus, now, scanStatus === 'Late' ? 'Marked Late via QR scan' : 'Marked via QR scan']
       );
 
       await recordAuditLog(req.user.id, 'QR_ATTENDANCE', `Clocked IN student ${student.name} (${student.admission_no}) at ${now}`, orgId, req.ip || '');
@@ -398,7 +408,7 @@ export const markAttendanceByQR = async (req: AuthRequest, res: Response) => {
       // Create staff attendance record (Clock In)
       const result = await pool.query(
         'INSERT INTO staff_attendance (org_id, user_id, status, clock_in) VALUES ($1, $2, $3, $4) RETURNING *',
-        [orgId, staff.user_id, status, now]
+        [orgId, staff.user_id, scanStatus, now]
       );
 
       await recordAuditLog(req.user.id, 'QR_ATTENDANCE', `Clocked IN staff ${staff.name} at ${now}`, orgId, req.ip || '');
