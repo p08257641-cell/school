@@ -646,7 +646,6 @@ export const markStaffAttendance = async (req: AuthRequest, res: Response) => {
       'INSERT INTO staff_attendance (org_id, user_id, status, clock_in, clock_out) VALUES ($1, $2, $3, $4, $5) RETURNING *',
       [orgId, user_id, scanStatus, clock_in, clock_out]
     );
-    await recordAuditLog(req.user.id, 'MARK_STAFF_ATTENDANCE', `Marked attendance for user ID: ${user_id} (${scanStatus})`, orgId, req.ip || '');
     res.status(201).json(result.rows[0]);
   } catch (err: any) {
     res.status(500).json({ error: err.message });

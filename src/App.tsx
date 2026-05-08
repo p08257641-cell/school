@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
+import { io } from "socket.io-client";
 import Layout from "./components/Layout";
 import {
   UserRole,
@@ -319,6 +320,7 @@ export default function App() {
   const params = useMemo(() => new URLSearchParams(window.location.search), [window.location.search]);
   const view = params.get('view');
   const pubToken = params.get('token');
+  const socketRef = useRef<any>(null);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -390,8 +392,46 @@ export default function App() {
       setShowLogin(false);
       setShowPartnerLogin(false);
       loadData(user.role);
+
+      // Initialize Socket
+      if (!socketRef.current) {
+        const socketUrl = API_BASE_URL.replace('/api', '');
+        const socket = io(socketUrl);
+        socketRef.current = socket;
+
+        socket.on('connect', () => {
+          console.log('>>> [SOCKET] Connected to server');
+          if (user.org_id) {
+            socket.emit('join_org', user.org_id);
+          }
+          if (user.role === 'PARENT' && user.email) {
+            socket.emit('join_room', `parent_${user.email.toLowerCase()}`);
+          }
+        });
+
+        socket.on('attendance_notification', (data: any) => {
+          setToast({
+            message: `🔔 ${data.student_name} just ${data.action === 'clock_in' ? 'arrived at' : 'left'} school (${data.time})`,
+            type: "info"
+          });
+        });
+
+        socket.on('attendance_update', (data: any) => {
+          if (user.role === 'SCHOOL_ADMIN') {
+             console.log('Attendance update received:', data);
+          }
+        });
+      }
     }
   }, [view, pubToken]);
+
+  // Clean up socket on logout
+  useEffect(() => {
+    if (!currentUser && socketRef.current) {
+      socketRef.current.disconnect();
+      socketRef.current = null;
+    }
+  }, [currentUser]);
 
   // System State
   const [studentList, setStudentList] = useState<Student[]>([]);

@@ -281,7 +281,7 @@ export const markAttendanceByQR = async (req: AuthRequest, res: Response) => {
 
     // 1. Look up student by admission_no or id
     const studentResult = await pool.query(
-      `SELECT id, name, admission_no, class_id FROM students 
+      `SELECT id, name, admission_no, class_id, primary_parent_email as parent_email FROM students 
        WHERE org_id = $1 AND (admission_no = $2 OR CAST(id AS TEXT) = $2)
        LIMIT 1`,
       [orgId, qr_data.trim()]
@@ -312,7 +312,21 @@ export const markAttendanceByQR = async (req: AuthRequest, res: Response) => {
             [now, attendance.id]
           );
           
-          await recordAuditLog(req.user.id, 'QR_ATTENDANCE', `Clocked OUT student ${student.name} (${student.admission_no}) at ${now}`, orgId, req.ip || '');
+          // Emit socket notification
+          const io = (req as any).io;
+          if (io) {
+            const payload = {
+              student_name: student.name,
+              admission_no: student.admission_no,
+              action: 'clock_out',
+              time: now,
+              status: attendance.status
+            };
+            io.to(`org_${orgId}`).emit('attendance_update', payload);
+            if (student.parent_email) {
+              io.to(`parent_${student.parent_email.toLowerCase()}`).emit('attendance_notification', payload);
+            }
+          }
           
           return res.json({
             ...result.rows[0],
@@ -336,7 +350,21 @@ export const markAttendanceByQR = async (req: AuthRequest, res: Response) => {
         [orgId, student.id, scanStatus, now, scanStatus === 'Late' ? 'Marked Late via QR scan' : 'Marked via QR scan']
       );
 
-      await recordAuditLog(req.user.id, 'QR_ATTENDANCE', `Clocked IN student ${student.name} (${student.admission_no}) at ${now}`, orgId, req.ip || '');
+      // Emit socket notification
+      const io = (req as any).io;
+      if (io) {
+        const payload = {
+          student_name: student.name,
+          admission_no: student.admission_no,
+          action: 'clock_in',
+          time: now,
+          status: scanStatus
+        };
+        io.to(`org_${orgId}`).emit('attendance_update', payload);
+        if (student.parent_email) {
+          io.to(`parent_${student.parent_email.toLowerCase()}`).emit('attendance_notification', payload);
+        }
+      }
 
       return res.status(201).json({
         ...result.rows[0],
@@ -387,8 +415,6 @@ export const markAttendanceByQR = async (req: AuthRequest, res: Response) => {
             [now, attendance.id]
           );
           
-          await recordAuditLog(req.user.id, 'QR_ATTENDANCE', `Clocked OUT staff ${staff.name} at ${now}`, orgId, req.ip || '');
-          
           return res.json({
             ...result.rows[0],
             student_name: staff.name,
@@ -410,8 +436,6 @@ export const markAttendanceByQR = async (req: AuthRequest, res: Response) => {
         'INSERT INTO staff_attendance (org_id, user_id, status, clock_in) VALUES ($1, $2, $3, $4) RETURNING *',
         [orgId, staff.user_id, scanStatus, now]
       );
-
-      await recordAuditLog(req.user.id, 'QR_ATTENDANCE', `Clocked IN staff ${staff.name} at ${now}`, orgId, req.ip || '');
 
       return res.status(201).json({
         ...result.rows[0],

@@ -8,10 +8,42 @@ import { fileURLToPath } from 'url';
 import apiRoutes from './routes/api.ts';
 import { init as initDb } from './init-db.ts';
 
+import { Server } from 'socket.io';
+import http from 'http';
+
 dotenv.config();
 console.log('>>> [BOOTSTRAP] Environment variables loaded.');
 
 const app = express();
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: '*',
+    methods: ['GET', 'POST']
+  }
+});
+
+// Store io in app for access in routes
+app.set('io', io);
+
+io.on('connection', (socket) => {
+  console.log('>>> [SOCKET] A user connected:', socket.id);
+  
+  socket.on('join_org', (orgId) => {
+    socket.join(`org_${orgId}`);
+    console.log(`>>> [SOCKET] User ${socket.id} joined org_${orgId}`);
+  });
+
+  socket.on('join_room', (roomName) => {
+    socket.join(roomName);
+    console.log(`>>> [SOCKET] User ${socket.id} joined ${roomName}`);
+  });
+
+  socket.on('disconnect', () => {
+    console.log('>>> [SOCKET] User disconnected:', socket.id);
+  });
+});
+
 app.set('trust proxy', 1);
 
 app.use(cors({
@@ -52,8 +84,8 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 });
 
 // Start Server Immediately to prevent Render Timeout
-app.listen(PORT, () => {
-  console.log(`Deep backend server is running on http://localhost:${PORT}`);
+server.listen(PORT, () => {
+  console.log(`Deep backend server with WebSockets is running on http://localhost:${PORT}`);
 
   // Initialize Database in the background
   initDb()

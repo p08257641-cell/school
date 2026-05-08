@@ -28,6 +28,12 @@ import bcrypt from 'bcryptjs';
 
 const router = Router();
 
+router.use((req: any, res, next) => {
+  req.io = req.app.get('io');
+  next();
+});
+
+
 // PUBLIC ROUTES
 router.post('/auth/login', AuthController.login);
 router.post('/auth/register', AuthController.register);
