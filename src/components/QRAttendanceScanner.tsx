@@ -15,6 +15,7 @@ interface ScannedStudent {
     status: 'success' | 'duplicate' | 'error';
     type?: 'student' | 'staff';
     message?: string;
+    action?: 'clock_in' | 'clock_out';
 }
 
 export default function QRAttendanceScanner({ classes = [], onNavigate, onRefresh }: { classes?: any[]; onNavigate?: (view: string) => void, onRefresh?: () => void }) {
@@ -74,10 +75,13 @@ export default function QRAttendanceScanner({ classes = [], onNavigate, onRefres
                 admission_no: result.admission_no,
                 time: new Date().toLocaleTimeString(),
                 status: 'success',
-                type: result.type
+                type: result.type,
+                action: result.action
             };
             setScannedList(prev => [entry, ...prev]);
-            setLastResult({ type: 'success', message: `✓ ${result.student_name} ${t('present').toLowerCase()}` });
+            
+            const actionText = result.action === 'clock_out' ? 'Clocked Out' : 'Clocked In';
+            setLastResult({ type: 'success', message: `✓ ${result.student_name} ${actionText.toLowerCase()}` });
             
             // Trigger refresh so attendance counts update in other views
             if (onRefresh) onRefresh();
@@ -372,7 +376,9 @@ export default function QRAttendanceScanner({ classes = [], onNavigate, onRefres
                                         s.status === 'duplicate' ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-600' :
                                             'bg-red-100 dark:bg-red-900/30 text-red-600'
                                         }`}>
-                                        {s.status === 'success' ? t('present') : s.status === 'duplicate' ? t('already_marked').split(' ')[0] : t('error')}
+                                        {s.status === 'success' 
+                                            ? (s.action === 'clock_out' ? 'Out' : 'In') 
+                                            : s.status === 'duplicate' ? t('already_marked').split(' ')[0] : t('error')}
                                     </span>
                                 </div>
                             ))

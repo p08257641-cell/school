@@ -266,6 +266,9 @@ export const markAttendanceByQR = async (req: AuthRequest, res: Response) => {
     const orgId = req.user.org_id;
     if (!qr_data) return res.status(400).json({ error: 'QR data is required' });
 
+    const today = new Date().toISOString().split('T')[0];
+    const now = new Date().toLocaleTimeString('en-GB', { hour12: false });
+
     // 1. Look up student by admission_no or id
     const studentResult = await pool.query(
       `SELECT id, name, admission_no, class_id FROM students 
@@ -282,35 +285,55 @@ export const markAttendanceByQR = async (req: AuthRequest, res: Response) => {
         return res.status(400).json({ error: `Student "${student.name}" is not in the selected class.` });
       }
 
-      // Check for duplicate attendance today
-      const today = new Date().toISOString().split('T')[0];
+      // Check for existing record today
       const existingResult = await pool.query(
-        `SELECT id FROM student_attendance 
+        `SELECT id, clock_in, clock_out FROM student_attendance 
          WHERE org_id = $1 AND student_id = $2 AND date = $3`,
         [orgId, student.id, today]
       );
 
       if (existingResult.rows.length > 0) {
-        return res.status(409).json({
-          error: `${student.name} already marked present today.`,
-          student_name: student.name,
-          already_marked: true
-        });
+        const attendance = existingResult.rows[0];
+        
+        if (!attendance.clock_out) {
+          // Perform Clock Out
+          const result = await pool.query(
+            'UPDATE student_attendance SET clock_out = $1 WHERE id = $2 RETURNING *',
+            [now, attendance.id]
+          );
+          
+          await recordAuditLog(req.user.id, 'QR_ATTENDANCE', `Clocked OUT student ${student.name} (${student.admission_no}) at ${now}`, orgId, req.ip || '');
+          
+          return res.json({
+            ...result.rows[0],
+            student_name: student.name,
+            admission_no: student.admission_no,
+            type: 'student',
+            action: 'clock_out'
+          });
+        } else {
+          return res.status(409).json({
+            error: `${student.name} already signed out for today.`,
+            student_name: student.name,
+            already_marked: true
+          });
+        }
       }
 
-      // Create attendance record
+      // Create attendance record (Clock In)
       const result = await pool.query(
-        'INSERT INTO student_attendance (org_id, student_id, status, remarks) VALUES ($1, $2, $3, $4) RETURNING *',
-        [orgId, student.id, status, 'Marked via QR scan']
+        'INSERT INTO student_attendance (org_id, student_id, status, clock_in, remarks) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+        [orgId, student.id, status, now, 'Marked via QR scan']
       );
 
-      await recordAuditLog(req.user.id, 'QR_ATTENDANCE', `Marked student ${student.name} (${student.admission_no}) as ${status} via QR scan`, orgId, req.ip || '');
+      await recordAuditLog(req.user.id, 'QR_ATTENDANCE', `Clocked IN student ${student.name} (${student.admission_no}) at ${now}`, orgId, req.ip || '');
 
       return res.status(201).json({
         ...result.rows[0],
         student_name: student.name,
         admission_no: student.admission_no,
-        type: 'student'
+        type: 'student',
+        action: 'clock_in'
       });
     }
 
@@ -331,42 +354,61 @@ export const markAttendanceByQR = async (req: AuthRequest, res: Response) => {
 
     if (staffResult.rows.length > 0) {
       const staff = staffResult.rows[0];
-      const today = new Date().toISOString().split('T')[0];
-      const now = new Date().toLocaleTimeString('en-GB', { hour12: false });
-
-      // Check for duplicate attendance today
-      const existingResult = await pool.query(
-        `SELECT id FROM staff_attendance 
-         WHERE org_id = $1 AND user_id = $2 AND date = $3`,
-        [orgId, staff.user_id, today]
-      );
-
-      if (existingResult.rows.length > 0) {
-        return res.status(409).json({
-          error: `${staff.name} already marked present today.`,
-          student_name: staff.name, // reusing field name for frontend compatibility
-          already_marked: true
-        });
-      }
 
       // SECURITY FIX: Prevent self-marking
       if (String(req.user.id) === String(staff.user_id)) {
         return res.status(403).json({ error: "Security Restriction: You cannot mark your own attendance." });
       }
 
-      // Create staff attendance record
+      // Check for existing record today
+      const existingResult = await pool.query(
+        `SELECT id, clock_in, clock_out FROM staff_attendance 
+         WHERE org_id = $1 AND user_id = $2 AND date = $3`,
+        [orgId, staff.user_id, today]
+      );
+
+      if (existingResult.rows.length > 0) {
+        const attendance = existingResult.rows[0];
+        
+        if (!attendance.clock_out) {
+          // Perform Clock Out
+          const result = await pool.query(
+            'UPDATE staff_attendance SET clock_out = $1 WHERE id = $2 RETURNING *',
+            [now, attendance.id]
+          );
+          
+          await recordAuditLog(req.user.id, 'QR_ATTENDANCE', `Clocked OUT staff ${staff.name} at ${now}`, orgId, req.ip || '');
+          
+          return res.json({
+            ...result.rows[0],
+            student_name: staff.name,
+            admission_no: 'Staff',
+            type: 'staff',
+            action: 'clock_out'
+          });
+        } else {
+          return res.status(409).json({
+            error: `${staff.name} already signed out for today.`,
+            student_name: staff.name,
+            already_marked: true
+          });
+        }
+      }
+
+      // Create staff attendance record (Clock In)
       const result = await pool.query(
         'INSERT INTO staff_attendance (org_id, user_id, status, clock_in) VALUES ($1, $2, $3, $4) RETURNING *',
         [orgId, staff.user_id, status, now]
       );
 
-      await recordAuditLog(req.user.id, 'QR_ATTENDANCE', `Marked staff ${staff.name} as ${status} via QR scan`, orgId, req.ip || '');
+      await recordAuditLog(req.user.id, 'QR_ATTENDANCE', `Clocked IN staff ${staff.name} at ${now}`, orgId, req.ip || '');
 
       return res.status(201).json({
         ...result.rows[0],
         student_name: staff.name,
         admission_no: 'Staff',
-        type: 'staff'
+        type: 'staff',
+        action: 'clock_in'
       });
     }
 
@@ -377,6 +419,7 @@ export const markAttendanceByQR = async (req: AuthRequest, res: Response) => {
     res.status(500).json({ error: err.message });
   }
 };
+
 
 export const getAttendance = async (req: AuthRequest, res: Response) => {
   const { studentId, date } = req.query;
