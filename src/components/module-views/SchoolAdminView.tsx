@@ -4051,72 +4051,92 @@ export const AcademicModules = {
       </>
     );
   },
-  AlumniManagement: ({ students = [], onRefresh, role, invoices = [], payments = [], onSaveStudent, onDelete, organization }: { students?: Student[], onRefresh?: () => void, role?: UserRole, invoices?: any[], payments?: any[], onSaveStudent?: (data: any) => void, onDelete?: (type: string, item: any) => void, organization?: any }) => {
+  AlumniManagement: ({ students = [], onRefresh, role, invoices = [], payments = [], onSaveStudent, onDelete, organization, onUpdateOrganization }: { students?: Student[], onRefresh?: () => void, role?: UserRole, invoices?: any[], payments?: any[], onSaveStudent?: (data: any) => void, onDelete?: (type: string, item: any) => void, organization?: any, onUpdateOrganization?: (data: any) => void }) => {
     const alumni = useMemo(() => students.filter(s => s.status === 'Alumni'), [students]);
     const [certStudent, setCertStudent] = useState<any>(null);
     const [certBody, setCertBody] = useState('');
     const [certDate, setCertDate] = useState(new Date().toISOString().split('T')[0]);
+    const [certLeavingDate, setCertLeavingDate] = useState('');
     const [certTitle, setCertTitle] = useState('SCHOOL LEAVING CERTIFICATE');
     const [certRefNo, setCertRefNo] = useState('');
+    const [showDesign, setShowDesign] = useState(false);
+
+    const defaultDesign = { borderColor: '#1e3a5f', accentColor: '#c9a94e', titleColor: '#1e3a5f', bodyColor: '#333333' };
+    const savedDesign = organization?.cert_template || {};
+    const [design, setDesign] = useState({ ...defaultDesign, ...savedDesign });
+
+    useEffect(() => {
+      if (organization?.cert_template) setDesign({ ...defaultDesign, ...organization.cert_template });
+    }, [organization?.cert_template]);
+
+    const saveDesign = () => {
+      if (onUpdateOrganization) onUpdateOrganization({ cert_template: design });
+    };
 
     const openCertificate = (student: any) => {
       setCertStudent(student);
       setCertRefNo(`SLC/${new Date().getFullYear()}/${student.admission_no || student.id?.slice(0, 6)}`);
+      setCertLeavingDate('');
+      const pro = student.gender === 'Female' ? 'her' : 'his';
+      const sub = student.gender === 'Female' ? 'she' : 'he';
+      const pos = student.gender === 'Female' ? 'Her' : 'His';
       setCertBody(
         `This is to certify that ${student.name}, bearing Admission Number ${student.admission_no || 'N/A'}, ` +
         `was a bonafide student of ${organization?.name || 'this institution'} from the date of admission ` +
         `${student.date_enrolled ? new Date(student.date_enrolled).toLocaleDateString() : '_______________'} ` +
-        `to the date of leaving _______________.\n\n` +
-        `During ${student.gender === 'Female' ? 'her' : 'his'} stay in the school, ` +
-        `${student.gender === 'Female' ? 'she' : 'he'} was in ${student.class || '_______________'} class. ` +
-        `${student.gender === 'Female' ? 'Her' : 'His'} conduct and character were found to be GOOD.\n\n` +
-        `We wish ${student.gender === 'Female' ? 'her' : 'him'} all the best in ${student.gender === 'Female' ? 'her' : 'his'} future endeavours.`
+        `to the date of leaving {LEAVING_DATE}.\n\n` +
+        `During ${pro} stay in the school, ${sub} was in ${student.class || '_______________'} class. ` +
+        `${pos} conduct and character were found to be GOOD.\n\n` +
+        `We wish ${pro === 'her' ? 'her' : 'him'} all the best in ${pro} future endeavours.`
       );
     };
 
+    const resolvedBody = certBody.replace('{LEAVING_DATE}', certLeavingDate ? new Date(certLeavingDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : '_______________');
+
     const handlePrint = () => {
-      const printContent = document.getElementById('certificate-print-area');
-      if (!printContent) return;
-      const printWindow = window.open('', '_blank');
-      if (!printWindow) return;
-      printWindow.document.write(`
-        <html>
-        <head>
-          <title>${certTitle} - ${certStudent?.name}</title>
-          <style>
-            @page { size: A4 landscape; margin: 0; }
-            * { margin: 0; padding: 0; box-sizing: border-box; }
-            body { font-family: 'Georgia', 'Times New Roman', serif; }
-            .cert-wrapper { width: 100vw; height: 100vh; display: flex; align-items: center; justify-content: center; background: #fff; }
-            .cert-page { width: 277mm; height: 190mm; padding: 12mm; border: 3px double #1e3a5f; position: relative; }
-            .cert-inner { border: 1.5px solid #c9a94e; padding: 10mm; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: space-between; }
-            .cert-header { text-align: center; }
-            .cert-header img { width: 70px; height: 70px; object-fit: contain; margin-bottom: 6px; }
-            .school-name { font-size: 22px; font-weight: 900; color: #1e3a5f; text-transform: uppercase; letter-spacing: 3px; }
-            .school-address { font-size: 10px; color: #666; margin-top: 2px; letter-spacing: 1px; }
-            .cert-title { font-size: 26px; font-weight: 900; color: #1e3a5f; text-transform: uppercase; letter-spacing: 6px; border-bottom: 2px solid #c9a94e; border-top: 2px solid #c9a94e; padding: 8px 30px; margin: 12px 0; }
-            .cert-ref { font-size: 10px; color: #888; letter-spacing: 2px; }
-            .cert-body { font-size: 14px; line-height: 2; color: #333; text-align: justify; max-width: 90%; white-space: pre-line; }
-            .cert-footer { display: flex; justify-content: space-between; width: 90%; align-items: flex-end; margin-top: 10px; }
-            .cert-footer-item { text-align: center; }
-            .cert-footer-item .line { width: 160px; border-bottom: 1px solid #333; margin-bottom: 4px; }
-            .cert-footer-item .label { font-size: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; color: #555; }
-            .cert-date { font-size: 11px; color: #555; }
-            .signature-img { height: 50px; object-fit: contain; }
-            .corner { position: absolute; width: 30px; height: 30px; border-color: #c9a94e; }
-            .tl { top: 8mm; left: 8mm; border-top: 2px solid; border-left: 2px solid; }
-            .tr { top: 8mm; right: 8mm; border-top: 2px solid; border-right: 2px solid; }
-            .bl { bottom: 8mm; left: 8mm; border-bottom: 2px solid; border-left: 2px solid; }
-            .br { bottom: 8mm; right: 8mm; border-bottom: 2px solid; border-right: 2px solid; }
-          </style>
-        </head>
-        <body>
-          ${printContent.innerHTML}
-        </body>
-        </html>
-      `);
-      printWindow.document.close();
-      setTimeout(() => { printWindow.print(); }, 500);
+      const w = window.open('', '_blank');
+      if (!w) return;
+      const dateStr = new Date(certDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+      const logoHtml = organization?.logo ? '<img src="' + organization.logo + '" style="width:60px;height:60px;object-fit:contain;margin-bottom:4px" />' : '';
+      const sigHtml = organization?.signature ? '<img src="' + organization.signature + '" style="height:40px;object-fit:contain;margin-bottom:4px" />' : '<div style="height:40px"></div>';
+      const html = [
+        '<html><head><title>' + certTitle + ' - ' + (certStudent?.name || '') + '</title>',
+        '<style>',
+        '@page{size:A4 landscape;margin:0}',
+        'html,body{margin:0;padding:0;width:297mm;height:210mm;overflow:hidden;font-family:Georgia,serif}',
+        'body{display:flex;align-items:center;justify-content:center;background:#fff}',
+        '.p{width:287mm;height:200mm;padding:10mm;border:3px double ' + design.borderColor + ';position:relative;box-sizing:border-box}',
+        '.i{border:1.5px solid ' + design.accentColor + ';padding:8mm;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:space-between;box-sizing:border-box}',
+        '.c{position:absolute;width:24px;height:24px}',
+        '.c1{top:6mm;left:6mm;border-top:2px solid ' + design.accentColor + ';border-left:2px solid ' + design.accentColor + '}',
+        '.c2{top:6mm;right:6mm;border-top:2px solid ' + design.accentColor + ';border-right:2px solid ' + design.accentColor + '}',
+        '.c3{bottom:6mm;left:6mm;border-bottom:2px solid ' + design.accentColor + ';border-left:2px solid ' + design.accentColor + '}',
+        '.c4{bottom:6mm;right:6mm;border-bottom:2px solid ' + design.accentColor + ';border-right:2px solid ' + design.accentColor + '}',
+        '.sn{font-size:20px;font-weight:900;color:' + design.titleColor + ';text-transform:uppercase;letter-spacing:3px}',
+        '.sa{font-size:9px;color:#666;letter-spacing:1px}',
+        '.ct{font-size:22px;font-weight:900;color:' + design.titleColor + ';text-transform:uppercase;letter-spacing:5px;border-top:2px solid ' + design.accentColor + ';border-bottom:2px solid ' + design.accentColor + ';padding:6px 24px}',
+        '.cb{font-size:13px;line-height:1.8;color:' + design.bodyColor + ';text-align:justify;max-width:92%;white-space:pre-line}',
+        '.ft{display:flex;justify-content:space-between;width:90%;align-items:flex-end}',
+        '.fc{text-align:center}',
+        '.fc .ln{width:140px;border-bottom:1px solid #333;margin-bottom:4px}',
+        '.fc .lb{font-size:9px;font-weight:bold;text-transform:uppercase;letter-spacing:2px;color:#555}',
+        '</style></head><body>',
+        '<div class="p">',
+        '<div class="c c1"></div><div class="c c2"></div><div class="c c3"></div><div class="c c4"></div>',
+        '<div class="i">',
+        '<div style="text-align:center">' + logoHtml + '<div class="sn">' + (organization?.name || 'School Name') + '</div><div class="sa">' + (organization?.address || '') + '</div></div>',
+        '<div class="ct">' + certTitle + '</div>',
+        '<div style="font-size:9px;color:#888;letter-spacing:2px">REF: ' + certRefNo + '</div>',
+        '<div class="cb">' + resolvedBody + '</div>',
+        '<div class="ft">',
+        '<div class="fc"><div style="font-size:10px;color:#555;margin-bottom:4px">' + dateStr + '</div><div class="ln"></div><div class="lb">Date</div></div>',
+        '<div class="fc">' + sigHtml + '<div class="ln"></div><div class="lb">Head of School</div></div>',
+        '<div class="fc"><div style="height:40px"></div><div class="ln"></div><div class="lb">School Stamp</div></div>',
+        '</div></div></div></body></html>'
+      ].join('');
+      w.document.write(html);
+      w.document.close();
+      setTimeout(() => w.print(), 600);
     };
 
     return (
@@ -4169,7 +4189,7 @@ export const AcademicModules = {
           {certStudent && (
             <div className="space-y-6">
               {/* Editable Fields */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-2xl border border-zinc-200 dark:border-zinc-700">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-2xl border border-zinc-200 dark:border-zinc-700">
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Certificate Title</label>
                   <input
@@ -4189,6 +4209,15 @@ export const AcademicModules = {
                   />
                 </div>
                 <div className="space-y-1.5">
+                  <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Date of Leaving</label>
+                  <input
+                    type="date"
+                    value={certLeavingDate}
+                    onChange={(e) => setCertLeavingDate(e.target.value)}
+                    className="w-full px-4 py-2.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                </div>
+                <div className="space-y-1.5">
                   <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Date of Issue</label>
                   <input
                     type="date"
@@ -4197,7 +4226,7 @@ export const AcademicModules = {
                     className="w-full px-4 py-2.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-500"
                   />
                 </div>
-                <div className="md:col-span-3 space-y-1.5">
+                <div className="sm:col-span-2 lg:col-span-4 space-y-1.5">
                   <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Certificate Body (Editable)</label>
                   <textarea
                     value={certBody}
@@ -4205,7 +4234,62 @@ export const AcademicModules = {
                     rows={6}
                     className="w-full px-4 py-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500 resize-none leading-relaxed"
                   />
+                  <p className="text-[9px] text-zinc-400 italic">Tip: Use {'{LEAVING_DATE}'} in the body text — it will be replaced by the Date of Leaving above.</p>
                 </div>
+              </div>
+
+              {/* Design Settings (collapsible) */}
+              <div className="rounded-2xl border border-zinc-200 dark:border-zinc-700 overflow-hidden">
+                <button
+                  onClick={() => setShowDesign(!showDesign)}
+                  className="w-full flex items-center justify-between px-4 py-3 bg-zinc-50 dark:bg-zinc-800/50 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+                >
+                  <div className="flex items-center gap-2">
+                    <Settings className="w-4 h-4 text-indigo-600" />
+                    <span className="text-xs font-black text-zinc-600 dark:text-zinc-300 uppercase tracking-widest">Template Design Settings</span>
+                  </div>
+                  <ChevronDown className={`w-4 h-4 text-zinc-400 transition-transform ${showDesign ? 'rotate-180' : ''}`} />
+                </button>
+                {showDesign && (
+                  <div className="p-4 space-y-4 bg-white dark:bg-zinc-900">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Border Color</label>
+                        <div className="flex items-center gap-2">
+                          <input type="color" value={design.borderColor} onChange={(e) => setDesign({ ...design, borderColor: e.target.value })} className="w-10 h-10 rounded-lg border-0 cursor-pointer" />
+                          <input type="text" value={design.borderColor} onChange={(e) => setDesign({ ...design, borderColor: e.target.value })} className="flex-1 px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg text-xs font-mono" />
+                        </div>
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Accent / Gold</label>
+                        <div className="flex items-center gap-2">
+                          <input type="color" value={design.accentColor} onChange={(e) => setDesign({ ...design, accentColor: e.target.value })} className="w-10 h-10 rounded-lg border-0 cursor-pointer" />
+                          <input type="text" value={design.accentColor} onChange={(e) => setDesign({ ...design, accentColor: e.target.value })} className="flex-1 px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg text-xs font-mono" />
+                        </div>
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Title Color</label>
+                        <div className="flex items-center gap-2">
+                          <input type="color" value={design.titleColor} onChange={(e) => setDesign({ ...design, titleColor: e.target.value })} className="w-10 h-10 rounded-lg border-0 cursor-pointer" />
+                          <input type="text" value={design.titleColor} onChange={(e) => setDesign({ ...design, titleColor: e.target.value })} className="flex-1 px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg text-xs font-mono" />
+                        </div>
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Body Text</label>
+                        <div className="flex items-center gap-2">
+                          <input type="color" value={design.bodyColor} onChange={(e) => setDesign({ ...design, bodyColor: e.target.value })} className="w-10 h-10 rounded-lg border-0 cursor-pointer" />
+                          <input type="text" value={design.bodyColor} onChange={(e) => setDesign({ ...design, bodyColor: e.target.value })} className="flex-1 px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg text-xs font-mono" />
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex justify-end">
+                      <button onClick={saveDesign} className="flex items-center gap-2 px-5 py-2 bg-emerald-600 text-white rounded-xl text-xs font-bold hover:bg-emerald-700 transition-all">
+                        <Save className="w-3.5 h-3.5" />
+                        Save as Default Template
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Print Button */}
@@ -4221,91 +4305,42 @@ export const AcademicModules = {
                   className="flex items-center gap-2 px-8 py-2.5 bg-indigo-600 text-white rounded-xl font-bold text-sm hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 dark:shadow-none"
                 >
                   <Printer className="w-4 h-4" />
-                  Print Certificate
+                  Print / Save as PDF
                 </button>
               </div>
 
-              {/* Certificate Preview (this is what gets printed) */}
-              <div id="certificate-print-area" className="overflow-auto">
-                <div className="cert-wrapper" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <div style={{
-                    width: '277mm', minHeight: '190mm', padding: '12mm',
-                    border: '3px double #1e3a5f', position: 'relative', background: '#fff',
-                    fontFamily: "'Georgia', 'Times New Roman', serif"
-                  }}>
-                    {/* Corner decorations */}
-                    <div className="corner tl" style={{ position: 'absolute', top: '8mm', left: '8mm', width: '30px', height: '30px', borderTop: '2px solid #c9a94e', borderLeft: '2px solid #c9a94e' }} />
-                    <div className="corner tr" style={{ position: 'absolute', top: '8mm', right: '8mm', width: '30px', height: '30px', borderTop: '2px solid #c9a94e', borderRight: '2px solid #c9a94e' }} />
-                    <div className="corner bl" style={{ position: 'absolute', bottom: '8mm', left: '8mm', width: '30px', height: '30px', borderBottom: '2px solid #c9a94e', borderLeft: '2px solid #c9a94e' }} />
-                    <div className="corner br" style={{ position: 'absolute', bottom: '8mm', right: '8mm', width: '30px', height: '30px', borderBottom: '2px solid #c9a94e', borderRight: '2px solid #c9a94e' }} />
-
-                    <div style={{
-                      border: '1.5px solid #c9a94e', padding: '10mm', height: '100%',
-                      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between', gap: '8px'
-                    }}>
-                      {/* Header */}
+              {/* Certificate Preview (responsive) */}
+              <div className="overflow-x-auto rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-white">
+                <div style={{ width: '860px', aspectRatio: '297/210', margin: '0 auto', padding: '24px', fontFamily: "'Georgia', 'Times New Roman', serif" }}>
+                  <div style={{ width: '100%', height: '100%', border: `3px double ${design.borderColor}`, position: 'relative', padding: '20px' }}>
+                    <div style={{ position: 'absolute', top: 14, left: 14, width: 20, height: 20, borderTop: `2px solid ${design.accentColor}`, borderLeft: `2px solid ${design.accentColor}` }} />
+                    <div style={{ position: 'absolute', top: 14, right: 14, width: 20, height: 20, borderTop: `2px solid ${design.accentColor}`, borderRight: `2px solid ${design.accentColor}` }} />
+                    <div style={{ position: 'absolute', bottom: 14, left: 14, width: 20, height: 20, borderBottom: `2px solid ${design.accentColor}`, borderLeft: `2px solid ${design.accentColor}` }} />
+                    <div style={{ position: 'absolute', bottom: 14, right: 14, width: 20, height: 20, borderBottom: `2px solid ${design.accentColor}`, borderRight: `2px solid ${design.accentColor}` }} />
+                    <div style={{ border: `1.5px solid ${design.accentColor}`, padding: '16px', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between', gap: 4 }}>
                       <div style={{ textAlign: 'center' }}>
-                        {organization?.logo && (
-                          <img src={organization.logo} alt="School Logo" style={{ width: '70px', height: '70px', objectFit: 'contain', marginBottom: '6px' }} />
-                        )}
-                        <div style={{ fontSize: '22px', fontWeight: 900, color: '#1e3a5f', textTransform: 'uppercase', letterSpacing: '3px' }}>
-                          {organization?.name || 'School Name'}
-                        </div>
-                        <div style={{ fontSize: '10px', color: '#666', marginTop: '2px', letterSpacing: '1px' }}>
-                          {organization?.address || 'School Address'}
-                        </div>
+                        {organization?.logo && <img src={organization.logo} alt="Logo" style={{ width: 50, height: 50, objectFit: 'contain', marginBottom: 3 }} />}
+                        <div style={{ fontSize: 17, fontWeight: 900, color: design.titleColor, textTransform: 'uppercase', letterSpacing: 3 }}>{organization?.name || 'School Name'}</div>
+                        <div style={{ fontSize: 8, color: '#666', letterSpacing: 1 }}>{organization?.address || ''}</div>
                       </div>
-
-                      {/* Title */}
-                      <div style={{
-                        fontSize: '26px', fontWeight: 900, color: '#1e3a5f', textTransform: 'uppercase',
-                        letterSpacing: '6px', borderBottom: '2px solid #c9a94e', borderTop: '2px solid #c9a94e',
-                        padding: '8px 30px', margin: '4px 0'
-                      }}>
-                        {certTitle}
-                      </div>
-
-                      {/* Ref No */}
-                      <div style={{ fontSize: '10px', color: '#888', letterSpacing: '2px' }}>
-                        REF: {certRefNo}
-                      </div>
-
-                      {/* Body */}
-                      <div style={{
-                        fontSize: '14px', lineHeight: '2', color: '#333',
-                        textAlign: 'justify', maxWidth: '90%', whiteSpace: 'pre-line', padding: '0 20px'
-                      }}>
-                        {certBody}
-                      </div>
-
-                      {/* Footer with signature & date */}
-                      <div style={{
-                        display: 'flex', justifyContent: 'space-between', width: '90%',
-                        alignItems: 'flex-end', marginTop: '10px'
-                      }}>
+                      <div style={{ fontSize: 18, fontWeight: 900, color: design.titleColor, textTransform: 'uppercase', letterSpacing: 4, borderTop: `2px solid ${design.accentColor}`, borderBottom: `2px solid ${design.accentColor}`, padding: '4px 18px' }}>{certTitle}</div>
+                      <div style={{ fontSize: 8, color: '#888', letterSpacing: 2 }}>REF: {certRefNo}</div>
+                      <div style={{ fontSize: 11, lineHeight: '1.8', color: design.bodyColor, textAlign: 'justify', maxWidth: '92%', whiteSpace: 'pre-line' }}>{resolvedBody}</div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', width: '90%', alignItems: 'flex-end' }}>
                         <div style={{ textAlign: 'center' }}>
-                          <div style={{ fontSize: '11px', color: '#555' }}>
-                            {new Date(certDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
-                          </div>
-                          <div style={{ width: '160px', borderBottom: '1px solid #333', marginBottom: '4px', marginTop: '4px' }} />
-                          <div style={{ fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '2px', color: '#555' }}>
-                            Date
-                          </div>
+                          <div style={{ fontSize: 9, color: '#555', marginBottom: 3 }}>{new Date(certDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</div>
+                          <div style={{ width: 120, borderBottom: '1px solid #333', marginBottom: 3 }} />
+                          <div style={{ fontSize: 7, fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: 2, color: '#555' }}>Date</div>
                         </div>
                         <div style={{ textAlign: 'center' }}>
-                          {organization?.signature && (
-                            <img src={organization.signature} alt="Signature" style={{ height: '50px', objectFit: 'contain', marginBottom: '4px' }} />
-                          )}
-                          <div style={{ width: '160px', borderBottom: '1px solid #333', marginBottom: '4px' }} />
-                          <div style={{ fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '2px', color: '#555' }}>
-                            Head of School
-                          </div>
+                          {organization?.signature && <img src={organization.signature} alt="Sig" style={{ height: 30, objectFit: 'contain', marginBottom: 3 }} />}
+                          <div style={{ width: 120, borderBottom: '1px solid #333', marginBottom: 3 }} />
+                          <div style={{ fontSize: 7, fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: 2, color: '#555' }}>Head of School</div>
                         </div>
                         <div style={{ textAlign: 'center' }}>
-                          <div style={{ width: '160px', borderBottom: '1px solid #333', marginBottom: '4px', marginTop: '54px' }} />
-                          <div style={{ fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '2px', color: '#555' }}>
-                            School Stamp
-                          </div>
+                          <div style={{ height: 30 }} />
+                          <div style={{ width: 120, borderBottom: '1px solid #333', marginBottom: 3 }} />
+                          <div style={{ fontSize: 7, fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: 2, color: '#555' }}>School Stamp</div>
                         </div>
                       </div>
                     </div>

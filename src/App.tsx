@@ -2445,6 +2445,7 @@ export default function App() {
           students={studentList}
           onRefresh={() => loadData()}
           organization={organization}
+          onUpdateOrganization={(data: any) => handleEntitySave("organization", { ...data, id: currentUser?.org_id })}
         />
       ),
 

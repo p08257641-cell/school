@@ -129,6 +129,9 @@ export async function init() {
         IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'organizations' AND column_name = 'transport_sms_enabled') THEN
           ALTER TABLE organizations ADD COLUMN transport_sms_enabled BOOLEAN DEFAULT FALSE;
         END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'organizations' AND column_name = 'cert_template') THEN
+          ALTER TABLE organizations ADD COLUMN cert_template JSONB DEFAULT '{}';
+        END IF;
       END $$;
     `);
 
