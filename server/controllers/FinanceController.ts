@@ -77,19 +77,45 @@ export const createFeeStructure = async (req: AuthRequest, res: Response) => {
     if (target_type === 'class' && (class_id || req.body.class_ids)) {
       let classIds = req.body.class_ids || [class_id];
       if (typeof classIds === 'string') classIds = classIds.split(',');
-      const studentsResult = await client.query('SELECT id FROM students WHERE class_id = ANY($1) AND org_id = $2', [classIds, orgId]);
+      const studentsResult = await client.query('SELECT id, name, contact FROM students WHERE class_id = ANY($1) AND org_id = $2', [classIds, orgId]);
+      
+      const orgRes = await client.query('SELECT currency FROM organizations WHERE id = $1', [orgId]);
+      const currency = orgRes.rows[0]?.currency || '$';
+
       for (const student of studentsResult.rows) {
         await client.query(
           'INSERT INTO invoices (org_id, student_id, amount, due_date, description) VALUES ($1, $2, $3, $4, $5)',
           [orgId, student.id, amount, due_date, name]
         );
+
+        if (req.body.notify_via_sms && student.contact) {
+          SMSService.sendSMS(
+            orgId,
+            student.contact,
+            `Dear Parent, a new fee of ${currency}${amount} for ${name} has been assigned to ${student.name}. Please settle by ${due_date}.`
+          ).catch(err => console.error('SMS Fee Notification failed:', err));
+        }
       }
     } else if (target_type === 'students' && Array.isArray(student_ids)) {
+      const orgRes = await client.query('SELECT currency FROM organizations WHERE id = $1', [orgId]);
+      const currency = orgRes.rows[0]?.currency || '$';
+
       for (const studentId of student_ids) {
+        const studentRes = await client.query('SELECT name, contact FROM students WHERE id = $1', [studentId]);
+        const student = studentRes.rows[0];
+
         await client.query(
           'INSERT INTO invoices (org_id, student_id, amount, due_date, description) VALUES ($1, $2, $3, $4, $5)',
           [orgId, studentId, amount, due_date, name]
         );
+
+        if (req.body.notify_via_sms && student && student.contact) {
+          SMSService.sendSMS(
+            orgId,
+            student.contact,
+            `Dear Parent, a new fee of ${currency}${amount} for ${name} has been assigned to ${student.name}. Please settle by ${due_date}.`
+          ).catch(err => console.error('SMS Fee Notification failed:', err));
+        }
       }
     }
 
@@ -648,30 +674,11 @@ export const assignFee = async (req: AuthRequest, res: Response) => {
     if (feeResult.rows.length === 0) throw new Error('Fee structure not found');
     const { name, amount, class_id: feeClassId, class_ids: feeClassIds } = feeResult.rows[0];
 
-    if (target_type === 'students' && student_id) {
-      const invResult = await client.query(
-        'INSERT INTO invoices (org_id, student_id, amount, due_date, description, status, term, academic_year) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id',
-        [orgId, student_id, amount, due_date, name, status || 'Pending', term || null, academic_year || null]
-      );
+      const studentsResult = await client.query('SELECT id, name, contact FROM students WHERE class_id = ANY($1) AND org_id = $2', [classIds, orgId]);
+      
+      const orgRes = await client.query('SELECT currency FROM organizations WHERE id = $1', [orgId]);
+      const currency = orgRes.rows[0]?.currency || '$';
 
-      if (status === 'Paid') {
-        await recordAutomaticPayment(client, orgId, invResult.rows[0].id, student_id, amount, payment_method || 'Cash', transaction_id);
-      }
-    } else if (target_type === 'class') {
-      let classIds = req.body.class_ids || (class_id ? [class_id] : []);
-
-      // If no class IDs provided, use the ones pre-assigned to the fee structure
-      if ((!classIds || classIds.length === 0) && (feeClassId || feeClassIds)) {
-        classIds = feeClassIds || [feeClassId];
-      }
-
-      if (!classIds || classIds.length === 0) {
-        throw new Error(`No classes selected or pre-assigned for fee: ${name}`);
-      }
-
-      if (typeof classIds === 'string') classIds = classIds.split(',');
-
-      const studentsResult = await client.query('SELECT id FROM students WHERE class_id = ANY($1) AND org_id = $2', [classIds, orgId]);
       for (const student of studentsResult.rows) {
         const invResult = await client.query(
           'INSERT INTO invoices (org_id, student_id, amount, due_date, description, status, term, academic_year) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id',
@@ -681,7 +688,38 @@ export const assignFee = async (req: AuthRequest, res: Response) => {
         if (status === 'Paid') {
           await recordAutomaticPayment(client, orgId, invResult.rows[0].id, student.id, amount, payment_method || 'Cash', transaction_id);
         }
+
+        if (req.body.notify_via_sms && student.contact) {
+          SMSService.sendSMS(
+            orgId,
+            student.contact,
+            `Dear Parent, a new fee of ${currency}${amount} for ${name} has been assigned to ${student.name}. Please settle by ${due_date}.`
+          ).catch(err => console.error('SMS Fee Notification failed:', err));
+        }
       }
+    } else if (target_type === 'students' && student_id) {
+        const studentRes = await client.query('SELECT name, contact FROM students WHERE id = $1', [student_id]);
+        const student = studentRes.rows[0];
+
+        const invResult = await client.query(
+          'INSERT INTO invoices (org_id, student_id, amount, due_date, description, status, term, academic_year) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id',
+          [orgId, student_id, amount, due_date, name, status || 'Pending', term || null, academic_year || null]
+        );
+
+        if (status === 'Paid') {
+          await recordAutomaticPayment(client, orgId, invResult.rows[0].id, student_id, amount, payment_method || 'Cash', transaction_id);
+        }
+
+        const orgRes = await client.query('SELECT currency FROM organizations WHERE id = $1', [orgId]);
+        const currency = orgRes.rows[0]?.currency || '$';
+
+        if (req.body.notify_via_sms && student && student.contact) {
+          SMSService.sendSMS(
+            orgId,
+            student.contact,
+            `Dear Parent, a new fee of ${currency}${amount} for ${name} has been assigned to ${student.name}. Please settle by ${due_date}.`
+          ).catch(err => console.error('SMS Fee Notification failed:', err));
+        }
     }
 
     await client.query('COMMIT');

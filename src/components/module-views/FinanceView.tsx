@@ -375,6 +375,17 @@ export const FinanceModules = {
                       className="w-full px-4 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50"
                     />
                   </div>
+                  <div className="flex items-center gap-3 p-4 bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800/50 rounded-2xl">
+                    <input
+                      type="checkbox"
+                      name="notify_via_sms"
+                      id="notify_via_sms_fs"
+                      className="w-4 h-4 rounded border-amber-300 text-amber-600 focus:ring-amber-500"
+                    />
+                    <label htmlFor="notify_via_sms_fs" className="text-xs font-bold text-amber-800 dark:text-amber-200 uppercase tracking-wider cursor-pointer">
+                      Notify Parents via SMS
+                    </label>
+                  </div>
                 </>
               )}
             </div>
@@ -471,6 +482,7 @@ export const FinanceModules = {
     const [academicYear, setAcademicYear] = useState(organization?.academic_year || "");
     const [term, setTerm] = useState(organization?.current_term || "");
     const [dueDate, setDueDate] = useState(new Date().toISOString().split('T')[0]);
+    const [notifyViaSMS, setNotifyViaSMS] = useState(false);
 
     const feeOptions = feeStructures.map(f => ({
       value: f.id,
@@ -541,6 +553,18 @@ export const FinanceModules = {
             </select>
           </div>
         </div>
+        <div className="flex items-center gap-3 p-4 bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800/50 rounded-2xl mb-8 max-w-md">
+          <input
+            type="checkbox"
+            id="notify_via_sms_cf"
+            checked={notifyViaSMS}
+            onChange={(e) => setNotifyViaSMS(e.target.checked)}
+            className="w-4 h-4 rounded border-amber-300 text-amber-600 focus:ring-amber-500"
+          />
+          <label htmlFor="notify_via_sms_cf" className="text-xs font-bold text-amber-800 dark:text-amber-200 uppercase tracking-wider cursor-pointer">
+            Notify Parents via SMS
+          </label>
+        </div>
         <button
           onClick={() => {
             if (selectedFeeIds.length === 0) return;
@@ -549,7 +573,8 @@ export const FinanceModules = {
               fee_structure_ids: selectedFeeIds,
               due_date: dueDate,
               term: term,
-              academic_year: academicYear
+              academic_year: academicYear,
+              notify_via_sms: notifyViaSMS
             });
           }}
           className="px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold text-sm hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 dark:shadow-none hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:translate-y-0"
