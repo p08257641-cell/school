@@ -22,24 +22,34 @@ export const requestForToken = async () => {
     if (typeof window !== 'undefined' && 'Notification' in window) {
       const permission = await Notification.requestPermission();
       if (permission !== 'granted') {
-        console.log('>>> [FIREBASE] Notification permission denied or dismissed.');
+        console.warn('>>> [FIREBASE] Notification permission was NOT granted:', permission);
         return null;
       }
     }
 
-    const currentToken = await getToken(messaging, {
-      vapidKey: "BJ25i8tJsnRj00v1q10akCIZFZOGoPWNpMDDwdRWbyg2YQR9L1rfpYPGseuWihzWjZVRgia15ulSUZPfuv_jjBg" 
-    });
+    // Attempt to get token
+    try {
+      const currentToken = await getToken(messaging, {
+        vapidKey: "BJ25i8tJsnRj00v1q10akCIZFZOGoPWNpMDDwdRWbyg2YQR9L1rfpYPGseuWihzWjZVRgia15ulSUZPfuv_jjBg" 
+      });
 
-    if (currentToken) {
-      console.log('>>> [FIREBASE] FCM Token received:', currentToken);
-      return currentToken;
-    } else {
-      console.log('>>> [FIREBASE] No registration token available. Request permission to generate one.');
+      if (currentToken) {
+        console.log('>>> [FIREBASE] FCM Token received successfully');
+        return currentToken;
+      } else {
+        console.warn('>>> [FIREBASE] No registration token available.');
+        return null;
+      }
+    } catch (tokenErr: any) {
+      console.error('>>> [FIREBASE] getToken error details:', {
+        message: tokenErr.message,
+        code: tokenErr.code,
+        stack: tokenErr.stack
+      });
       return null;
     }
-  } catch (err) {
-    console.log('>>> [FIREBASE] An error occurred while retrieving token:', err);
+  } catch (err: any) {
+    console.error('>>> [FIREBASE] General error in requestForToken:', err);
     return null;
   }
 };
