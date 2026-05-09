@@ -4281,16 +4281,16 @@ export const AcademicModules = {
               </div>
 
               {/* Print Button */}
-              <div className="flex justify-end gap-3">
+              <div className="flex flex-col sm:flex-row justify-end gap-3">
                 <button
                   onClick={() => setCertStudent(null)}
-                  className="px-6 py-2.5 text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-xl text-sm font-bold transition-colors"
+                  className="px-6 py-2.5 text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-xl text-sm font-bold transition-colors order-2 sm:order-1"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handlePrint}
-                  className="flex items-center gap-2 px-8 py-2.5 bg-indigo-600 text-white rounded-xl font-bold text-sm hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 dark:shadow-none"
+                  className="flex items-center justify-center gap-2 px-8 py-2.5 bg-indigo-600 text-white rounded-xl font-bold text-sm hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 dark:shadow-none order-1 sm:order-2"
                 >
                   <Printer className="w-4 h-4" />
                   Print / Save as PDF
@@ -4298,7 +4298,7 @@ export const AcademicModules = {
               </div>
 
               {/* Certificate Preview (responsive) */}
-              <div className="overflow-x-auto rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-white">
+              <div className="overflow-x-auto rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-white hidden sm:block">
                 <div style={{ width: '860px', aspectRatio: '297/210', margin: '0 auto', padding: '24px', fontFamily: "'Georgia', 'Times New Roman', serif" }}>
                   <div style={{ width: '100%', height: '100%', border: `3px double ${design.borderColor}`, position: 'relative', padding: '20px' }}>
                     <div style={{ position: 'absolute', top: 14, left: 14, width: 20, height: 20, borderTop: `2px solid ${design.accentColor}`, borderLeft: `2px solid ${design.accentColor}` }} />
@@ -4332,6 +4332,35 @@ export const AcademicModules = {
                         </div>
                       </div>
                     </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Mobile Certificate Preview */}
+              <div className="block sm:hidden rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-white p-4 space-y-4" style={{ fontFamily: "'Georgia', 'Times New Roman', serif" }}>
+                <div className="text-center space-y-2 pb-3" style={{ borderBottom: `2px solid ${design.accentColor}` }}>
+                  {organization?.logo && <img src={organization.logo} alt="Logo" className="w-12 h-12 object-contain mx-auto" />}
+                  <div style={{ fontSize: 14, fontWeight: 900, color: design.titleColor, textTransform: 'uppercase', letterSpacing: 2 }}>{organization?.name || 'School Name'}</div>
+                  <div style={{ fontSize: 8, color: '#666' }}>{organization?.address || ''}</div>
+                </div>
+                <div className="text-center py-2" style={{ fontSize: 14, fontWeight: 900, color: design.titleColor, textTransform: 'uppercase', letterSpacing: 3, borderBottom: `2px solid ${design.accentColor}` }}>{certTitle}</div>
+                <div style={{ fontSize: 8, color: '#888', letterSpacing: 2, textAlign: 'center' }}>REF: {certRefNo}</div>
+                <div style={{ fontSize: 11, lineHeight: '1.8', color: design.bodyColor, textAlign: 'justify', whiteSpace: 'pre-line' }}>{resolvedBody}</div>
+                <div className="grid grid-cols-3 gap-2 pt-4" style={{ borderTop: `1px solid ${design.accentColor}` }}>
+                  <div className="text-center">
+                    <div style={{ fontSize: 8, color: '#555', marginBottom: 2 }}>{new Date(certDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
+                    <div style={{ borderBottom: '1px solid #333', marginBottom: 2 }} />
+                    <div style={{ fontSize: 7, fontWeight: 'bold', textTransform: 'uppercase', color: '#555' }}>Date</div>
+                  </div>
+                  <div className="text-center">
+                    {organization?.signature && <img src={organization.signature} alt="Sig" className="h-5 object-contain mx-auto mb-1" />}
+                    <div style={{ borderBottom: '1px solid #333', marginBottom: 2 }} />
+                    <div style={{ fontSize: 7, fontWeight: 'bold', textTransform: 'uppercase', color: '#555' }}>Head of School</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="h-5" />
+                    <div style={{ borderBottom: '1px solid #333', marginBottom: 2 }} />
+                    <div style={{ fontSize: 7, fontWeight: 'bold', textTransform: 'uppercase', color: '#555' }}>Stamp</div>
                   </div>
                 </div>
               </div>
