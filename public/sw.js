@@ -1,30 +1,58 @@
+self.addEventListener('install', (event) => {
+  self.skipWaiting();
+});
+
+self.addEventListener('activate', (event) => {
+  event.waitUntil(clients.claim());
+});
+
 self.addEventListener('push', (event) => {
-  if (!event.data) return;
+  console.log('>>> [SW] Push event received');
+  if (!event.data) {
+    console.warn('>>> [SW] Push event has no data');
+    return;
+  }
 
   try {
     const data = event.data.json();
-    const title = data.notification.title || 'SchoolGo Alert';
+    console.log('>>> [SW] Payload:', data);
+    
+    const title = data.notification?.title || 'SchoolGo Alert';
     const options = {
-      body: data.notification.body,
-      icon: '/vite.svg',
-      badge: '/vite.svg',
-      data: data.notification.data || {}
+      body: data.notification?.body || 'New message from SchoolGo',
+      icon: data.notification?.icon || '/vite.svg',
+      badge: data.notification?.badge || '/vite.svg',
+      vibrate: [100, 50, 100],
+      data: data.notification?.data || {},
+      actions: [
+        { action: 'open', title: 'Open App' }
+      ]
     };
 
-    event.waitUntil(self.registration.showNotification(title, options));
+    event.waitUntil(
+      self.registration.showNotification(title, options)
+    );
   } catch (err) {
-    console.error('Error in push event:', err);
+    console.error('>>> [SW] Error processing push event:', err);
+    
+    // Fallback if JSON parsing fails
+    const text = event.data.text();
+    event.waitUntil(
+      self.registration.showNotification('SchoolGo Alert', {
+        body: text
+      })
+    );
   }
 });
 
 self.addEventListener('notificationclick', (event) => {
+  console.log('>>> [SW] Notification clicked');
   event.notification.close();
   
-  // Example: Focus or open the app
   event.waitUntil(
-    clients.matchAll({ type: 'window' }).then((clientList) => {
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
       for (const client of clientList) {
-        if (client.url === '/' && 'focus' in client) return client.focus();
+        if ('focus' in client) return client.focus();
       }
       if (clients.openWindow) return clients.openWindow('/');
     })
