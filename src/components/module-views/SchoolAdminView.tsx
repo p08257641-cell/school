@@ -5809,13 +5809,14 @@ export const AcademicModules = {
     }, [students, data, selectedMonth, role, filteredData, includeWeekends, holidays, totalSchoolDays, termStartDate, termEndDate]);
 
     const stats = useMemo(() => {
-      if (filteredData.length === 0) return { present: 0, absent: 0, percentage: 0 };
+      if (filteredData.length === 0) return { present: 0, absent: 0, presentPercentage: 0, absentPercentage: 0 };
       const present = filteredData.filter(a => a.status === 'Present').length;
-      const percentage = Math.round((present / filteredData.length) * 100);
+      const presentPercentage = Math.round((present / filteredData.length) * 100);
       return { 
         present, 
         absent: filteredData.length - present, 
-        percentage 
+        presentPercentage,
+        absentPercentage: 100 - presentPercentage
       };
     }, [filteredData]);
 
@@ -5904,11 +5905,11 @@ export const AcademicModules = {
             <div className="flex items-center gap-2 mr-4">
               <div className="p-3 bg-emerald-50/50 dark:bg-emerald-900/10 border border-emerald-100/50 dark:border-emerald-800/30 rounded-xl text-center min-w-[80px]">
                 <p className="text-[9px] font-bold text-emerald-600 uppercase">Present</p>
-                <p className="text-sm font-black text-emerald-700 dark:text-emerald-400">{stats.percentage}%</p>
+                <p className="text-sm font-black text-emerald-700 dark:text-emerald-400">{stats.presentPercentage}%</p>
               </div>
               <div className="p-3 bg-rose-50/50 dark:bg-rose-900/10 border border-rose-100/50 dark:border-rose-800/30 rounded-xl text-center min-w-[80px]">
                 <p className="text-[9px] font-bold text-rose-600 uppercase">Absent</p>
-                <p className="text-sm font-black text-rose-700 dark:text-rose-400">{100 - stats.percentage}%</p>
+                <p className="text-sm font-black text-rose-700 dark:text-rose-400">{stats.absentPercentage}%</p>
               </div>
             </div>
           </div>

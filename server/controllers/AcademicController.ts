@@ -284,9 +284,8 @@ export const markAttendanceByQR = async (req: AuthRequest, res: Response) => {
     // 1. Look up student by admission_no or id
     const studentResult = await pool.query(
       `SELECT s.id, s.name, s.admission_no, s.class_id, s.parent_email, s.fcm_token,
-              u.fcm_token as parent_fcm_token
+              s.parent_fcm_token
        FROM students s
-       LEFT JOIN users u ON LOWER(u.email) = LOWER(s.parent_email) AND u.org_id = s.org_id
        WHERE s.org_id = $1 AND (s.admission_no = $2 OR CAST(s.id AS TEXT) = $2)
        LIMIT 1`,
       [orgId, qr_data.trim()]
