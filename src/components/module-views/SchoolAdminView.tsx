@@ -5949,7 +5949,7 @@ export const AcademicModules = {
               title={`${viewingStudent?.name}'s Records`}
               data={(data || []).filter((r: any) => 
                 String(r.student_id) === String(viewingStudent?.id) && 
-                (!selectedMonth || new Date(r.date).toLocaleString('default', { month: 'long', year: 'numeric' }) === selectedMonth)
+                (selectedMonth === 'Entire Term' || !selectedMonth || new Date(r.date).toLocaleString('default', { month: 'long', year: 'numeric' }) === selectedMonth)
               )}
               columns={[
                 { header: 'Date', accessor: 'date', className: 'font-bold' },
@@ -5964,7 +5964,30 @@ export const AcademicModules = {
                     </span>
                   )
                 },
-                { header: 'Check In', accessor: (item: any) => item.checkIn || item.check_in || '—' },
+                { 
+                  header: 'Clock In', 
+                  accessor: (item: any) => {
+                    const val = item.clock_in || item.check_in || item.checkIn;
+                    if (!val) return '—';
+                    try {
+                      return new Date(val).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    } catch (e) {
+                      return val;
+                    }
+                  }
+                },
+                { 
+                  header: 'Clock Out', 
+                  accessor: (item: any) => {
+                    const val = item.clock_out || item.check_out || item.checkOut;
+                    if (!val) return '—';
+                    try {
+                      return new Date(val).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    } catch (e) {
+                      return val;
+                    }
+                  }
+                },
                 { header: 'Remarks', accessor: (item: any) => item.remark || item.remarks || '—', className: 'text-zinc-500 italic' },
               ]}
             />
