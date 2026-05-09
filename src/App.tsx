@@ -595,7 +595,7 @@ export default function App() {
         fetchOrganizations(),
         fetchInvoices(),
         fetchExpenses(),
-        fetchPartners(),
+        roleForFetch === "SUPER_ADMIN" ? fetchPartners() : Promise.resolve([]),
         fetchPlatformUsers(),
         fetchExams(),
         fetchResults(),

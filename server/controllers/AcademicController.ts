@@ -283,8 +283,11 @@ export const markAttendanceByQR = async (req: AuthRequest, res: Response) => {
 
     // 1. Look up student by admission_no or id
     const studentResult = await pool.query(
-      `SELECT id, name, admission_no, class_id, parent_email, fcm_token FROM students 
-       WHERE org_id = $1 AND (admission_no = $2 OR CAST(id AS TEXT) = $2)
+      `SELECT s.id, s.name, s.admission_no, s.class_id, s.parent_email, s.fcm_token,
+              u.fcm_token as parent_fcm_token
+       FROM students s
+       LEFT JOIN users u ON LOWER(u.email) = LOWER(s.parent_email) AND u.org_id = s.org_id
+       WHERE s.org_id = $1 AND (s.admission_no = $2 OR CAST(s.id AS TEXT) = $2)
        LIMIT 1`,
       [orgId, qr_data.trim()]
     );
@@ -330,14 +333,24 @@ export const markAttendanceByQR = async (req: AuthRequest, res: Response) => {
             }
           }
 
-          // Send Push Notification
+          // Send Push Notification to Student
           if (student.fcm_token) {
             sendPushNotification(
               student.fcm_token,
               'Attendance Alert',
-              `${student.name} has just left school.`,
+              `You have just left school.`,
               { student_id: String(student.id), action: 'clock_out' }
             ).catch(e => console.error('Push notification failed:', e));
+          }
+
+          // Send Push Notification to Parent
+          if (student.parent_fcm_token) {
+            sendPushNotification(
+              student.parent_fcm_token,
+              'Attendance Alert',
+              `${student.name} has just left school.`,
+              { student_id: String(student.id), action: 'clock_out' }
+            ).catch(e => console.error('Parent push notification failed:', e));
           }
           
           return res.json({
@@ -378,14 +391,24 @@ export const markAttendanceByQR = async (req: AuthRequest, res: Response) => {
         }
       }
 
-      // Send Push Notification
+      // Send Push Notification to Student
       if (student.fcm_token) {
         sendPushNotification(
           student.fcm_token,
           'Attendance Alert',
-          `${student.name} has just arrived at school.`,
+          `You have just arrived at school.`,
           { student_id: String(student.id), action: 'clock_in' }
         ).catch(e => console.error('Push notification failed:', e));
+      }
+
+      // Send Push Notification to Parent
+      if (student.parent_fcm_token) {
+        sendPushNotification(
+          student.parent_fcm_token,
+          'Attendance Alert',
+          `${student.name} has just arrived at school.`,
+          { student_id: String(student.id), action: 'clock_in' }
+        ).catch(e => console.error('Parent push notification failed:', e));
       }
 
       return res.status(201).json({
