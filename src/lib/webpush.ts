@@ -14,18 +14,47 @@ export const urlBase64ToUint8Array = (base64String: string) => {
 };
 
 export const subscribeToPush = async (publicVapidKey: string) => {
-  const registration = await navigator.serviceWorker.ready;
-  
-  // Check if we already have a subscription
-  const existingSubscription = await registration.pushManager.getSubscription();
-  if (existingSubscription) {
-    return existingSubscription;
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+    console.error('Push messaging is not supported in this browser');
+    return null;
   }
 
-  const subscription = await registration.pushManager.subscribe({
-    userVisibleOnly: true,
-    applicationServerKey: urlBase64ToUint8Array(publicVapidKey)
-  });
+  try {
+    // Explicitly request permission first
+    const permission = await Notification.requestPermission();
+    if (permission !== 'granted') {
+      console.warn('Notification permission denied');
+      return null;
+    }
 
-  return subscription;
+    // Ensure service worker is registered and ready
+    // We try to find the active registration
+    let registration = await navigator.serviceWorker.getRegistration();
+    
+    if (!registration) {
+      console.log('No SW registration found, registering now...');
+      registration = await navigator.serviceWorker.register('/sw.js');
+    }
+
+    // Wait for the service worker to be ready
+    await navigator.serviceWorker.ready;
+    
+    // Check if we already have a subscription
+    const existingSubscription = await registration.pushManager.getSubscription();
+    if (existingSubscription) {
+      console.log('Using existing subscription');
+      return existingSubscription;
+    }
+
+    console.log('Creating new push subscription...');
+    const subscription = await registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(publicVapidKey)
+    });
+
+    return subscription;
+  } catch (error) {
+    console.error('Subscription process failed:', error);
+    return null;
+  }
 };

@@ -1176,6 +1176,14 @@ export default function App() {
   // Centralized CRUD Handlers
   const handleEnableNotifications = async () => {
     try {
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+      const isStandalone = (window.navigator as any).standalone || window.matchMedia('(display-mode: standalone)').matches;
+
+      if (isIOS && !isStandalone) {
+        showToast("iPhone users: Tap 'Share' then 'Add to Home Screen' to enable notifications.", "info");
+        return;
+      }
+
       const publicVapidKey = 'BK9znUJ6gFOJFnu1JPdOn8WFm1ccoBRJzhVpbmPVTEd1903in3aAvkP48eVKz6exKcz4dJD6a15uK33ooHfvmwo';
       const subscription = await subscribeToPush(publicVapidKey);
       
@@ -1190,7 +1198,7 @@ export default function App() {
         });
         showToast("Notifications enabled successfully! 🔔", "success");
       } else {
-        showToast("Failed to get notification permission. Please check your browser settings.", "error");
+        showToast("Permission denied or not supported. Check browser settings.", "error");
       }
     } catch (err: any) {
       console.error(err);
