@@ -22,6 +22,7 @@ import * as MeetingController from '../controllers/MeetingController.ts';
 import * as AIController from '../controllers/AIController.ts';
 import * as ClubsController from '../controllers/ClubsController.ts';
 import * as WhistleblowerController from '../controllers/WhistleblowerController.ts';
+import { InventoryController } from '../controllers/InventoryController.ts';
 import { verifyToken, checkRole } from '../middleware/auth.ts';
 import pool from '../db.ts';
 import bcrypt from 'bcryptjs';
@@ -381,6 +382,25 @@ router.get('/elearning/cbt-questions/:exam_id', ELearningController.getCBTQuesti
 router.post('/elearning/cbt-questions', checkRole(['STAFF', 'SCHOOL_ADMIN']), ELearningController.addCBTQuestion);
 router.patch('/elearning/cbt-questions/:id', checkRole(['STAFF', 'SCHOOL_ADMIN']), ELearningController.updateCBTQuestion);
 router.delete('/elearning/cbt-questions/:id', checkRole(['STAFF', 'SCHOOL_ADMIN']), ELearningController.deleteCBTQuestion);
+
+// INVENTORY & ASSETS
+router.get('/inventory/suppliers', InventoryController.getSuppliers);
+router.post('/inventory/suppliers', checkRole(['SCHOOL_ADMIN', 'FINANCE']), InventoryController.createSupplier);
+router.patch('/inventory/suppliers/:id', checkRole(['SCHOOL_ADMIN', 'FINANCE']), InventoryController.updateSupplier);
+router.delete('/inventory/suppliers/:id', checkRole(['SCHOOL_ADMIN', 'FINANCE']), InventoryController.deleteSupplier);
+
+router.get('/inventory/items', InventoryController.getInventoryItems);
+router.post('/inventory/items', checkRole(['SCHOOL_ADMIN', 'FINANCE']), InventoryController.createInventoryItem);
+router.patch('/inventory/items/:id', checkRole(['SCHOOL_ADMIN', 'FINANCE']), InventoryController.updateInventoryItem);
+router.delete('/inventory/items/:id', checkRole(['SCHOOL_ADMIN', 'FINANCE']), InventoryController.deleteInventoryItem);
+
+router.get('/inventory/transactions', InventoryController.getTransactions);
+router.post('/inventory/transactions', checkRole(['SCHOOL_ADMIN', 'FINANCE']), InventoryController.createTransaction);
+
+router.get('/assets', InventoryController.getAssets);
+router.post('/assets', checkRole(['SCHOOL_ADMIN']), InventoryController.createAsset);
+router.patch('/assets/:id', checkRole(['SCHOOL_ADMIN']), InventoryController.updateAsset);
+router.delete('/assets/:id', checkRole(['SCHOOL_ADMIN']), InventoryController.deleteAsset);
 
 // FILES / STORAGE
 router.get('/files', FileController.getFiles);

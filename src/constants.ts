@@ -221,7 +221,7 @@ export const NAVIGATION_CONFIG: NavItem[] = [
       { title: 'Trip History', href: 'Trip History', roles: ['SCHOOL_ADMIN', 'BUS_DRIVER'], icon: History },
       { title: 'Hostel', href: 'Hostel', roles: ['SCHOOL_ADMIN', 'STUDENT', 'PARENT', 'NON_STAFF', 'HOSTEL'], icon: Building2 },
       { title: 'Student Clubs', href: 'Student Clubs', roles: ['SCHOOL_ADMIN', 'STUDENT', 'PARENT', 'STUDENT_CLUBS'], icon: Users },
-      { title: 'Assets & Equipment', href: 'Assets', roles: ['SCHOOL_ADMIN', 'NON_STAFF', 'ASSETS_EQUIPMENT'], icon: Layers },
+      { title: 'Inventory & Assets', href: 'Inventory & Assets', roles: ['SCHOOL_ADMIN', 'NON_STAFF', 'ASSETS_EQUIPMENT'], icon: Layers },
       { title: 'Health / Medical', href: 'Health / Medical', roles: ['SCHOOL_ADMIN', 'NON_STAFF', 'STUDENT', 'PARENT', 'HEALTH'], icon: Heart },
       { title: 'Behavior & Discipline', href: 'Behavior & Discipline', roles: ['SCHOOL_ADMIN', 'STUDENT', 'PARENT', 'DISCIPLINE'], icon: ShieldCheck },
     ]

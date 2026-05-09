@@ -76,6 +76,7 @@ import { CalendarView } from "./components/module-views/CalendarView";
 import { Profile } from "./components/module-views/Profile";
 import { ParentModules } from "./components/module-views/ParentView";
 import { GenericModuleView } from "./components/ModuleViews";
+import { InventoryAssetManagement } from "./components/module-views/InventoryAssetManagement";
 import LandingPage from "./components/LandingPage";
 import Login from "./components/Login";
 import PartnerLogin from "./components/PartnerLogin";
@@ -3866,6 +3867,9 @@ export default function App() {
               : selectedWardId
           }
         />
+      ),
+      "Inventory & Assets": (
+        <InventoryAssetManagement />
       ),
       "Feedback & Grievances": currentRole === "SCHOOL_ADMIN" ? (
         <FeedbackManagement />

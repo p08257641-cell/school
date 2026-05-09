@@ -2126,7 +2126,70 @@ export async function init() {
         END IF;
       END $$;
     `);
+    // Inventory & Asset Management Tables
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS suppliers (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        org_id UUID REFERENCES organizations(id) ON DELETE CASCADE,
+        name VARCHAR(255) NOT NULL,
+        contact_person VARCHAR(255),
+        email VARCHAR(255),
+        phone VARCHAR(50),
+        address TEXT,
+        status VARCHAR(50) DEFAULT 'Active',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
 
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS inventory_items (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        org_id UUID REFERENCES organizations(id) ON DELETE CASCADE,
+        name VARCHAR(255) NOT NULL,
+        category VARCHAR(100),
+        description TEXT,
+        unit_price NUMERIC(10, 2) DEFAULT 0,
+        quantity INTEGER DEFAULT 0,
+        min_stock_level INTEGER DEFAULT 5,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS inventory_transactions (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        org_id UUID REFERENCES organizations(id) ON DELETE CASCADE,
+        item_id UUID REFERENCES inventory_items(id) ON DELETE CASCADE,
+        supplier_id UUID REFERENCES suppliers(id),
+        type VARCHAR(50) NOT NULL, -- 'IN' (Purchase) or 'OUT' (Issuance)
+        quantity INTEGER NOT NULL,
+        unit_price NUMERIC(10, 2),
+        total_price NUMERIC(10, 2),
+        reference_number VARCHAR(100),
+        notes TEXT,
+        created_by UUID, -- Can be staff id
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS assets (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        org_id UUID REFERENCES organizations(id) ON DELETE CASCADE,
+        name VARCHAR(255) NOT NULL,
+        category VARCHAR(100),
+        serial_number VARCHAR(100),
+        purchase_date DATE,
+        purchase_price NUMERIC(10, 2),
+        assigned_to UUID REFERENCES staff(id), -- Nullable if not assigned
+        location VARCHAR(255),
+        condition VARCHAR(50) DEFAULT 'Good',
+        status VARCHAR(50) DEFAULT 'Active',
+        notes TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    
     await client.query('COMMIT');
     console.log('Database initialized with real data!');
   } catch (err) {
