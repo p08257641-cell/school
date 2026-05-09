@@ -326,7 +326,7 @@ export default function App() {
   useEffect(() => {
     const token = localStorage.getItem("token");
     const user = JSON.parse(localStorage.getItem("user") || "null");
-    
+
     // Check for public result viewing link
     if (view === 'Result' && pubToken) {
       const loadPublicResult = async () => {
@@ -419,7 +419,7 @@ export default function App() {
 
         socket.on('attendance_update', (data: any) => {
           if (user.role === 'SCHOOL_ADMIN') {
-             console.log('Attendance update received:', data);
+            console.log('Attendance update received:', data);
           }
         });
 
@@ -429,7 +429,7 @@ export default function App() {
           if (subscription) {
             fetch(`${API_BASE_URL}/auth/fcm-token`, {
               method: 'POST',
-              headers: { 
+              headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${localStorage.getItem('token')}`
               },
@@ -1167,8 +1167,8 @@ export default function App() {
   }, [currentRole, wards, selectedWardId]);
 
   const showToast = (message: any, type: ToastType = "info") => {
-    const finalMessage = (typeof message === 'object' && message !== null) 
-      ? (message.friendlyMessage || getFriendlyErrorMessage(message)) 
+    const finalMessage = (typeof message === 'object' && message !== null)
+      ? (message.friendlyMessage || getFriendlyErrorMessage(message))
       : message;
     setToast({ message: finalMessage, type });
   };
@@ -1186,11 +1186,11 @@ export default function App() {
 
       const publicVapidKey = 'BK9znUJ6gFOJFnu1JPdOn8WFm1ccoBRJzhVpbmPVTEd1903in3aAvkP48eVKz6exKcz4dJD6a15uK33ooHfvmwo';
       const subscription = await subscribeToPush(publicVapidKey);
-      
+
       if (subscription) {
         await fetch(`${API_BASE_URL}/auth/fcm-token`, {
           method: 'POST',
-          headers: { 
+          headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${localStorage.getItem('token')}`
           },
@@ -1497,7 +1497,7 @@ export default function App() {
     try {
       const { approveTransportRequest, createInvoice } = await import("./lib/api");
       await approveTransportRequest(assignment.student_id);
-      
+
       // Auto-Invoicing
       await createInvoice({
         student_id: assignment.student_id,
@@ -1508,7 +1508,7 @@ export default function App() {
         source_type: 'transport',
         source_id: assignment.id
       });
-      
+
       showToast("Transport request approved and invoiced!", "success");
       loadData();
     } catch (err) {
@@ -1521,7 +1521,7 @@ export default function App() {
     try {
       const { approveHostelRequest, createInvoice } = await import("./lib/api");
       await approveHostelRequest(assignment.id);
-      
+
       // Auto-Invoicing
       await createInvoice({
         student_id: assignment.student_id,
@@ -1532,7 +1532,7 @@ export default function App() {
         source_type: 'hostel',
         source_id: assignment.id
       });
-      
+
       showToast("Hostel request approved and invoiced!", "success");
       loadData();
     } catch (err) {
@@ -1742,8 +1742,8 @@ export default function App() {
       );
     if (currentView === "Announcements")
       return (
-        <Announcements 
-          role={currentRole} 
+        <Announcements
+          role={currentRole}
           students={studentList}
           staff={staffList}
           organization={organizations.find(o => o.id === currentUser?.org_id)}
@@ -1958,10 +1958,10 @@ export default function App() {
             );
           case "BUS_DRIVER":
             return (
-              <BusDriverDashboard 
-                routes={transportRoutes.filter(r => 
+              <BusDriverDashboard
+                routes={transportRoutes.filter(r =>
                   String(r.driver_name).toLowerCase() === String(currentUser?.name || '').toLowerCase()
-                )} 
+                )}
                 onDropOff={async (studentId) => {
                   try {
                     const { markStudentDroppedOff } = await import("./lib/api");
@@ -2444,6 +2444,7 @@ export default function App() {
         <AcademicModules.AlumniManagement
           students={studentList}
           onRefresh={() => loadData()}
+          organization={organization}
         />
       ),
 
@@ -3016,7 +3017,7 @@ export default function App() {
                 "Parent and student details updated!",
                 "success",
               );
-              
+
               // Refresh state properly
               const updatedStudents = await fetchStudents();
               setStudentList(updatedStudents);
@@ -3939,7 +3940,7 @@ export default function App() {
                 <p className="text-[9px] sm:text-[10px] font-bold text-zinc-400 uppercase tracking-widest mt-1">Secure Parent Portal</p>
               </div>
             </div>
-            <button 
+            <button
               onClick={() => { setPublicResultData(null); setShowLanding(true); }}
               className="p-2.5 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-xl text-zinc-500 transition-all hover:scale-105 active:scale-95"
               title="Close View"
@@ -3955,21 +3956,21 @@ export default function App() {
         </div>
       );
     }
-    
+
     // Ensure data exists before results mapping
     if (!publicResultData || !publicResultData.results) {
       return (
         <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex flex-col items-center justify-center p-8">
-           <div className="p-12 text-center text-zinc-500 bg-white dark:bg-zinc-900 rounded-[2rem] shadow-xl">
-              <p className="font-bold">Invalid record data detected.</p>
-              <button onClick={() => { setPublicResultData(null); setShowLanding(true); }} className="mt-4 px-6 py-2 bg-indigo-600 text-white rounded-xl text-sm font-bold">Back to Home</button>
-           </div>
+          <div className="p-12 text-center text-zinc-500 bg-white dark:bg-zinc-900 rounded-[2rem] shadow-xl">
+            <p className="font-bold">Invalid record data detected.</p>
+            <button onClick={() => { setPublicResultData(null); setShowLanding(true); }} className="mt-4 px-6 py-2 bg-indigo-600 text-white rounded-xl text-sm font-bold">Back to Home</button>
+          </div>
         </div>
       );
     }
 
     const { student, results, organization, template, gradingScale, term, year } = publicResultData;
-    
+
     // Prepare student object for ReportCardPreview
     const formattedStudent = {
       ...student,
@@ -3987,17 +3988,17 @@ export default function App() {
     return (
       <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex items-center justify-center p-4 sm:p-8">
         <div className="w-full max-w-5xl bg-white dark:bg-zinc-900 rounded-[3rem] shadow-2xl shadow-indigo-200/50 dark:shadow-none overflow-hidden relative">
-          <button 
+          <button
             onClick={() => { setPublicResultData(null); setShowLanding(true); }}
             className="absolute top-8 right-8 z-50 p-3 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-2xl text-zinc-500 transition-colors"
           >
             <Calendar className="w-5 h-5" />
           </button>
-          <ReportCardPreview 
-            template={template} 
-            organization={organization} 
-            student={formattedStudent} 
-            onClose={() => { setPublicResultData(null); setShowLanding(true); }} 
+          <ReportCardPreview
+            template={template}
+            organization={organization}
+            student={formattedStudent}
+            onClose={() => { setPublicResultData(null); setShowLanding(true); }}
           />
         </div>
       </div>
@@ -4013,11 +4014,11 @@ export default function App() {
           </div>
           <h2 className="text-xl font-black text-zinc-900 dark:text-white tracking-tight mb-2 uppercase">Record Error</h2>
           <p className="text-zinc-500 font-medium mb-8">{publicError}</p>
-          <button 
+          <button
             onClick={() => {
               setPublicError(null);
               setShowLanding(true);
-            }} 
+            }}
             className="w-full px-8 py-4 bg-indigo-600 text-white rounded-2xl text-sm font-black uppercase tracking-widest shadow-lg shadow-indigo-200 dark:shadow-none hover:bg-indigo-700 transition-all active:scale-95"
           >
             Go to Home

@@ -4051,8 +4051,74 @@ export const AcademicModules = {
       </>
     );
   },
-  AlumniManagement: ({ students = [], onRefresh, role, invoices = [], payments = [], onSaveStudent, onDelete }: { students?: Student[], onRefresh?: () => void, role?: UserRole, invoices?: any[], payments?: any[], onSaveStudent?: (data: any) => void, onDelete?: (type: string, item: any) => void }) => {
+  AlumniManagement: ({ students = [], onRefresh, role, invoices = [], payments = [], onSaveStudent, onDelete, organization }: { students?: Student[], onRefresh?: () => void, role?: UserRole, invoices?: any[], payments?: any[], onSaveStudent?: (data: any) => void, onDelete?: (type: string, item: any) => void, organization?: any }) => {
     const alumni = useMemo(() => students.filter(s => s.status === 'Alumni'), [students]);
+    const [certStudent, setCertStudent] = useState<any>(null);
+    const [certBody, setCertBody] = useState('');
+    const [certDate, setCertDate] = useState(new Date().toISOString().split('T')[0]);
+    const [certTitle, setCertTitle] = useState('SCHOOL LEAVING CERTIFICATE');
+    const [certRefNo, setCertRefNo] = useState('');
+
+    const openCertificate = (student: any) => {
+      setCertStudent(student);
+      setCertRefNo(`SLC/${new Date().getFullYear()}/${student.admission_no || student.id?.slice(0, 6)}`);
+      setCertBody(
+        `This is to certify that ${student.name}, bearing Admission Number ${student.admission_no || 'N/A'}, ` +
+        `was a bonafide student of ${organization?.name || 'this institution'} from the date of admission ` +
+        `${student.date_enrolled ? new Date(student.date_enrolled).toLocaleDateString() : '_______________'} ` +
+        `to the date of leaving _______________.\n\n` +
+        `During ${student.gender === 'Female' ? 'her' : 'his'} stay in the school, ` +
+        `${student.gender === 'Female' ? 'she' : 'he'} was in ${student.class || '_______________'} class. ` +
+        `${student.gender === 'Female' ? 'Her' : 'His'} conduct and character were found to be GOOD.\n\n` +
+        `We wish ${student.gender === 'Female' ? 'her' : 'him'} all the best in ${student.gender === 'Female' ? 'her' : 'his'} future endeavours.`
+      );
+    };
+
+    const handlePrint = () => {
+      const printContent = document.getElementById('certificate-print-area');
+      if (!printContent) return;
+      const printWindow = window.open('', '_blank');
+      if (!printWindow) return;
+      printWindow.document.write(`
+        <html>
+        <head>
+          <title>${certTitle} - ${certStudent?.name}</title>
+          <style>
+            @page { size: A4 landscape; margin: 0; }
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body { font-family: 'Georgia', 'Times New Roman', serif; }
+            .cert-wrapper { width: 100vw; height: 100vh; display: flex; align-items: center; justify-content: center; background: #fff; }
+            .cert-page { width: 277mm; height: 190mm; padding: 12mm; border: 3px double #1e3a5f; position: relative; }
+            .cert-inner { border: 1.5px solid #c9a94e; padding: 10mm; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: space-between; }
+            .cert-header { text-align: center; }
+            .cert-header img { width: 70px; height: 70px; object-fit: contain; margin-bottom: 6px; }
+            .school-name { font-size: 22px; font-weight: 900; color: #1e3a5f; text-transform: uppercase; letter-spacing: 3px; }
+            .school-address { font-size: 10px; color: #666; margin-top: 2px; letter-spacing: 1px; }
+            .cert-title { font-size: 26px; font-weight: 900; color: #1e3a5f; text-transform: uppercase; letter-spacing: 6px; border-bottom: 2px solid #c9a94e; border-top: 2px solid #c9a94e; padding: 8px 30px; margin: 12px 0; }
+            .cert-ref { font-size: 10px; color: #888; letter-spacing: 2px; }
+            .cert-body { font-size: 14px; line-height: 2; color: #333; text-align: justify; max-width: 90%; white-space: pre-line; }
+            .cert-footer { display: flex; justify-content: space-between; width: 90%; align-items: flex-end; margin-top: 10px; }
+            .cert-footer-item { text-align: center; }
+            .cert-footer-item .line { width: 160px; border-bottom: 1px solid #333; margin-bottom: 4px; }
+            .cert-footer-item .label { font-size: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; color: #555; }
+            .cert-date { font-size: 11px; color: #555; }
+            .signature-img { height: 50px; object-fit: contain; }
+            .corner { position: absolute; width: 30px; height: 30px; border-color: #c9a94e; }
+            .tl { top: 8mm; left: 8mm; border-top: 2px solid; border-left: 2px solid; }
+            .tr { top: 8mm; right: 8mm; border-top: 2px solid; border-right: 2px solid; }
+            .bl { bottom: 8mm; left: 8mm; border-bottom: 2px solid; border-left: 2px solid; }
+            .br { bottom: 8mm; right: 8mm; border-bottom: 2px solid; border-right: 2px solid; }
+          </style>
+        </head>
+        <body>
+          ${printContent.innerHTML}
+        </body>
+        </html>
+      `);
+      printWindow.document.close();
+      setTimeout(() => { printWindow.print(); }, 500);
+    };
+
     return (
       <div className="space-y-4">
         <div className="flex justify-end">
@@ -4082,7 +4148,173 @@ export const AcademicModules = {
             },
           ]}
           onView={() => { }}
+          extraActions={(item) => (
+            <button
+              onClick={() => openCertificate(item)}
+              className="flex items-center w-full gap-3 px-3 py-2 text-sm text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/10 rounded-lg transition-colors"
+            >
+              <Award className="w-4 h-4" />
+              Generate Certificate
+            </button>
+          )}
         />
+
+        {/* Certificate Editor & Preview Modal */}
+        <Modal
+          isOpen={!!certStudent}
+          onClose={() => setCertStudent(null)}
+          title="School Certificate / Testimonial"
+          maxWidth="max-w-6xl"
+        >
+          {certStudent && (
+            <div className="space-y-6">
+              {/* Editable Fields */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-2xl border border-zinc-200 dark:border-zinc-700">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Certificate Title</label>
+                  <input
+                    type="text"
+                    value={certTitle}
+                    onChange={(e) => setCertTitle(e.target.value)}
+                    className="w-full px-4 py-2.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Reference No.</label>
+                  <input
+                    type="text"
+                    value={certRefNo}
+                    onChange={(e) => setCertRefNo(e.target.value)}
+                    className="w-full px-4 py-2.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Date of Issue</label>
+                  <input
+                    type="date"
+                    value={certDate}
+                    onChange={(e) => setCertDate(e.target.value)}
+                    className="w-full px-4 py-2.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                </div>
+                <div className="md:col-span-3 space-y-1.5">
+                  <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Certificate Body (Editable)</label>
+                  <textarea
+                    value={certBody}
+                    onChange={(e) => setCertBody(e.target.value)}
+                    rows={6}
+                    className="w-full px-4 py-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500 resize-none leading-relaxed"
+                  />
+                </div>
+              </div>
+
+              {/* Print Button */}
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => setCertStudent(null)}
+                  className="px-6 py-2.5 text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-xl text-sm font-bold transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handlePrint}
+                  className="flex items-center gap-2 px-8 py-2.5 bg-indigo-600 text-white rounded-xl font-bold text-sm hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 dark:shadow-none"
+                >
+                  <Printer className="w-4 h-4" />
+                  Print Certificate
+                </button>
+              </div>
+
+              {/* Certificate Preview (this is what gets printed) */}
+              <div id="certificate-print-area" className="overflow-auto">
+                <div className="cert-wrapper" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <div style={{
+                    width: '277mm', minHeight: '190mm', padding: '12mm',
+                    border: '3px double #1e3a5f', position: 'relative', background: '#fff',
+                    fontFamily: "'Georgia', 'Times New Roman', serif"
+                  }}>
+                    {/* Corner decorations */}
+                    <div className="corner tl" style={{ position: 'absolute', top: '8mm', left: '8mm', width: '30px', height: '30px', borderTop: '2px solid #c9a94e', borderLeft: '2px solid #c9a94e' }} />
+                    <div className="corner tr" style={{ position: 'absolute', top: '8mm', right: '8mm', width: '30px', height: '30px', borderTop: '2px solid #c9a94e', borderRight: '2px solid #c9a94e' }} />
+                    <div className="corner bl" style={{ position: 'absolute', bottom: '8mm', left: '8mm', width: '30px', height: '30px', borderBottom: '2px solid #c9a94e', borderLeft: '2px solid #c9a94e' }} />
+                    <div className="corner br" style={{ position: 'absolute', bottom: '8mm', right: '8mm', width: '30px', height: '30px', borderBottom: '2px solid #c9a94e', borderRight: '2px solid #c9a94e' }} />
+
+                    <div style={{
+                      border: '1.5px solid #c9a94e', padding: '10mm', height: '100%',
+                      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between', gap: '8px'
+                    }}>
+                      {/* Header */}
+                      <div style={{ textAlign: 'center' }}>
+                        {organization?.logo && (
+                          <img src={organization.logo} alt="School Logo" style={{ width: '70px', height: '70px', objectFit: 'contain', marginBottom: '6px' }} />
+                        )}
+                        <div style={{ fontSize: '22px', fontWeight: 900, color: '#1e3a5f', textTransform: 'uppercase', letterSpacing: '3px' }}>
+                          {organization?.name || 'School Name'}
+                        </div>
+                        <div style={{ fontSize: '10px', color: '#666', marginTop: '2px', letterSpacing: '1px' }}>
+                          {organization?.address || 'School Address'}
+                        </div>
+                      </div>
+
+                      {/* Title */}
+                      <div style={{
+                        fontSize: '26px', fontWeight: 900, color: '#1e3a5f', textTransform: 'uppercase',
+                        letterSpacing: '6px', borderBottom: '2px solid #c9a94e', borderTop: '2px solid #c9a94e',
+                        padding: '8px 30px', margin: '4px 0'
+                      }}>
+                        {certTitle}
+                      </div>
+
+                      {/* Ref No */}
+                      <div style={{ fontSize: '10px', color: '#888', letterSpacing: '2px' }}>
+                        REF: {certRefNo}
+                      </div>
+
+                      {/* Body */}
+                      <div style={{
+                        fontSize: '14px', lineHeight: '2', color: '#333',
+                        textAlign: 'justify', maxWidth: '90%', whiteSpace: 'pre-line', padding: '0 20px'
+                      }}>
+                        {certBody}
+                      </div>
+
+                      {/* Footer with signature & date */}
+                      <div style={{
+                        display: 'flex', justifyContent: 'space-between', width: '90%',
+                        alignItems: 'flex-end', marginTop: '10px'
+                      }}>
+                        <div style={{ textAlign: 'center' }}>
+                          <div style={{ fontSize: '11px', color: '#555' }}>
+                            {new Date(certDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
+                          </div>
+                          <div style={{ width: '160px', borderBottom: '1px solid #333', marginBottom: '4px', marginTop: '4px' }} />
+                          <div style={{ fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '2px', color: '#555' }}>
+                            Date
+                          </div>
+                        </div>
+                        <div style={{ textAlign: 'center' }}>
+                          {organization?.signature && (
+                            <img src={organization.signature} alt="Signature" style={{ height: '50px', objectFit: 'contain', marginBottom: '4px' }} />
+                          )}
+                          <div style={{ width: '160px', borderBottom: '1px solid #333', marginBottom: '4px' }} />
+                          <div style={{ fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '2px', color: '#555' }}>
+                            Head of School
+                          </div>
+                        </div>
+                        <div style={{ textAlign: 'center' }}>
+                          <div style={{ width: '160px', borderBottom: '1px solid #333', marginBottom: '4px', marginTop: '54px' }} />
+                          <div style={{ fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '2px', color: '#555' }}>
+                            School Stamp
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </Modal>
       </div>
     );
   },
