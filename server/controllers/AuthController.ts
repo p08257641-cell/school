@@ -110,36 +110,55 @@ export const register = async (req: express.Request, res: express.Response) => {
 };
 
 export const saveFCMToken = async (req: any, res: express.Response) => {
-  const { fcm_token } = req.body;
+  const { fcm_token, subscription } = req.body;
   const userId = req.user.id;
   const role = req.user.role;
 
-  if (!fcm_token) {
-    return res.status(400).json({ error: 'FCM token is required.' });
+  // We now accept either a traditional token (fcm_token) or a native subscription object (subscription)
+  const pushData = subscription || fcm_token;
+
+  if (!pushData) {
+    return res.status(400).json({ error: 'Push data (token or subscription) is required.' });
   }
 
   try {
     const userRes = await pool.query('SELECT id FROM users WHERE id = $1', [userId]);
     
     if (userRes.rows.length > 0) {
-      await pool.query('UPDATE users SET fcm_token = $1 WHERE id = $2', [fcm_token, userId]);
+      if (subscription) {
+        await pool.query('UPDATE users SET push_subscription = $1 WHERE id = $2', [JSON.stringify(subscription), userId]);
+      } else {
+        await pool.query('UPDATE users SET fcm_token = $1 WHERE id = $2', [fcm_token, userId]);
+      }
     } else {
       if (role === 'PARENT') {
-        // Find parent email to sync token across all wards
+        // Find parent email to sync across all wards
         const parentRes = await pool.query('SELECT parent_email FROM students WHERE id = $1', [userId]);
         const parentEmail = parentRes.rows[0]?.parent_email;
         
         if (parentEmail) {
-          await pool.query('UPDATE students SET parent_fcm_token = $1 WHERE parent_email = $2', [fcm_token, parentEmail]);
+          if (subscription) {
+            await pool.query('UPDATE students SET push_subscription = $1 WHERE parent_email = $2', [JSON.stringify(subscription), parentEmail]);
+          } else {
+            await pool.query('UPDATE students SET parent_fcm_token = $1 WHERE parent_email = $2', [fcm_token, parentEmail]);
+          }
         } else {
-          await pool.query('UPDATE students SET parent_fcm_token = $1 WHERE id = $2', [fcm_token, userId]);
+          if (subscription) {
+            await pool.query('UPDATE students SET push_subscription = $1 WHERE id = $2', [JSON.stringify(subscription), userId]);
+          } else {
+            await pool.query('UPDATE students SET parent_fcm_token = $1 WHERE id = $2', [fcm_token, userId]);
+          }
         }
       } else {
-        await pool.query('UPDATE students SET fcm_token = $1 WHERE id = $2', [fcm_token, userId]);
+        if (subscription) {
+          await pool.query('UPDATE students SET push_subscription = $1 WHERE id = $2', [JSON.stringify(subscription), userId]);
+        } else {
+          await pool.query('UPDATE students SET fcm_token = $1 WHERE id = $2', [fcm_token, userId]);
+        }
       }
     }
 
-    res.json({ message: 'FCM token saved successfully.' });
+    res.json({ message: 'Push settings saved successfully.' });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
@@ -151,18 +170,29 @@ export const testPush = async (req: any, res: express.Response) => {
 
   try {
     let token = null;
+    let subscription = null;
+    
     if (role === 'PARENT' || role === 'STUDENT') {
-      const result = await pool.query(`SELECT ${role === 'PARENT' ? 'parent_fcm_token' : 'fcm_token'} as token FROM students WHERE id = $1`, [userId]);
+      const result = await pool.query(`SELECT ${role === 'PARENT' ? 'parent_fcm_token' : 'fcm_token'} as token, push_subscription FROM students WHERE id = $1`, [userId]);
       token = result.rows[0]?.token;
+      subscription = result.rows[0]?.push_subscription;
     } else {
-      const result = await pool.query('SELECT fcm_token as token FROM users WHERE id = $1', [userId]);
+      const result = await pool.query('SELECT fcm_token as token, push_subscription FROM users WHERE id = $1', [userId]);
       token = result.rows[0]?.token;
+      subscription = result.rows[0]?.push_subscription;
     }
 
-    if (!token) return res.status(404).json({ error: 'No FCM token found for your account. Please enable notifications first.' });
+    if (!subscription && !token) {
+      return res.status(404).json({ error: 'No push subscription found for your account. Please enable notifications first.' });
+    }
 
-    const { sendPushNotification } = await import('../lib/firebase.ts');
-    await sendPushNotification(token, 'Test Connection', 'Your device is successfully linked for school alerts! 🎉');
+    if (subscription) {
+      const { sendNativePush } = await import('../lib/webpush.ts');
+      await sendNativePush(subscription, 'Test Connection', 'Your device is successfully linked for school alerts! 🎉');
+    } else {
+      const { sendPushNotification } = await import('../lib/firebase.ts');
+      await sendPushNotification(token, 'Test Connection', 'Your device is successfully linked for school alerts! 🎉');
+    }
     
     res.json({ message: 'Test notification sent!' });
   } catch (err: any) {

@@ -4,6 +4,7 @@ import pool from '../db.ts';
 import { AuthRequest } from '../middleware/auth.ts';
 import { recordAuditLog } from '../lib/audit.ts';
 import { sendPushNotification } from '../lib/firebase.ts';
+import { sendNativePush } from '../lib/webpush.ts';
 
 
 // CLASSES
@@ -284,7 +285,7 @@ export const markAttendanceByQR = async (req: AuthRequest, res: Response) => {
     // 1. Look up student by admission_no or id
     const studentResult = await pool.query(
       `SELECT s.id, s.name, s.admission_no, s.class_id, s.parent_email, s.fcm_token,
-              s.parent_fcm_token
+              s.parent_fcm_token, s.push_subscription
        FROM students s
        WHERE s.org_id = $1 AND (s.admission_no = $2 OR CAST(s.id AS TEXT) = $2)
        LIMIT 1`,
@@ -343,7 +344,14 @@ export const markAttendanceByQR = async (req: AuthRequest, res: Response) => {
           }
 
           // Send Push Notification to Parent
-          if (student.parent_fcm_token) {
+          if (student.push_subscription) {
+            sendNativePush(
+              student.push_subscription,
+              'Attendance Alert',
+              `${student.name} has just left school.`,
+              { student_id: String(student.id), action: 'clock_out' }
+            ).catch(e => console.error('Parent native push failed:', e));
+          } else if (student.parent_fcm_token) {
             sendPushNotification(
               student.parent_fcm_token,
               'Attendance Alert',
@@ -401,7 +409,14 @@ export const markAttendanceByQR = async (req: AuthRequest, res: Response) => {
       }
 
       // Send Push Notification to Parent
-      if (student.parent_fcm_token) {
+      if (student.push_subscription) {
+        sendNativePush(
+          student.push_subscription,
+          'Attendance Alert',
+          `${student.name} has just arrived at school.`,
+          { student_id: String(student.id), action: 'clock_in' }
+        ).catch(e => console.error('Parent native push failed:', e));
+      } else if (student.parent_fcm_token) {
         sendPushNotification(
           student.parent_fcm_token,
           'Attendance Alert',

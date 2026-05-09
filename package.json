@@ -24,8 +24,6 @@
     "cors": "^2.8.6",
     "dotenv": "^17.2.3",
     "express": "^4.21.2",
-    "firebase": "^12.13.0",
-    "firebase-admin": "^13.9.0",
     "html5-qrcode": "^2.3.8",
     "jsonwebtoken": "^9.0.3",
     "lucide-react": "^0.546.0",
@@ -40,6 +38,7 @@
     "tsx": "^4.21.0",
     "typescript": "~5.8.2",
     "vite": "^6.2.0",
+    "web-push": "^3.6.7",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {

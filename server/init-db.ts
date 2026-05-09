@@ -405,6 +405,12 @@ export async function init() {
         IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='students' AND column_name='religion') THEN
           ALTER TABLE students ADD COLUMN religion VARCHAR(100);
         END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='students' AND column_name='push_subscription') THEN
+          ALTER TABLE students ADD COLUMN push_subscription JSONB;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='users' AND column_name='push_subscription') THEN
+          ALTER TABLE users ADD COLUMN push_subscription JSONB;
+        END IF;
       end $$;
     `);
 

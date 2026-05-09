@@ -11,7 +11,7 @@ import {
 } from "./types";
 import { Toast, ToastType, ConfirmationModal, Modal } from "./components/UI";
 import { Calendar, ShieldCheck, X, AlertCircle } from "lucide-react";
-import { requestForToken, onMessageListener } from "./lib/firebase";
+import { subscribeToPush } from "./lib/webpush";
 import {
   SuperAdminDashboard,
   SchoolAdminDashboard,
@@ -423,27 +423,20 @@ export default function App() {
           }
         });
 
-        // Handle FCM Token
-        requestForToken().then(token => {
-          if (token) {
+        // Handle Native Push Subscription
+        const publicVapidKey = 'BK9znUJ6gFOJFnu1JPdOn8WFm1ccoBRJzhVpbmPVTEd1903in3aAvkP48eVKz6exKcz4dJD6a15uK33ooHfvmwo';
+        subscribeToPush(publicVapidKey).then(subscription => {
+          if (subscription) {
             fetch(`${API_BASE_URL}/auth/fcm-token`, {
               method: 'POST',
               headers: { 
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${localStorage.getItem('token')}`
               },
-              body: JSON.stringify({ fcm_token: token })
-            }).catch(e => console.error('Failed to save FCM token:', e));
+              body: JSON.stringify({ subscription })
+            }).catch(e => console.error('Failed to save native push subscription:', e));
           }
         });
-
-        // Background Message Listener
-        onMessageListener().then((payload: any) => {
-          setToast({
-            message: `📣 ${payload.notification.title}: ${payload.notification.body}`,
-            type: "info"
-          });
-        }).catch(err => console.log('failed: ', err));
       }
     }
   }, [view, pubToken]);
@@ -1183,17 +1176,19 @@ export default function App() {
   // Centralized CRUD Handlers
   const handleEnableNotifications = async () => {
     try {
-      const token = await requestForToken();
-      if (token) {
+      const publicVapidKey = 'BK9znUJ6gFOJFnu1JPdOn8WFm1ccoBRJzhVpbmPVTEd1903in3aAvkP48eVKz6exKcz4dJD6a15uK33ooHfvmwo';
+      const subscription = await subscribeToPush(publicVapidKey);
+      
+      if (subscription) {
         await fetch(`${API_BASE_URL}/auth/fcm-token`, {
           method: 'POST',
           headers: { 
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${localStorage.getItem('token')}`
           },
-          body: JSON.stringify({ fcm_token: token })
+          body: JSON.stringify({ subscription })
         });
-        showToast("Notifications enabled successfully!", "success");
+        showToast("Notifications enabled successfully! 🔔", "success");
       } else {
         showToast("Failed to get notification permission. Please check your browser settings.", "error");
       }
