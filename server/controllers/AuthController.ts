@@ -125,13 +125,46 @@ export const saveFCMToken = async (req: any, res: express.Response) => {
       await pool.query('UPDATE users SET fcm_token = $1 WHERE id = $2', [fcm_token, userId]);
     } else {
       if (role === 'PARENT') {
-        await pool.query('UPDATE students SET parent_fcm_token = $1 WHERE id = $2', [fcm_token, userId]);
+        // Find parent email to sync token across all wards
+        const parentRes = await pool.query('SELECT parent_email FROM students WHERE id = $1', [userId]);
+        const parentEmail = parentRes.rows[0]?.parent_email;
+        
+        if (parentEmail) {
+          await pool.query('UPDATE students SET parent_fcm_token = $1 WHERE parent_email = $2', [fcm_token, parentEmail]);
+        } else {
+          await pool.query('UPDATE students SET parent_fcm_token = $1 WHERE id = $2', [fcm_token, userId]);
+        }
       } else {
         await pool.query('UPDATE students SET fcm_token = $1 WHERE id = $2', [fcm_token, userId]);
       }
     }
 
     res.json({ message: 'FCM token saved successfully.' });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+export const testPush = async (req: any, res: express.Response) => {
+  const userId = req.user.id;
+  const role = req.user.role;
+
+  try {
+    let token = null;
+    if (role === 'PARENT' || role === 'STUDENT') {
+      const result = await pool.query(`SELECT ${role === 'PARENT' ? 'parent_fcm_token' : 'fcm_token'} as token FROM students WHERE id = $1`, [userId]);
+      token = result.rows[0]?.token;
+    } else {
+      const result = await pool.query('SELECT fcm_token as token FROM users WHERE id = $1', [userId]);
+      token = result.rows[0]?.token;
+    }
+
+    if (!token) return res.status(404).json({ error: 'No FCM token found for your account. Please enable notifications first.' });
+
+    const { sendPushNotification } = await import('../lib/firebase.ts');
+    await sendPushNotification(token, 'Test Connection', 'Your device is successfully linked for school alerts! 🎉');
+    
+    res.json({ message: 'Test notification sent!' });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }

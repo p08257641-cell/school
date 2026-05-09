@@ -47,6 +47,7 @@ router.get('/public/fee-history/:token', FinanceController.getPublicFeeHistoryDa
 // PROTECTED ROUTES
 router.use(verifyToken);
 router.post('/auth/fcm-token', AuthController.saveFCMToken);
+router.post('/auth/test-push', AuthController.testPush);
 
 // AI & DIAGNOSTICS
 router.get('/ai/test', (req, res) => res.json({ status: 'OK', message: 'AI Routes are active', time: new Date() }));

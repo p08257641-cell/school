@@ -1,6 +1,6 @@
 import { 
   User, Mail, Phone, MapPin, ShieldCheck, 
-  Users, CreditCard, Bell, Lock, LogOut,
+  Users, CreditCard, Bell, Lock, LogOut, Send,
   GraduationCap, ChevronRight, Package
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
@@ -182,6 +182,33 @@ export const ParentModules = {
                     <div className="text-left">
                       <p className="text-sm font-bold text-zinc-900 dark:text-white">Notifications</p>
                       <p className="text-[10px] text-zinc-400 font-medium">Click to enable device alerts</p>
+                    </div>
+                  </div>
+                </button>
+
+                <button 
+                  onClick={async () => {
+                    try {
+                      const res = await fetch(`${window.location.origin.includes('localhost') ? 'http://localhost:5000' : ''}/api/auth/test-push`, {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                      });
+                      const data = await res.json();
+                      if (res.ok) alert("Test notification sent!");
+                      else alert(data.error || "Failed to send test");
+                    } catch (e) {
+                      alert("Error sending test");
+                    }
+                  }}
+                  className="flex items-center justify-between w-full p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-2xl hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors group"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="p-2 bg-white dark:bg-zinc-900 rounded-xl shadow-sm">
+                      <Send className="w-4 h-4 text-indigo-600" />
+                    </div>
+                    <div className="text-left">
+                      <p className="text-sm font-bold text-zinc-900 dark:text-white">Test Notification</p>
+                      <p className="text-[10px] text-zinc-400 font-medium">Send a test alert to your device</p>
                     </div>
                   </div>
                 </button>

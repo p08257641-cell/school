@@ -28,20 +28,41 @@ export const sendPushNotification = async (token: string, title: string, body: s
   }
 
   try {
-    const message = {
+    const message: any = {
       notification: {
         title,
         body,
       },
       data: data || {},
       token: token,
+      android: {
+        priority: 'high',
+        notification: {
+          sound: 'default',
+          channelId: 'attendance_alerts',
+          clickAction: 'FLUTTER_NOTIFICATION_CLICK'
+        },
+      },
+      apns: {
+        payload: {
+          aps: {
+            sound: 'default',
+            badge: 1,
+            'content-available': 1
+          },
+        },
+      },
     };
 
     const response = await messaging.send(message);
     console.log('>>> [FIREBASE] Successfully sent message:', response);
     return response;
-  } catch (error) {
-    console.error('>>> [FIREBASE] Error sending message:', error);
+  } catch (error: any) {
+    console.error('>>> [FIREBASE] Error sending message:', {
+      message: error.message,
+      code: error.code,
+      token: token.substring(0, 10) + '...'
+    });
     throw error;
   }
 };
