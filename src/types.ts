@@ -13,6 +13,7 @@ export interface Student {
   name: string;
   class: string;
   class_id?: string;
+  class_name?: string;
   email: string;
   status: string;
   gpa: string;

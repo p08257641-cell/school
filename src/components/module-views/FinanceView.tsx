@@ -329,15 +329,13 @@ export const FinanceModules = {
               {targetType === 'students' && (
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Select Students</label>
-                  <select
+                  <SearchableSelect
                     name="student_ids"
                     multiple
+                    placeholder="Choose Student(s)..."
+                    options={students.map(s => ({ value: s.id, label: `${s.name} (${s.class_name || s.class || 'N/A'})` }))}
                     disabled={isViewOnly}
-                    className="w-full px-4 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500 h-32 disabled:opacity-50"
-                  >
-                    {students.map(s => <option key={s.id} value={s.id}>{s.name} ({s.class})</option>)}
-                  </select>
-                  <p className="text-[10px] text-zinc-400">Hold Ctrl/Cmd to select multiple students</p>
+                  />
                 </div>
               )}
 
