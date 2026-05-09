@@ -483,6 +483,7 @@ export const FinanceModules = {
     const [term, setTerm] = useState(organization?.current_term || "");
     const [dueDate, setDueDate] = useState(new Date().toISOString().split('T')[0]);
     const [notifyViaSMS, setNotifyViaSMS] = useState(false);
+    const [customSMSMessage, setCustomSMSMessage] = useState(`Dear Parent, a new fee of {{CURRENCY}}{{AMOUNT}} for {{FEE_NAME}} has been assigned to {{STUDENT_NAME}}. Please settle by {{DUE_DATE}}.`);
 
     const feeOptions = feeStructures.map(f => ({
       value: f.id,
@@ -565,6 +566,21 @@ export const FinanceModules = {
             Notify Parents via SMS
           </label>
         </div>
+
+        {notifyViaSMS && (
+          <div className="space-y-1.5 mb-8 max-w-2xl">
+            <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Custom SMS Message</label>
+            <textarea
+              value={customSMSMessage}
+              onChange={(e) => setCustomSMSMessage(e.target.value)}
+              placeholder="Enter custom SMS message..."
+              className="w-full px-4 py-3 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500 h-24 resize-none"
+            />
+            <p className="text-[10px] text-zinc-400 mt-1">
+              Available variables: <code className="bg-zinc-100 dark:bg-zinc-800 px-1 rounded">{"{{STUDENT_NAME}}"}</code>, <code className="bg-zinc-100 dark:bg-zinc-800 px-1 rounded">{"{{FEE_NAME}}"}</code>, <code className="bg-zinc-100 dark:bg-zinc-800 px-1 rounded">{"{{AMOUNT}}"}</code>, <code className="bg-zinc-100 dark:bg-zinc-800 px-1 rounded">{"{{CURRENCY}}"}</code>, <code className="bg-zinc-100 dark:bg-zinc-800 px-1 rounded">{"{{DUE_DATE}}"}</code>
+            </p>
+          </div>
+        )}
         <button
           onClick={() => {
             if (selectedFeeIds.length === 0) return;
@@ -574,7 +590,8 @@ export const FinanceModules = {
               due_date: dueDate,
               term: term,
               academic_year: academicYear,
-              notify_via_sms: notifyViaSMS
+              notify_via_sms: notifyViaSMS,
+              custom_sms_message: customSMSMessage
             });
           }}
           className="px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold text-sm hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 dark:shadow-none hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:translate-y-0"

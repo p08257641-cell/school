@@ -700,11 +700,16 @@ export const assignFee = async (req: AuthRequest, res: Response) => {
         }
 
         if (req.body.notify_via_sms && student.contact) {
-          SMSService.sendSMS(
-            orgId,
-            student.contact,
-            `Dear Parent, a new fee of ${currency}${amount} for ${name} has been assigned to ${student.name}. Please settle by ${due_date}.`
-          ).catch(err => console.error('SMS Fee Notification failed:', err));
+          let smsText = req.body.custom_sms_message || `Dear Parent, a new fee of {{CURRENCY}}{{AMOUNT}} for {{FEE_NAME}} has been assigned to {{STUDENT_NAME}}. Please settle by {{DUE_DATE}}.`;
+          
+          const formattedText = smsText
+            .replace(/{{STUDENT_NAME}}/g, student.name || 'Student')
+            .replace(/{{FEE_NAME}}/g, name)
+            .replace(/{{AMOUNT}}/g, amount.toString())
+            .replace(/{{CURRENCY}}/g, currency)
+            .replace(/{{DUE_DATE}}/g, due_date);
+
+          SMSService.sendSMS(orgId, student.contact, formattedText).catch(err => console.error('SMS Fee Notification failed:', err));
         }
       }
     } else if (target_type === 'students' && student_id) {
@@ -724,11 +729,16 @@ export const assignFee = async (req: AuthRequest, res: Response) => {
         const currency = orgRes.rows[0]?.currency || '$';
 
         if (req.body.notify_via_sms && student && student.contact) {
-          SMSService.sendSMS(
-            orgId,
-            student.contact,
-            `Dear Parent, a new fee of ${currency}${amount} for ${name} has been assigned to ${student.name}. Please settle by ${due_date}.`
-          ).catch(err => console.error('SMS Fee Notification failed:', err));
+          let smsText = req.body.custom_sms_message || `Dear Parent, a new fee of {{CURRENCY}}{{AMOUNT}} for {{FEE_NAME}} has been assigned to {{STUDENT_NAME}}. Please settle by {{DUE_DATE}}.`;
+          
+          const formattedText = smsText
+            .replace(/{{STUDENT_NAME}}/g, student.name || 'Student')
+            .replace(/{{FEE_NAME}}/g, name)
+            .replace(/{{AMOUNT}}/g, amount.toString())
+            .replace(/{{CURRENCY}}/g, currency)
+            .replace(/{{DUE_DATE}}/g, due_date);
+
+          SMSService.sendSMS(orgId, student.contact, formattedText).catch(err => console.error('SMS Fee Notification failed:', err));
         }
     }
 
