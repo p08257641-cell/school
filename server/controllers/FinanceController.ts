@@ -674,6 +674,16 @@ export const assignFee = async (req: AuthRequest, res: Response) => {
     if (feeResult.rows.length === 0) throw new Error('Fee structure not found');
     const { name, amount, class_id: feeClassId, class_ids: feeClassIds } = feeResult.rows[0];
 
+    if (target_type === 'class') {
+      let classIds = req.body.class_ids || (class_id ? [class_id] : []);
+      if ((!classIds || classIds.length === 0) && (feeClassId || feeClassIds)) {
+        classIds = feeClassIds || [feeClassId];
+      }
+      if (!classIds || classIds.length === 0) {
+        throw new Error(`No classes selected or pre-assigned for fee: ${name}`);
+      }
+      if (typeof classIds === 'string') classIds = classIds.split(',');
+
       const studentsResult = await client.query('SELECT id, name, contact FROM students WHERE class_id = ANY($1) AND org_id = $2', [classIds, orgId]);
       
       const orgRes = await client.query('SELECT currency FROM organizations WHERE id = $1', [orgId]);
