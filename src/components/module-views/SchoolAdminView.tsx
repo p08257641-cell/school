@@ -5922,8 +5922,6 @@ export const AcademicModules = {
         <DataTable
           title={role === 'STAFF' ? "My Attendance Log" : "Attendance Log"}
           data={aggregatedData}
-          onSave={onSave}
-          onDelete={onDelete}
           columns={mainColumns}
           autoModal={role !== 'PARENT' && role !== 'STUDENT'}
           autoViewModal={role !== 'PARENT' && role !== 'STUDENT'}
