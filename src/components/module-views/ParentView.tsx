@@ -1,3 +1,4 @@
+import React from 'react';
 import { 
   User, Mail, Phone, MapPin, ShieldCheck, 
   Users, CreditCard, Bell, Lock, LogOut, Send,
@@ -21,6 +22,169 @@ export const ParentModules = {
   Transport: OperationsModules.Transport,
   Hostel: OperationsModules.Hostel,
   BehaviorDiscipline: OperationsModules.BehaviorDiscipline,
+
+  FeedbackGrievances: ({ currentUser }: { currentUser: any }) => {
+    const [feedbacks, setFeedbacks] = React.useState<any[]>([]);
+    const [loading, setLoading] = React.useState(true);
+    const [isSubmitting, setIsSubmitting] = React.useState(false);
+    const [showForm, setShowForm] = React.useState(false);
+    const [formData, setFormData] = React.useState({ category: 'General', subject: '', description: '' });
+    const apiUrl = window.location.origin.includes('localhost') ? 'http://localhost:5000' : '';
+
+    const fetchFeedbacks = async () => {
+      try {
+        const res = await fetch(`${apiUrl}/api/comm/feedbacks`, {
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        });
+        if (res.ok) setFeedbacks(await res.json());
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    React.useEffect(() => {
+      fetchFeedbacks();
+    }, []);
+
+    const handleSubmit = async (e: React.FormEvent) => {
+      e.preventDefault();
+      setIsSubmitting(true);
+      try {
+        const res = await fetch(`${apiUrl}/api/comm/feedbacks`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+          body: JSON.stringify(formData)
+        });
+        if (res.ok) {
+          setShowForm(false);
+          setFormData({ category: 'General', subject: '', description: '' });
+          fetchFeedbacks();
+        } else {
+          alert('Failed to submit feedback');
+        }
+      } catch (e) {
+        console.error(e);
+        alert('An error occurred');
+      } finally {
+        setIsSubmitting(false);
+      }
+    };
+
+    return (
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <h2 className="text-2xl font-black text-zinc-900 dark:text-white">Feedback & Grievances</h2>
+          <button 
+            onClick={() => setShowForm(!showForm)}
+            className="px-6 py-2 bg-indigo-600 text-white rounded-xl text-sm font-bold shadow-lg shadow-indigo-200 dark:shadow-none hover:bg-indigo-700 transition-colors"
+          >
+            {showForm ? 'Cancel' : 'Submit New'}
+          </button>
+        </div>
+
+        {showForm && (
+          <div className="p-6 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-sm">
+            <h3 className="text-lg font-bold text-zinc-900 dark:text-white mb-4">New Feedback / Grievance</h3>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-zinc-500 uppercase">Category</label>
+                  <select 
+                    value={formData.category} 
+                    onChange={e => setFormData({...formData, category: e.target.value})}
+                    className="w-full px-4 py-3 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl outline-none focus:border-indigo-500"
+                    required
+                  >
+                    <option value="General">General</option>
+                    <option value="Academic">Academic</option>
+                    <option value="Transport">Transport</option>
+                    <option value="Finance">Finance</option>
+                    <option value="Grievance">Grievance</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-zinc-500 uppercase">Subject</label>
+                  <input 
+                    type="text" 
+                    value={formData.subject} 
+                    onChange={e => setFormData({...formData, subject: e.target.value})}
+                    className="w-full px-4 py-3 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl outline-none focus:border-indigo-500"
+                    placeholder="Brief subject..."
+                    required
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-zinc-500 uppercase">Description</label>
+                <textarea 
+                  value={formData.description} 
+                  onChange={e => setFormData({...formData, description: e.target.value})}
+                  className="w-full px-4 py-3 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl outline-none focus:border-indigo-500 min-h-[120px]"
+                  placeholder="Provide detailed information..."
+                  required
+                />
+              </div>
+              <div className="flex justify-end pt-2">
+                <button 
+                  type="submit" 
+                  disabled={isSubmitting}
+                  className="px-8 py-3 bg-indigo-600 text-white rounded-xl text-sm font-bold disabled:opacity-50"
+                >
+                  {isSubmitting ? 'Submitting...' : 'Submit to Administration'}
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {feedbacks.map(f => (
+            <div key={f.id} className="p-6 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl flex flex-col h-full shadow-sm">
+              <div className="flex justify-between items-start mb-4">
+                <span className={cn("px-3 py-1 rounded-lg text-xs font-bold",
+                  f.category === 'Grievance' ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400" :
+                  f.category === 'Academic' ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400" :
+                  f.category === 'Finance' ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400" :
+                  "bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
+                )}>
+                  {f.category}
+                </span>
+                <span className={cn("px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-widest",
+                  f.status === 'Resolved' ? "bg-emerald-50 text-emerald-600 border border-emerald-100" :
+                  f.status === 'In Progress' ? "bg-amber-50 text-amber-600 border border-amber-100" :
+                  "bg-zinc-50 text-zinc-600 border border-zinc-100"
+                )}>
+                  {f.status}
+                </span>
+              </div>
+              <h4 className="font-bold text-zinc-900 dark:text-white mb-2">{f.subject}</h4>
+              <p className="text-sm text-zinc-500 mb-4 whitespace-pre-wrap">{f.description}</p>
+              
+              {f.reply && (
+                <div className="mt-auto pt-4 border-t border-zinc-100 dark:border-zinc-800">
+                  <p className="text-xs font-bold text-indigo-600 uppercase mb-1">Admin Reply</p>
+                  <p className="text-sm text-zinc-700 dark:text-zinc-300 whitespace-pre-wrap bg-zinc-50 dark:bg-zinc-800/50 p-3 rounded-xl border border-zinc-100 dark:border-zinc-700/50">{f.reply}</p>
+                </div>
+              )}
+              <div className="text-[10px] text-zinc-400 mt-4 text-right">
+                {new Date(f.created_at).toLocaleDateString()}
+              </div>
+            </div>
+          ))}
+          {!loading && feedbacks.length === 0 && (
+            <div className="col-span-full py-12 text-center text-zinc-500 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl border-dashed">
+              No feedback or grievances submitted yet.
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  },
 
   ParentProfile: ({ currentUser, wards = [], onNavigate, onEnableNotifications }: { currentUser: any, wards?: Ward[], onNavigate?: (view: string) => void, onEnableNotifications?: () => void }) => {
     const stats = [

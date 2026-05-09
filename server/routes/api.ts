@@ -273,6 +273,9 @@ router.get('/comm/messages', CommunicationController.getMessages);
 router.post('/comm/messages', CommunicationController.sendMessage);
 router.get('/comm/announcements', CommunicationController.getAnnouncements);
 router.post('/comm/announcements', checkRole(['SUPER_ADMIN', 'SCHOOL_ADMIN', 'HOD']), CommunicationController.createAnnouncement);
+router.get('/comm/feedbacks', checkRole(['SUPER_ADMIN', 'SCHOOL_ADMIN', 'PARENT']), CommunicationController.getFeedbacks);
+router.post('/comm/feedbacks', checkRole(['PARENT']), CommunicationController.createFeedback);
+router.patch('/comm/feedbacks/:id', checkRole(['SCHOOL_ADMIN', 'SUPER_ADMIN']), CommunicationController.updateFeedback);
 
 // OPERATIONS
 // LIBRARY

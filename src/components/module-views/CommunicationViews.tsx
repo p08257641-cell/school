@@ -613,3 +613,199 @@ export function Announcements({ role, students = [], staff = [], organization }:
   );
 }
 
+export function FeedbackManagement({ students = [], staff = [] }: { students?: any[]; staff?: any[] }) {
+  const { t } = useLanguage();
+  const [feedbacks, setFeedbacks] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [selectedFeedback, setSelectedFeedback] = useState<any>(null);
+  const [replyText, setReplyText] = useState('');
+  const [status, setStatus] = useState('Pending');
+
+  const fetchFeedbacks = async () => {
+    setIsLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API_BASE_URL}/comm/feedbacks`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) setFeedbacks(await res.json());
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchFeedbacks();
+  }, []);
+
+  const handleUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedFeedback) return;
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API_BASE_URL}/comm/feedbacks/${selectedFeedback.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          status,
+          admin_reply: replyText || null
+        })
+      });
+      if (res.ok) {
+        (window as any).showToast?.('Feedback updated successfully', 'success');
+        setSelectedFeedback(null);
+        fetchFeedbacks();
+      } else {
+        const err = await res.json();
+        (window as any).showToast?.(err.error, 'error');
+      }
+    } catch (err) {
+      console.error(err);
+      (window as any).showToast?.('Failed to update feedback', 'error');
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold text-zinc-900 dark:text-white flex items-center gap-3">
+          <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-xl">
+            <MessageSquare className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
+          </div>
+          Feedback & Grievances
+        </h2>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-1 space-y-4">
+          <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden">
+            <div className="p-4 border-b border-zinc-100 dark:border-zinc-800 font-bold text-sm text-zinc-600 dark:text-zinc-400">
+              Recent Feedbacks
+            </div>
+            <div className="divide-y divide-zinc-100 dark:divide-zinc-800 max-h-[600px] overflow-y-auto custom-scrollbar">
+              {feedbacks.length === 0 ? (
+                <div className="p-8 text-center text-zinc-500 text-sm">No feedbacks received yet.</div>
+              ) : (
+                feedbacks.map(fb => (
+                  <button
+                    key={fb.id}
+                    onClick={() => {
+                      setSelectedFeedback(fb);
+                      setStatus(fb.status);
+                      setReplyText(fb.admin_reply || '');
+                    }}
+                    className={cn(
+                      "w-full p-4 text-left hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors",
+                      selectedFeedback?.id === fb.id ? "bg-indigo-50/50 dark:bg-indigo-900/10" : ""
+                    )}
+                  >
+                    <div className="flex justify-between items-start mb-2">
+                      <span className={cn(
+                        "text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-md",
+                        fb.status === 'Pending' ? "bg-amber-100 text-amber-700" :
+                        fb.status === 'In Progress' ? "bg-blue-100 text-blue-700" :
+                        "bg-emerald-100 text-emerald-700"
+                      )}>
+                        {fb.status}
+                      </span>
+                      <span className="text-xs text-zinc-400">{new Date(fb.created_at).toLocaleDateString()}</span>
+                    </div>
+                    <p className="font-bold text-sm text-zinc-900 dark:text-white truncate">{fb.category}</p>
+                    <p className="text-xs text-zinc-500 mt-1 truncate">{fb.description}</p>
+                  </button>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className="lg:col-span-2">
+          {selectedFeedback ? (
+            <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-6 animate-in fade-in slide-in-from-bottom-4">
+              <div className="flex items-start justify-between mb-6">
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-xs font-bold text-indigo-600 uppercase tracking-widest bg-indigo-50 dark:bg-indigo-900/20 px-2 py-1 rounded-md">
+                      {selectedFeedback.category}
+                    </span>
+                    <span className="text-xs text-zinc-400 font-medium">
+                      from Parent ID: {selectedFeedback.parent_id}
+                    </span>
+                  </div>
+                  <p className="text-[10px] uppercase font-bold text-zinc-500 mt-2 tracking-widest">Submitted on {new Date(selectedFeedback.created_at).toLocaleString()}</p>
+                </div>
+              </div>
+
+              <div className="p-4 bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-800 rounded-xl mb-6">
+                <p className="text-zinc-700 dark:text-zinc-300 text-sm whitespace-pre-wrap leading-relaxed">{selectedFeedback.description}</p>
+              </div>
+
+              <form onSubmit={handleUpdate} className="space-y-4 border-t border-zinc-100 dark:border-zinc-800 pt-6">
+                <h4 className="font-bold text-zinc-900 dark:text-white text-sm uppercase tracking-widest flex items-center gap-2">
+                  <ShieldAlert className="w-4 h-4 text-indigo-500" />
+                  Admin Response
+                </h4>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Update Status</label>
+                    <select
+                      value={status}
+                      onChange={e => setStatus(e.target.value)}
+                      className="w-full px-4 py-2.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 transition-all outline-none"
+                    >
+                      <option value="Pending">Pending</option>
+                      <option value="In Progress">In Progress</option>
+                      <option value="Resolved">Resolved</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="space-y-1.5 mt-4">
+                  <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Reply to Parent</label>
+                  <textarea
+                    rows={4}
+                    value={replyText}
+                    onChange={e => setReplyText(e.target.value)}
+                    placeholder="Enter your response here. This will be visible to the parent."
+                    className="w-full px-4 py-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-xl resize-none text-sm focus:ring-2 focus:ring-indigo-500 transition-all outline-none"
+                  />
+                </div>
+
+                <div className="flex justify-end gap-3 pt-4">
+                  <button type="button" onClick={() => setSelectedFeedback(null)} className="px-5 py-2.5 text-xs font-bold text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-xl transition-colors uppercase tracking-widest">
+                    Close
+                  </button>
+                  <button type="submit" className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black rounded-xl transition-colors shadow-sm uppercase tracking-widest">
+                    Save Updates
+                  </button>
+                </div>
+              </form>
+            </div>
+          ) : (
+            <div className="h-full min-h-[400px] flex flex-col items-center justify-center text-center p-8 bg-zinc-50 dark:bg-zinc-900/50 rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-800">
+              <div className="w-16 h-16 bg-white dark:bg-zinc-800 rounded-2xl shadow-sm flex items-center justify-center mb-4">
+                <MessageSquare className="w-8 h-8 text-zinc-300 dark:text-zinc-600" />
+              </div>
+              <h3 className="text-lg font-bold text-zinc-900 dark:text-white">Select a Feedback</h3>
+              <p className="text-sm text-zinc-500 mt-1 max-w-sm">Choose a feedback from the list to view details and provide a response.</p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

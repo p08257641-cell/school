@@ -586,6 +586,22 @@ export async function init() {
     `);
 
     await client.query(`
+      CREATE TABLE IF NOT EXISTS feedbacks (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        org_id UUID REFERENCES organizations(id) ON DELETE CASCADE,
+        parent_id UUID REFERENCES users(id) ON DELETE CASCADE,
+        student_id UUID REFERENCES students(id) ON DELETE SET NULL,
+        category VARCHAR(100),
+        subject VARCHAR(255) NOT NULL,
+        description TEXT NOT NULL,
+        status VARCHAR(50) DEFAULT 'Pending',
+        reply TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    await client.query(`
       CREATE TABLE IF NOT EXISTS hostels (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         name VARCHAR(255) NOT NULL,

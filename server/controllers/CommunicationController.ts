@@ -315,3 +315,102 @@ export const sendBulkSMS = async (req: AuthRequest, res: Response) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+// --- FEEDBACK & GRIEVANCE ---
+import { sendNativePush } from '../lib/webpush.ts';
+
+export const getFeedbacks = async (req: AuthRequest, res: Response) => {
+  try {
+    const org_id = req.user.org_id;
+    const role = req.user.role;
+    const user_id = req.user.id;
+
+    let query = `
+      SELECT f.*, u.name as parent_name, u.email as parent_email, s.name as student_name
+      FROM feedbacks f
+      JOIN users u ON f.parent_id = u.id
+      LEFT JOIN students s ON f.student_id = s.id
+      WHERE f.org_id = $1
+    `;
+    const params: any[] = [org_id];
+
+    if (role === 'PARENT') {
+      query += ` AND f.parent_id = $2`;
+      params.push(user_id);
+    }
+
+    query += ` ORDER BY f.created_at DESC`;
+
+    const result = await pool.query(query, params);
+    res.json(result.rows);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+export const createFeedback = async (req: AuthRequest, res: Response) => {
+  try {
+    const { subject, description, category, student_id } = req.body;
+    const org_id = req.user.org_id;
+    const parent_id = req.user.id;
+
+    const result = await pool.query(
+      `INSERT INTO feedbacks (org_id, parent_id, student_id, category, subject, description) 
+       VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+      [org_id, parent_id, student_id || null, category || 'General', subject, description]
+    );
+
+    const feedback = result.rows[0];
+
+    // Get school admins to notify them
+    const admins = await pool.query(`SELECT id, fcm_token FROM users WHERE org_id = $1 AND role = 'SCHOOL_ADMIN' AND fcm_token IS NOT NULL`, [org_id]);
+    for (const admin of admins.rows) {
+      try {
+        const sub = JSON.parse(admin.fcm_token);
+        await sendNativePush(sub, 'New Feedback Received', `Category: ${category} | Subject: ${subject}`);
+      } catch (e) {
+        console.error('Push notification failed for admin', admin.id, e);
+      }
+    }
+
+    res.status(201).json(feedback);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+export const updateFeedback = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { status, reply } = req.body;
+    const org_id = req.user.org_id;
+
+    const result = await pool.query(
+      `UPDATE feedbacks 
+       SET status = $1, reply = $2, updated_at = CURRENT_TIMESTAMP 
+       WHERE id = $3 AND org_id = $4 RETURNING *`,
+      [status, reply, id, org_id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Feedback not found' });
+    }
+
+    const feedback = result.rows[0];
+
+    // Notify the parent if there's an update
+    if (status === 'Resolved' || reply) {
+       const parent = await pool.query(`SELECT fcm_token FROM users WHERE id = $1`, [feedback.parent_id]);
+       if (parent.rows[0]?.fcm_token) {
+         try {
+           const sub = JSON.parse(parent.rows[0].fcm_token);
+           await sendNativePush(sub, 'Feedback Updated', `Your feedback "${feedback.subject}" was updated.`);
+         } catch(e) {}
+       }
+    }
+
+    res.json(feedback);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+};

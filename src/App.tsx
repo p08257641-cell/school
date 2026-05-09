@@ -44,7 +44,7 @@ import {
   Messages,
   Settings,
 } from "./components/AdminModules";
-import { Announcements } from "./components/module-views/CommunicationViews";
+import { Announcements, FeedbackManagement } from "./components/module-views/CommunicationViews";
 import {
   AcademicModules,
   AdmissionsModules,
@@ -3866,6 +3866,11 @@ export default function App() {
               : selectedWardId
           }
         />
+      ),
+      "Feedback & Grievances": currentRole === "SCHOOL_ADMIN" ? (
+        <FeedbackManagement />
+      ) : (
+        <ParentModules.FeedbackGrievances currentUser={currentUser} />
       ),
       profile:
         currentRole === "SUPER_ADMIN" ? (
