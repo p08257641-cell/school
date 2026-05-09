@@ -4255,31 +4255,19 @@ export const AcademicModules = {
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                       <div className="space-y-1.5">
                         <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Border Color</label>
-                        <div className="flex items-center gap-2">
-                          <input type="color" value={design.borderColor} onChange={(e) => setDesign({ ...design, borderColor: e.target.value })} className="w-10 h-10 rounded-lg border-0 cursor-pointer" />
-                          <input type="text" value={design.borderColor} onChange={(e) => setDesign({ ...design, borderColor: e.target.value })} className="flex-1 px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg text-xs font-mono" />
-                        </div>
+                        <input type="color" value={design.borderColor} onChange={(e) => setDesign({ ...design, borderColor: e.target.value })} className="w-full h-12 rounded-xl border border-zinc-200 dark:border-zinc-700 cursor-pointer" />
                       </div>
                       <div className="space-y-1.5">
                         <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Accent / Gold</label>
-                        <div className="flex items-center gap-2">
-                          <input type="color" value={design.accentColor} onChange={(e) => setDesign({ ...design, accentColor: e.target.value })} className="w-10 h-10 rounded-lg border-0 cursor-pointer" />
-                          <input type="text" value={design.accentColor} onChange={(e) => setDesign({ ...design, accentColor: e.target.value })} className="flex-1 px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg text-xs font-mono" />
-                        </div>
+                        <input type="color" value={design.accentColor} onChange={(e) => setDesign({ ...design, accentColor: e.target.value })} className="w-full h-12 rounded-xl border border-zinc-200 dark:border-zinc-700 cursor-pointer" />
                       </div>
                       <div className="space-y-1.5">
                         <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Title Color</label>
-                        <div className="flex items-center gap-2">
-                          <input type="color" value={design.titleColor} onChange={(e) => setDesign({ ...design, titleColor: e.target.value })} className="w-10 h-10 rounded-lg border-0 cursor-pointer" />
-                          <input type="text" value={design.titleColor} onChange={(e) => setDesign({ ...design, titleColor: e.target.value })} className="flex-1 px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg text-xs font-mono" />
-                        </div>
+                        <input type="color" value={design.titleColor} onChange={(e) => setDesign({ ...design, titleColor: e.target.value })} className="w-full h-12 rounded-xl border border-zinc-200 dark:border-zinc-700 cursor-pointer" />
                       </div>
                       <div className="space-y-1.5">
                         <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Body Text</label>
-                        <div className="flex items-center gap-2">
-                          <input type="color" value={design.bodyColor} onChange={(e) => setDesign({ ...design, bodyColor: e.target.value })} className="w-10 h-10 rounded-lg border-0 cursor-pointer" />
-                          <input type="text" value={design.bodyColor} onChange={(e) => setDesign({ ...design, bodyColor: e.target.value })} className="flex-1 px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg text-xs font-mono" />
-                        </div>
+                        <input type="color" value={design.bodyColor} onChange={(e) => setDesign({ ...design, bodyColor: e.target.value })} className="w-full h-12 rounded-xl border border-zinc-200 dark:border-zinc-700 cursor-pointer" />
                       </div>
                     </div>
                     <div className="flex justify-end">
