@@ -1181,6 +1181,28 @@ export default function App() {
   };
 
   // Centralized CRUD Handlers
+  const handleEnableNotifications = async () => {
+    try {
+      const token = await requestForToken();
+      if (token) {
+        await fetch(`${API_BASE_URL}/auth/fcm-token`, {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+          body: JSON.stringify({ fcm_token: token })
+        });
+        showToast("Notifications enabled successfully!", "success");
+      } else {
+        showToast("Failed to get notification permission. Please check your browser settings.", "error");
+      }
+    } catch (err: any) {
+      console.error(err);
+      showToast("Error enabling notifications.", "error");
+    }
+  };
+
   const handleEntitySave = async (entityType: string, data: any) => {
     try {
       let result;
@@ -3866,6 +3888,7 @@ export default function App() {
             currentUser={currentUser}
             wards={wards}
             onNavigate={setCurrentView}
+            onEnableNotifications={handleEnableNotifications}
           />
         ) : (
           <div className="p-8 text-center text-zinc-500">

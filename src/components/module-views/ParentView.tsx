@@ -22,7 +22,7 @@ export const ParentModules = {
   Hostel: OperationsModules.Hostel,
   BehaviorDiscipline: OperationsModules.BehaviorDiscipline,
 
-  ParentProfile: ({ currentUser, wards = [], onNavigate }: { currentUser: any, wards?: Ward[], onNavigate?: (view: string) => void }) => {
+  ParentProfile: ({ currentUser, wards = [], onNavigate, onEnableNotifications }: { currentUser: any, wards?: Ward[], onNavigate?: (view: string) => void, onEnableNotifications?: () => void }) => {
     const stats = [
       { label: 'Registered Wards', value: wards.length, icon: Users, color: 'text-indigo-600', bg: 'bg-indigo-50 dark:bg-indigo-900/20' },
       { label: 'Active Status', value: 'Verified', icon: ShieldCheck, color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-900/20' },
@@ -171,14 +171,17 @@ export const ParentModules = {
                   </div>
                 </button>
                 
-                <button className="flex items-center justify-between w-full p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-2xl hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors group">
+                <button 
+                  onClick={onEnableNotifications}
+                  className="flex items-center justify-between w-full p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-2xl hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors group"
+                >
                   <div className="flex items-center gap-4">
                     <div className="p-2 bg-white dark:bg-zinc-900 rounded-xl shadow-sm">
                       <Bell className="w-4 h-4 text-emerald-600" />
                     </div>
                     <div className="text-left">
                       <p className="text-sm font-bold text-zinc-900 dark:text-white">Notifications</p>
-                      <p className="text-[10px] text-zinc-400 font-medium">Manage alert preferences</p>
+                      <p className="text-[10px] text-zinc-400 font-medium">Click to enable device alerts</p>
                     </div>
                   </div>
                 </button>
