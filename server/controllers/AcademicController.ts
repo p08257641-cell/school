@@ -3,7 +3,6 @@ import { Response } from 'express';
 import pool from '../db.ts';
 import { AuthRequest } from '../middleware/auth.ts';
 import { recordAuditLog } from '../lib/audit.ts';
-import { sendPushNotification } from '../lib/firebase.ts';
 import { sendNativePush } from '../lib/webpush.ts';
 
 
@@ -333,15 +332,7 @@ export const markAttendanceByQR = async (req: AuthRequest, res: Response) => {
             }
           }
 
-          // Send Push Notification to Student
-          if (student.fcm_token) {
-            sendPushNotification(
-              student.fcm_token,
-              'Attendance Alert',
-              `You have just left school.`,
-              { student_id: String(student.id), action: 'clock_out' }
-            ).catch(e => console.error('Push notification failed:', e));
-          }
+
 
           // Send Push Notification to Parent
           if (student.push_subscription) {
@@ -351,13 +342,6 @@ export const markAttendanceByQR = async (req: AuthRequest, res: Response) => {
               `${student.name} has just left school.`,
               { student_id: String(student.id), action: 'clock_out' }
             ).catch(e => console.error('Parent native push failed:', e));
-          } else if (student.parent_fcm_token) {
-            sendPushNotification(
-              student.parent_fcm_token,
-              'Attendance Alert',
-              `${student.name} has just left school.`,
-              { student_id: String(student.id), action: 'clock_out' }
-            ).catch(e => console.error('Parent push notification failed:', e));
           }
           
           return res.json({
@@ -398,15 +382,7 @@ export const markAttendanceByQR = async (req: AuthRequest, res: Response) => {
         }
       }
 
-      // Send Push Notification to Student
-      if (student.fcm_token) {
-        sendPushNotification(
-          student.fcm_token,
-          'Attendance Alert',
-          `You have just arrived at school.`,
-          { student_id: String(student.id), action: 'clock_in' }
-        ).catch(e => console.error('Push notification failed:', e));
-      }
+
 
       // Send Push Notification to Parent
       if (student.push_subscription) {
@@ -416,13 +392,6 @@ export const markAttendanceByQR = async (req: AuthRequest, res: Response) => {
           `${student.name} has just arrived at school.`,
           { student_id: String(student.id), action: 'clock_in' }
         ).catch(e => console.error('Parent native push failed:', e));
-      } else if (student.parent_fcm_token) {
-        sendPushNotification(
-          student.parent_fcm_token,
-          'Attendance Alert',
-          `${student.name} has just arrived at school.`,
-          { student_id: String(student.id), action: 'clock_in' }
-        ).catch(e => console.error('Parent push notification failed:', e));
       }
 
       return res.status(201).json({

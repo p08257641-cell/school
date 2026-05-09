@@ -190,8 +190,7 @@ export const testPush = async (req: any, res: express.Response) => {
       const { sendNativePush } = await import('../lib/webpush.ts');
       await sendNativePush(subscription, 'Test Connection', 'Your device is successfully linked for school alerts! 🎉');
     } else {
-      const { sendPushNotification } = await import('../lib/firebase.ts');
-      await sendPushNotification(token, 'Test Connection', 'Your device is successfully linked for school alerts! 🎉');
+      return res.status(404).json({ error: 'No native push subscription found. Please enable notifications in your profile first.' });
     }
     
     res.json({ message: 'Test notification sent!' });
