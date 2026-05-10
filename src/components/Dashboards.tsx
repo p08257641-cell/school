@@ -230,7 +230,14 @@ function BirthdayAlert({ items }: { items: { name: string, role: string, isSelf?
 }
 
 function LowStockAlert({ items, onNavigate }: { items: any[], onNavigate?: (view: string) => void }) {
-  const lowStockItems = items.filter(i => (parseFloat(i.quantity || i.stock || 0)) <= (parseFloat(i.min_stock_level || 5)));
+  const lowStockItems = items.filter(i => {
+    // Exclude items assigned to Alumni
+    if (i.student_status === 'Alumni') return false;
+    
+    const qty = parseFloat(i.quantity || i.stock || 0);
+    const minLevel = parseFloat(i.min_stock_level || 5);
+    return qty <= minLevel;
+  });
   if (lowStockItems.length === 0) return null;
 
   return (
@@ -731,6 +738,7 @@ export function SchoolAdminDashboard({ stats, invoices = [], payments = [], stud
     const list: { name: string, role: string }[] = [];
     
     (students || []).forEach(s => {
+      if (s.status === 'Alumni' || s.status === 'Withdrawn') return;
       if (checkIsBirthdayTomorrow(s.date_of_birth)) {
         list.push({ name: s.name, role: 'Student' });
       }

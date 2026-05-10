@@ -1209,7 +1209,7 @@ export const FinanceModules = {
           autoViewModal={false}
           columns={[
             { header: 'Student', accessor: 'name', className: 'font-bold' },
-            { header: 'Class', accessor: 'class_name' },
+            { header: 'Class', accessor: (item: any) => item.status === 'Alumni' ? 'Alumni' : item.class_name },
             { header: 'Total Invoiced', accessor: (item: any) => `${currency} ${parseFloat(item.total_invoiced || 0).toLocaleString()}`, className: 'hidden lg:table-cell' },
             { header: 'Total Paid', accessor: (item: any) => `${currency} ${parseFloat(item.total_paid || 0).toLocaleString()}`, className: 'hidden md:table-cell' },
             { header: 'Scholarships', accessor: (item: any) => `${currency} ${parseFloat(item.total_scholarships || 0).toLocaleString()}`, className: 'hidden lg:table-cell' },

@@ -763,6 +763,7 @@ export const getStudentFeesSummary = async (req: AuthRequest, res: Response) => 
         s.name, 
         s.contact,
         s.secondary_parent_contact,
+        s.status,
         c.name as class_name,
         (SELECT COALESCE(SUM(amount), 0) FROM invoices WHERE student_id = s.id) as total_invoiced,
         (SELECT COALESCE(SUM(amount), 0) FROM payments WHERE student_id = s.id) as total_paid,
@@ -781,7 +782,7 @@ export const getStudentFeesSummary = async (req: AuthRequest, res: Response) => 
       params.push(orgId);
       query += ` AND s.org_id = $${params.length}`;
     }
-    query += ` GROUP BY s.id, s.name, s.contact, s.secondary_parent_contact, c.name`;
+    query += ` GROUP BY s.id, s.name, s.contact, s.secondary_parent_contact, s.status, c.name`;
 
     const result = await pool.query(query, params);
     res.json(result.rows);

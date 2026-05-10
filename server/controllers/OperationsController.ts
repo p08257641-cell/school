@@ -75,13 +75,13 @@ export const getUniforms = async (req: AuthRequest, res: Response) => {
     let result;
     if (role === 'SUPER_ADMIN') {
       result = await pool.query(`
-        SELECT um.*, s.name as student_name 
+        SELECT um.*, s.name as student_name, s.status as student_status
         FROM uniform_management um 
         LEFT JOIN students s ON um.student_id = s.id
       `);
     } else {
       result = await pool.query(`
-        SELECT um.*, s.name as student_name 
+        SELECT um.*, s.name as student_name, s.status as student_status
         FROM uniform_management um 
         LEFT JOIN students s ON um.student_id = s.id 
         WHERE um.org_id = $1
@@ -162,13 +162,13 @@ export const getInventorySales = async (req: AuthRequest, res: Response) => {
     let result;
     if (role === 'SUPER_ADMIN') {
       result = await pool.query(`
-        SELECT isale.*, s.name as student_name 
+        SELECT isale.*, s.name as student_name, s.status as student_status
         FROM inventory_sales isale 
         LEFT JOIN students s ON isale.student_id = s.id
       `);
     } else {
       result = await pool.query(`
-        SELECT isale.*, s.name as student_name 
+        SELECT isale.*, s.name as student_name, s.status as student_status
         FROM inventory_sales isale 
         LEFT JOIN students s ON isale.student_id = s.id 
         WHERE isale.org_id = $1
