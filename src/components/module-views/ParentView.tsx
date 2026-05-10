@@ -9,6 +9,7 @@ import { AcademicModules, ExamModules } from './SchoolAdminView';
 import { FinanceModules } from './FinanceView';
 import { OperationsModules } from './OperationsView';
 import { UserRole, Ward } from '../../types';
+import { API_BASE_URL } from '../../constants';
 
 export const ParentModules = {
   AcademicInformation: AcademicModules.StudentManagement,
@@ -29,11 +30,10 @@ export const ParentModules = {
     const [isSubmitting, setIsSubmitting] = React.useState(false);
     const [showForm, setShowForm] = React.useState(false);
     const [formData, setFormData] = React.useState({ category: 'General', subject: '', description: '' });
-    const apiUrl = window.location.origin.includes('localhost') ? 'http://localhost:5000' : '';
 
     const fetchFeedbacks = async () => {
       try {
-        const res = await fetch(`${apiUrl}/api/comm/feedbacks`, {
+        const res = await fetch(`${API_BASE_URL}/comm/feedbacks`, {
           headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
         });
         if (res.ok) setFeedbacks(await res.json());
@@ -52,7 +52,7 @@ export const ParentModules = {
       e.preventDefault();
       setIsSubmitting(true);
       try {
-        const res = await fetch(`${apiUrl}/api/comm/feedbacks`, {
+        const res = await fetch(`${API_BASE_URL}/comm/feedbacks`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
