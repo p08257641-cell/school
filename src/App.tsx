@@ -513,6 +513,7 @@ export default function App() {
   const [hodStats, setHodStats] = useState<any>(null);
   const [announcements, setAnnouncements] = useState<any[]>([]);
   const [meetings, setMeetings] = useState<any[]>([]);
+  const [inventoryItems, setInventoryItems] = useState<any[]>([]);
 
   const totalStaffSalary = useMemo(() => {
     return staffList.reduce((sum, s) => sum + parseFloat(s.salary || 0), 0);
@@ -533,16 +534,36 @@ export default function App() {
   }, [expenses, totalStaffSalary]);
 
   const combinedInventory = useMemo(() => {
-    return [
-      ...uniforms.map((u) => ({ ...u, _source: "uniform" })),
-      ...inventory.map((i) => ({
+    const map = new Map();
+
+    // Legacy inventory (lowest priority)
+    inventory.forEach((i) => {
+      map.set(i.item_name || i.name, {
         ...i,
         stock: i.quantity,
-        size: i.category, // Map category to size for consistent display
+        size: i.category,
         _source: "inventory",
-      })),
-    ];
-  }, [uniforms, inventory]);
+      });
+    });
+
+    // New inventory items (higher priority)
+    inventoryItems.forEach((i) => {
+      map.set(i.item_name || i.name, {
+        ...i,
+        _source: "inventory_items",
+      });
+    });
+
+    // Uniforms (highest priority)
+    uniforms.forEach((u) => {
+      map.set(u.item_name || u.name, {
+        ...u,
+        _source: "uniform",
+      });
+    });
+
+    return Array.from(map.values());
+  }, [uniforms, inventory, inventoryItems]);
 
   const fetchUnreadCount = async () => {
     try {
@@ -640,6 +661,7 @@ export default function App() {
           : Promise.resolve(null),
         fetch(`${API_BASE_URL}/announcements`, { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } }).then(res => res.ok ? res.json() : []),
         fetch(`${API_BASE_URL}/meetings`, { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } }).then(res => res.ok ? res.json() : []),
+        fetch(`${API_BASE_URL}/inventory/items`, { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } }).then(res => res.ok ? res.json() : []),
         currentRole === 'SUPER_ADMIN' ? fetchSMSSettings() : Promise.resolve(null),
       ]);
 
@@ -714,6 +736,10 @@ export default function App() {
       assignIfFulfilled(46, setHealthRecords);
       assignIfFulfilled(47, setInventory);
       assignIfFulfilled(48, setDocumentTemplates);
+
+      assignIfFulfilled(51, setAnnouncements);
+      assignIfFulfilled(52, setMeetings);
+      assignIfFulfilled(53, setInventoryItems);
 
       const currentOrgInfo = resultsArr[49];
       if (currentOrgInfo && currentOrgInfo.status === "fulfilled" && currentOrgInfo.value) {

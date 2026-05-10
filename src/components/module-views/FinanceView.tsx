@@ -2080,7 +2080,7 @@ export const FinanceModules = {
     );
   },
 
-  InvoicesPayments: ({ role, students, wards, selectedWardId: propSelectedWardId, data, payments, feeStructures, inventoryItems = [], organization, onSave, onDelete, onRecordPayment, onWardSelect }: { role?: UserRole, students?: Student[], wards?: any[], selectedWardId?: string, data?: any[], payments?: any[], feeStructures?: any[], inventoryItems?: any[], organization?: any, onSave?: (data: any) => void, onDelete?: (item: any) => void, onRecordPayment?: (data: any) => void, onWardSelect?: (id: string) => void }) => {
+  InvoicesPayments: ({ role, students, wards, selectedWardId: propSelectedWardId, data, payments, feeStructures, inventoryItems = [], organization, onSave, onDelete, onRecordPayment, onWardSelect, canEdit, canDelete }: { role?: UserRole, students?: Student[], wards?: any[], selectedWardId?: string, data?: any[], payments?: any[], feeStructures?: any[], inventoryItems?: any[], organization?: any, onSave?: (data: any) => void, onDelete?: (item: any) => void, onRecordPayment?: (data: any) => void, onWardSelect?: (id: string) => void, canEdit?: (item: any) => boolean, canDelete?: (item: any) => boolean }) => {
     const { t, currency } = useLanguage();
     const [localSelectedWardId, setLocalSelectedWardId] = useState("");
     
@@ -2700,6 +2700,8 @@ export const FinanceModules = {
           data={groupedByStudent}
           onSave={onSave}
           onDelete={undefined}
+          canEdit={canEdit}
+          canDelete={canDelete}
           renderDetails={(item) => (
             <div className="space-y-6">
               <div className="flex items-center gap-4 p-4 bg-blue-50 dark:bg-blue-900/10 rounded-2xl border border-blue-100 dark:border-blue-900/20">

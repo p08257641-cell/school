@@ -3399,7 +3399,7 @@ export const AdmitStudentView = ({
 };
 
 export const AcademicModules = {
-  StudentManagement: ({ data, role, onSave, onDelete, onRefresh, results = [], exams = [], classes = [], gradingScales = [] }: { data: Student[], role?: UserRole, onSave?: (data: any) => void, onDelete?: (item: any) => void, onRefresh?: () => void, results?: any[], exams?: any[], classes?: any[], gradingScales?: any[] }) => {
+  StudentManagement: ({ data, role, onSave, onDelete, onRefresh, results = [], exams = [], classes = [], gradingScales = [], canEdit, canDelete }: { data: Student[], role?: UserRole, onSave?: (data: any) => void, onDelete?: (item: any) => void, onRefresh?: () => void, results?: any[], exams?: any[], classes?: any[], gradingScales?: any[], canEdit?: (item: any) => boolean, canDelete?: (item: any) => boolean }) => {
     const { t } = useLanguage();
     const [viewItem, setViewItem] = useState<Student | null>(null);
     const [activeDetailTab, setActiveDetailTab] = useState<'overview' | 'academic'>('overview');
@@ -5924,7 +5924,7 @@ export const AcademicModules = {
       </div>
     );
   },
-  Attendance: ({ role, wards, selectedWardId: propSelectedWardId, onWardSelect, data = [], onSave, onDelete, students = [], staffList = [], organization, onUpdateOrganization }: { role?: UserRole, wards?: any[], selectedWardId?: string | null, onWardSelect?: (id: string) => void, data?: any[], onSave?: (data: any) => void, onDelete?: (item: any) => void, students?: any[], staffList?: any[], organization?: any, onUpdateOrganization?: (data: any) => void }) => {
+  Attendance: ({ role, wards, selectedWardId: propSelectedWardId, onWardSelect, data = [], onSave, onDelete, students = [], staffList = [], organization, onUpdateOrganization, canEdit, canDelete }: { role?: UserRole, wards?: any[], selectedWardId?: string | null, onWardSelect?: (id: string) => void, data?: any[], onSave?: (data: any) => void, onDelete?: (item: any) => void, students?: any[], staffList?: any[], organization?: any, onUpdateOrganization?: (data: any) => void, canEdit?: (item: any) => boolean, canDelete?: (item: any) => boolean }) => {
     const [viewingStudent, setViewingStudent] = useState<any>(null);
     const [calendarEvents, setCalendarEvents] = useState<any[]>([]);
     const [isSyncingHolidays, setIsSyncingHolidays] = useState(false);
@@ -6209,6 +6209,8 @@ export const AcademicModules = {
           columns={mainColumns}
           autoModal={role !== 'PARENT' && role !== 'STUDENT'}
           autoViewModal={role !== 'PARENT' && role !== 'STUDENT'}
+          canEdit={canEdit}
+          canDelete={canDelete}
           extraActions={(role === 'SCHOOL_ADMIN' || role === 'HOD') ? (item) => (
             <button
               onClick={() => setViewingStudent(item)}
@@ -6233,6 +6235,8 @@ export const AcademicModules = {
                 String(r.student_id) === String(viewingStudent?.id) && 
                 (selectedMonth === 'Entire Term' || !selectedMonth || new Date(r.date).toLocaleString('default', { month: 'long', year: 'numeric' }) === selectedMonth)
               )}
+              canEdit={canEdit}
+              canDelete={canDelete}
               columns={[
                 { header: 'Date', accessor: 'date', className: 'font-bold' },
                 {
@@ -8210,7 +8214,7 @@ export const ExamModules = {
       </div>
     );
   },
-  ResultsManagement: ({ role, data = [], wards = [], selectedWardId: propSelectedWardId, onWardSelect, classes = [], students = [], exams = [], reportCardTemplates = [], remarkTemplates = [], organization, onSaveResults, subjects = [], staffList = [], currentUser }: { role?: UserRole, data?: any[], wards?: any[], selectedWardId?: string | null, onWardSelect?: (id: string) => void, classes?: any[], students?: any[], exams?: any[], reportCardTemplates?: any[], remarkTemplates?: any[], organization?: any, onSaveResults?: (data: any) => Promise<void>, subjects?: any[], staffList?: any[], currentUser?: any }) => {
+  ResultsManagement: ({ role, data = [], wards = [], selectedWardId: propSelectedWardId, onWardSelect, classes = [], students = [], exams = [], reportCardTemplates = [], remarkTemplates = [], organization, onSaveResults, subjects = [], staffList = [], currentUser, canEdit, canDelete }: { role?: UserRole, data?: any[], wards?: any[], selectedWardId?: string | null, onWardSelect?: (id: string) => void, classes?: any[], students?: any[], exams?: any[], reportCardTemplates?: any[], remarkTemplates?: any[], organization?: any, onSaveResults?: (data: any) => Promise<void>, subjects?: any[], staffList?: any[], currentUser?: any, canEdit?: (item: any) => boolean, canDelete?: (item: any) => boolean }) => {
     const [localSelectedWardId, setLocalSelectedWardId] = useState(propSelectedWardId || wards?.[0]?.id || "");
 
     useEffect(() => {

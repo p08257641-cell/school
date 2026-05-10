@@ -1555,7 +1555,7 @@ export const OperationsModules = {
       </div>
     );
   },
-  HealthMedical: ({ role, currentStudentId, wards, onWardSelect, data, staffList, students, onSave, onDelete }: { role?: UserRole, currentStudentId?: string, wards?: Ward[], onWardSelect?: (id: string) => void, data?: any[], staffList?: any[], students?: any[], onSave?: (data: any) => void, onDelete?: (item: any) => void }) => {
+  HealthMedical: ({ role, currentStudentId, wards, onWardSelect, data, staffList, students, onSave, onDelete, canEdit, canDelete }: { role?: UserRole, currentStudentId?: string, wards?: Ward[], onWardSelect?: (id: string) => void, data?: any[], staffList?: any[], students?: any[], onSave?: (data: any) => void, onDelete?: (item: any) => void, canEdit?: (item: any) => boolean, canDelete?: (item: any) => boolean }) => {
     const [localSelectedWardId, setLocalSelectedWardId] = useState(currentStudentId || wards?.[0]?.id || "");
     
     React.useEffect(() => {
@@ -1639,6 +1639,8 @@ export const OperationsModules = {
             onSave={onSave}
             onEdit={() => {}}
             onDelete={onDelete}
+            canEdit={canEdit}
+            canDelete={canDelete}
             columns={[
               { header: 'Student', accessor: (item: any) => item.student_name, className: 'font-bold' },
               { header: 'Condition', accessor: (item: any) => item.condition },
@@ -1763,7 +1765,7 @@ export const OperationsModules = {
       </div>
     );
   },
-  BehaviorDiscipline: ({ role, currentStudentId, wards, onWardSelect, data, students, onSave, onDelete }: { role?: UserRole, currentStudentId?: string, wards?: Ward[], onWardSelect?: (id: string) => void, data?: any[], students?: any[], onSave?: (data: any) => void, onDelete?: (item: any) => void }) => {
+  BehaviorDiscipline: ({ role, currentStudentId, wards, onWardSelect, data, students, onSave, onDelete, canEdit, canDelete }: { role?: UserRole, currentStudentId?: string, wards?: Ward[], onWardSelect?: (id: string) => void, data?: any[], students?: any[], onSave?: (data: any) => void, onDelete?: (item: any) => void, canEdit?: (item: any) => boolean, canDelete?: (item: any) => boolean }) => {
     const [localSelectedWardId, setLocalSelectedWardId] = useState(currentStudentId || (wards && wards.length > 0 ? wards[0].id : ""));
     
     React.useEffect(() => {
@@ -1796,6 +1798,8 @@ export const OperationsModules = {
       onSave={onSave}
       onEdit={() => {}}
       onDelete={onDelete}
+      canEdit={canEdit}
+      canDelete={canDelete}
       columns={[
         { header: 'Student Name', accessor: (item: any) => item.student_name, className: 'font-bold' },
         { header: 'Incident', accessor: (item: any) => item.incident },
