@@ -30,6 +30,8 @@ interface LayoutProps {
     isExpired: boolean;
     plan: string;
   } | null;
+  notifications?: any[];
+  unreadMessagesCount?: number;
 }
 
 interface NavLinkProps {
@@ -123,12 +125,15 @@ export default function Layout({
   wards = [],
   selectedWardId,
   onWardSelect,
-  subscriptionInfo
+  subscriptionInfo,
+  notifications = [],
+  unreadMessagesCount = 0
 }: LayoutProps) {
   const { t } = useLanguage();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [expandedMenus, setExpandedMenus] = useState<string[]>([]);
 
@@ -359,13 +364,69 @@ export default function Layout({
             </button>
             
             {currentRole !== 'PARENT' && (
-              <button 
-                onClick={() => onNavigate('Notifications')}
-                className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg text-zinc-500 relative"
-              >
-                <Bell className="w-5 h-5" />
-                <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-zinc-900"></span>
-              </button>
+              <div className="relative">
+                <button 
+                  onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
+                  className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg text-zinc-500 relative transition-colors"
+                >
+                  <Bell className="w-5 h-5" />
+                  {(unreadMessagesCount > 0 || notifications.length > 0) && (
+                    <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-zinc-900 animate-pulse"></span>
+                  )}
+                </button>
+
+                <AnimatePresence>
+                  {isNotificationsOpen && (
+                    <>
+                      <div className="fixed inset-0 z-40" onClick={() => setIsNotificationsOpen(false)}></div>
+                      <motion.div 
+                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                        className="absolute right-0 mt-2 w-80 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-xl z-50 overflow-hidden"
+                      >
+                        <div className="p-4 border-b border-zinc-100 dark:border-zinc-800 flex items-center justify-between">
+                          <h3 className="font-bold text-zinc-900 dark:text-white">Notifications</h3>
+                          {unreadMessagesCount > 0 && (
+                            <span className="px-2 py-0.5 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 text-xs font-bold rounded-full">
+                              {unreadMessagesCount} New
+                            </span>
+                          )}
+                        </div>
+                        <div className="max-h-96 overflow-y-auto">
+                          {notifications.length > 0 ? (
+                            notifications.map((notif, idx) => (
+                              <div key={idx} className="p-4 border-b border-zinc-50 dark:border-zinc-800/50 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors cursor-pointer group">
+                                <p className="text-sm font-semibold text-zinc-900 dark:text-white mb-1 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{notif.title}</p>
+                                <p className="text-xs text-zinc-500 line-clamp-2">{notif.content || notif.message}</p>
+                                <p className="text-[10px] text-zinc-400 mt-2 font-medium">
+                                  {new Date(notif.created_at || new Date()).toLocaleDateString()}
+                                </p>
+                              </div>
+                            ))
+                          ) : (
+                            <div className="p-8 text-center text-zinc-500">
+                              <Bell className="w-8 h-8 mx-auto mb-3 opacity-20" />
+                              <p className="text-sm">No new notifications</p>
+                            </div>
+                          )}
+                        </div>
+                        <div className="p-2 border-t border-zinc-100 dark:border-zinc-800">
+                          <button 
+                            onClick={() => {
+                              setIsNotificationsOpen(false);
+                              onNavigate('Notifications');
+                            }}
+                            className="w-full py-2 text-center text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-colors"
+                          >
+                            View All Notifications
+                          </button>
+                        </div>
+                      </motion.div>
+                    </>
+                  )}
+                </AnimatePresence>
+              </div>
             )}
 
             <div className="relative">

@@ -4170,6 +4170,8 @@ export default function App() {
       selectedWardId={selectedWardId}
       onWardSelect={setSelectedWardId}
       subscriptionInfo={subscriptionInfo}
+      notifications={announcements}
+      unreadMessagesCount={unreadMessagesCount}
     >
       <div className="max-w-[1600px] mx-auto">{renderContent()}</div>
       {toast && (
