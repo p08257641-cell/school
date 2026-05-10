@@ -2167,8 +2167,11 @@ export default function App() {
             exams={exams}
             classes={classList}
             gradingScales={gradingScales}
-            onSave={undefined}
+            onSave={(data) => handleEntitySave("student", data)}
+            onDelete={(item) => handleEntityDelete("student", item)}
             onRefresh={loadData}
+            canEdit={(item) => item.status !== "Alumni"}
+            canDelete={(item) => item.status !== "Alumni"}
           />
         ),
 
@@ -2411,6 +2414,14 @@ export default function App() {
                     ? staffData.attendance
                     : studentAttendance
             }
+            canEdit={(item: any) => {
+              const student = studentList.find(s => s.id === item.student_id);
+              return !student || student.status !== 'Alumni';
+            }}
+            canDelete={(item: any) => {
+              const student = studentList.find(s => s.id === item.student_id);
+              return !student || student.status !== 'Alumni';
+            }}
             onSave={
               currentRole === "PARENT"
                 ? undefined
@@ -2944,6 +2955,14 @@ export default function App() {
               ? undefined
               : (item) => handleEntityDelete("invoice", item)
           }
+          canEdit={(item) => {
+            const student = studentList.find(s => s.id === item.student_id);
+            return !student || student.status !== 'Alumni';
+          }}
+          canDelete={(item) => {
+            const student = studentList.find(s => s.id === item.student_id);
+            return !student || student.status !== 'Alumni';
+          }}
         />
       ),
 
@@ -3417,6 +3436,14 @@ export default function App() {
               ? undefined
               : (item) => handleEntityDelete("health", item)
           }
+          canEdit={(item) => {
+            const student = studentList.find(s => s.id === item.student_id);
+            return !student || student.status !== 'Alumni';
+          }}
+          canDelete={(item) => {
+            const student = studentList.find(s => s.id === item.student_id);
+            return !student || student.status !== 'Alumni';
+          }}
         />
       ),
 
@@ -3458,6 +3485,14 @@ export default function App() {
               ? undefined
               : (item) => handleEntityDelete("behavior", item)
           }
+          canEdit={(item) => {
+            const student = studentList.find(s => s.id === item.student_id);
+            return !student || student.status !== 'Alumni';
+          }}
+          canDelete={(item) => {
+            const student = studentList.find(s => s.id === item.student_id);
+            return !student || student.status !== 'Alumni';
+          }}
         />
       ),
 

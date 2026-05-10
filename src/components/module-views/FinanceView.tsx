@@ -229,6 +229,7 @@ export const FinanceModules = {
   FeeStructure: ({ classes, students, data, onSave, onDelete, role, organization }: { classes: any[], students: Student[], data?: any[], onSave?: (data: any) => void, onDelete?: (item: any) => void, role?: string, organization?: any }) => {
     const { t, currency } = useLanguage();
     const [targetType, setTargetType] = useState<'none' | 'class' | 'students'>('none');
+    const activeStudents = students.filter(s => s.status !== 'Alumni' && s.status !== 'Withdrawn');
 
     const renderFeeStructureForm = (item?: any, isViewOnly?: boolean) => (
       <div className="space-y-4">
@@ -333,7 +334,7 @@ export const FinanceModules = {
                     name="student_ids"
                     multiple
                     placeholder="Choose Student(s)..."
-                    options={students.map(s => ({ value: s.id, label: `${s.name} (${s.class_name || s.class || 'N/A'})` }))}
+                    options={activeStudents.map(s => ({ value: s.id, label: `${s.name} (${s.class_name || s.class || 'N/A'})` }))}
                     disabled={isViewOnly}
                   />
                 </div>
@@ -606,6 +607,7 @@ export const FinanceModules = {
   },
   FeeManagement: ({ students, feeStructures, data, invoices, payments, scholarships, onSave, onDelete, onRecordPayment, organization, documentTemplates, onRefreshTemplates, onNavigate }: { students: Student[], feeStructures: any[], data?: any[], invoices?: any[], payments?: any[], scholarships?: any[], onSave?: (data: any) => void, onDelete?: (item: any) => void, onRecordPayment?: (data: any) => void, organization?: any, documentTemplates?: any[], onRefreshTemplates?: () => Promise<void>, onNavigate?: (view: string) => void }) => {
     const { t, currency } = useLanguage();
+    const activeStudents = students.filter(s => s.status !== 'Alumni' && s.status !== 'Withdrawn');
     const [selectedStudent, setSelectedStudent] = useState<any>(null);
     const [isDesignerOpen, setIsDesignerOpen] = useState(false);
     const [paymentModalData, setPaymentModalData] = useState<any>(null);
@@ -1626,11 +1628,12 @@ export const FinanceModules = {
   },
   DailyCollections: ({ students, data, invoices, onSave, onDelete, organization, documentTemplates, onRefreshTemplates }: { students: Student[], data?: any[], invoices?: any[], onSave?: (data: any) => void, onDelete?: (item: any) => void, organization?: any, documentTemplates?: any[], onRefreshTemplates?: () => Promise<void> }) => {
     const { t, currency } = useLanguage();
+    const activeStudents = students.filter(s => s.status !== 'Alumni' && s.status !== 'Withdrawn');
     const [isDesignerOpen, setIsDesignerOpen] = useState(false);
     const renderCollectionForm = (item?: any) => {
       const studentOptions = [
         { value: '', label: 'Unallocated / Standalone Collection', sublabel: 'General' },
-        ...students.map(s => ({
+        ...activeStudents.map(s => ({
           value: s.id,
           label: s.name,
           sublabel: s.class
@@ -1915,6 +1918,7 @@ export const FinanceModules = {
   },
   Stocks: ({ students = [], data = [], requests = [], onSave, onDelete, onSaveRequest, onDeleteRequest }: { students?: Student[], data?: any[], requests?: any[], onSave?: (data: any) => void, onDelete?: (item: any) => void, onSaveRequest?: (data: any) => void, onDeleteRequest?: (item: any) => void }) => {
     const { t, currency } = useLanguage();
+    const activeStudents = students.filter(s => s.status !== 'Alumni' && s.status !== 'Withdrawn');
 
 
     return (
@@ -1962,7 +1966,7 @@ export const FinanceModules = {
                     className="w-full px-4 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500"
                   >
                     <option value="">Select Student...</option>
-                    {(students || []).map(s => (
+                    {(activeStudents || []).map(s => (
                       <option key={s.id} value={s.id}>{s.name} ({s.class} {s.section})</option>
                     ))}
                   </select>
@@ -2340,7 +2344,7 @@ export const FinanceModules = {
               onChange={handleStudentChange}
             >
               <option value="">Select Student...</option>
-              {(students || []).map(s => <option key={s.id} value={s.id}>{s.name} — {s.class || "No Class"}</option>)}
+              {((students || []).filter(s => s.status !== 'Alumni' && s.status !== 'Withdrawn')).map(s => <option key={s.id} value={s.id}>{s.name} — {s.class || "No Class"}</option>)}
             </select>
           </div>
 
@@ -2976,7 +2980,7 @@ export const FinanceModules = {
             defaultValue={item?.student_id || ""}
           >
             <option value="">Select Student...</option>
-            {students.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+            {students.filter(s => s.status !== 'Alumni' && s.status !== 'Withdrawn').map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
           </select>
         </div>
         <div className="space-y-1.5">

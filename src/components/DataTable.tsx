@@ -35,6 +35,8 @@ interface DataTableProps<T> {
   detailsMaxWidth?: string;
   actions?: React.ReactNode;
   hideExport?: boolean;
+  canEdit?: (item: T) => boolean;
+  canDelete?: (item: T) => boolean;
 }
 
 export function DataTable<T extends { id: string | number }>({
@@ -413,7 +415,7 @@ export function DataTable<T extends { id: string | number }>({
                                 </div>
                               )}
 
-                              {(onEdit || (autoModal && renderForm && onSave)) && (
+                              {(onEdit || (autoModal && renderForm && onSave)) && (!props.canEdit || props.canEdit(item)) && (
                                 <button
                                   onClick={() => {
                                     handleEdit(item);
@@ -427,7 +429,7 @@ export function DataTable<T extends { id: string | number }>({
                                 </button>
                               )}
 
-                              {onDelete && (
+                              {onDelete && (!props.canDelete || props.canDelete(item)) && (
                                 <button
                                   onClick={() => {
                                     onDelete(item);
