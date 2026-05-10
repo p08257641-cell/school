@@ -3275,12 +3275,18 @@ export const AdmitStudentView = ({
                           >
                             <Edit className="w-4 h-4" />
                           </button>
-                          <button
-                            onClick={() => setEnrollModalItem({ ...inquiry, source_inquiry_id: inquiry.id })}
-                            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-md transition-all active:scale-95 flex items-center gap-2"
-                          >
-                            <ArrowRightCircle className="w-3.5 h-3.5" /> Admit Now
-                          </button>
+                          {inquiry.status !== 'Converted' ? (
+                            <button
+                              onClick={() => setEnrollModalItem({ ...inquiry, source_inquiry_id: inquiry.id })}
+                              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-md transition-all active:scale-95 flex items-center gap-2"
+                            >
+                              <ArrowRightCircle className="w-3.5 h-3.5" /> Admit Now
+                            </button>
+                          ) : (
+                            <div className="px-4 py-2 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 rounded-xl text-[10px] font-black uppercase tracking-widest border border-emerald-200/50 dark:border-emerald-800 flex items-center gap-2 cursor-default">
+                              <CheckCircle2 className="w-3.5 h-3.5" /> Converted
+                            </div>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -4741,7 +4747,7 @@ export const AcademicModules = {
   },
   ClassManagement: ({ data, staff = [], students = [], gradingScales = [], reportCardTemplates = [], role, onSave, onDelete }: { data?: any[], staff?: any[], students?: any[], gradingScales?: any[], reportCardTemplates?: ReportCardTemplate[], role?: UserRole, onSave?: (data: any) => void, onDelete?: (item: any) => void }) => {
     const [viewItem, setViewItem] = useState<any | null>(null);
-    const [viewMode, setViewMode] = useState<'list' | 'graphical'>('graphical');
+    const [viewMode, setViewMode] = useState<'list' | 'graphical'>('list');
     const [editingItem, setEditingItem] = useState<any | null>(null);
 
     const classColumns = role === 'STAFF'
