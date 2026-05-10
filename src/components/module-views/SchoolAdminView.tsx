@@ -2714,6 +2714,7 @@ export const AdmitStudentView = ({
     try {
       await onAdmit({
         ...enrollModalItem,
+        profile_pic: profilePic || enrollModalItem.profile_pic,
         class_id: enrollClassId,
         fee_ids: enrollFeeIds,
         fee_amount: totalFees,
@@ -3351,6 +3352,21 @@ export const AdmitStudentView = ({
         maxWidth="max-w-xl"
       >
         <div className="space-y-6">
+          <div className="flex justify-center">
+            <div className="relative group">
+              <div className="w-24 h-24 rounded-full bg-zinc-100 dark:bg-zinc-800 border-4 border-white dark:border-zinc-900 shadow-xl overflow-hidden flex items-center justify-center">
+                {profilePic || enrollModalItem?.profile_pic ? (
+                  <img src={profilePic || enrollModalItem.profile_pic} alt="Student" className="w-full h-full object-cover" />
+                ) : (
+                  <Camera className="w-8 h-8 text-zinc-400" />
+                )}
+              </div>
+              <label className="absolute inset-0 flex items-center justify-center bg-black/50 text-white opacity-0 group-hover:opacity-100 transition-opacity rounded-full cursor-pointer text-xs font-bold">
+                Upload
+                <input type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
+              </label>
+            </div>
+          </div>
           <div className="space-y-4">
             <h4 className="text-[10px] font-black text-indigo-600 uppercase tracking-[0.2em]">Academic Placement</h4>
             <div className="space-y-1.5">
@@ -3420,10 +3436,10 @@ export const AdmitStudentView = ({
 };
 
 export const AcademicModules = {
-  StudentManagement: ({ data, role, onSave, onDelete, onRefresh, results = [], exams = [], classes = [], gradingScales = [], canEdit, canDelete }: { data: Student[], role?: UserRole, onSave?: (data: any) => void, onDelete?: (item: any) => void, onRefresh?: () => void, results?: any[], exams?: any[], classes?: any[], gradingScales?: any[], canEdit?: (item: any) => boolean, canDelete?: (item: any) => boolean }) => {
+  StudentManagement: ({ data, role, onSave, onDelete, onRefresh, results = [], exams = [], classes = [], gradingScales = [], attendance = [], canEdit, canDelete }: { data: Student[], role?: UserRole, onSave?: (data: any) => void, onDelete?: (item: any) => void, onRefresh?: () => void, results?: any[], exams?: any[], classes?: any[], gradingScales?: any[], attendance?: any[], canEdit?: (item: any) => boolean, canDelete?: (item: any) => boolean }) => {
     const { t } = useLanguage();
     const [viewItem, setViewItem] = useState<Student | null>(null);
-    const [activeDetailTab, setActiveDetailTab] = useState<'overview' | 'academic'>('overview');
+    const [activeDetailTab, setActiveDetailTab] = useState<'overview' | 'academic' | 'attendance'>('overview');
 
     const getGrade = (score: number, classId: string) => {
       // Find scale assigned to this class
@@ -3621,6 +3637,17 @@ export const AcademicModules = {
                 >
                   Academic History
                 </button>
+                <button
+                  onClick={() => setActiveDetailTab('attendance')}
+                  className={cn(
+                    "px-8 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-300",
+                    activeDetailTab === 'attendance'
+                      ? "bg-white text-indigo-600 shadow-md dark:bg-zinc-900"
+                      : "text-zinc-500 hover:text-zinc-700 hover:bg-white/50 dark:hover:bg-zinc-900/50"
+                  )}
+                >
+                  Attendance Logs
+                </button>
               </div>
 
               {activeDetailTab === 'overview' ? (
@@ -3752,7 +3779,7 @@ export const AcademicModules = {
                     </div>
                   </div>
                 </div>
-              ) : (
+              ) : activeDetailTab === 'academic' ? (
                 <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div className="group relative p-8 rounded-[2.5rem] bg-indigo-50/50 dark:bg-indigo-900/10 border border-indigo-100 dark:border-indigo-900/30 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:scale-105 transition-all duration-300 overflow-hidden cursor-default shadow-sm hover:shadow-xl hover:shadow-indigo-100 dark:hover:shadow-none">
@@ -3849,7 +3876,60 @@ export const AcademicModules = {
                     )}
                   </div>
                 </div>
-              )}
+              ) : activeDetailTab === 'attendance' ? (
+                <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  <div className="space-y-6">
+                    <h4 className="text-[10px] font-black text-indigo-500 uppercase tracking-[0.3em] flex items-center gap-2 mb-4">
+                      <Calendar className="w-3.5 h-3.5" /> Attendance History
+                    </h4>
+                    {attendance?.filter((a: any) => String(a.student_id) === String(item.id)).length > 0 ? (
+                      <div className="rounded-[2.5rem] border border-zinc-200/50 dark:border-zinc-800/50 overflow-hidden shadow-sm bg-white dark:bg-zinc-900 transition-all hover:shadow-md max-h-96 overflow-y-auto custom-scrollbar">
+                        <table className="w-full text-left text-sm">
+                          <thead className="bg-zinc-50/80 dark:bg-zinc-800/80 backdrop-blur-sm sticky top-0 z-10">
+                            <tr>
+                              <th className="px-8 py-5 text-[10px] font-black uppercase text-zinc-400 tracking-widest border-b border-zinc-100 dark:border-zinc-800">Date</th>
+                              <th className="px-8 py-5 text-[10px] font-black uppercase text-zinc-400 tracking-widest border-b border-zinc-100 dark:border-zinc-800">Status</th>
+                              <th className="px-8 py-5 text-[10px] font-black uppercase text-zinc-400 tracking-widest border-b border-zinc-100 dark:border-zinc-800">Remarks</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
+                            {attendance.filter((a: any) => String(a.student_id) === String(item.id))
+                              .sort((a: any, b: any) => new Date(b.date || b.created_at || 0).getTime() - new Date(a.date || a.created_at || 0).getTime())
+                              .map((record: any, idx: number) => (
+                              <tr key={idx} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors group">
+                                <td className="px-8 py-5">
+                                  <p className="font-bold text-zinc-900 dark:text-white text-[13px]">{record.date ? new Date(record.date).toLocaleDateString() : 'N/A'}</p>
+                                  {record.clock_in && <p className="text-[10px] text-zinc-400 font-bold tracking-wider mt-0.5">In: {record.clock_in} {record.clock_out && `• Out: ${record.clock_out}`}</p>}
+                                </td>
+                                <td className="px-8 py-5">
+                                  <span className={cn(
+                                    "px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-colors",
+                                    record.status === 'Present' ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30" :
+                                      record.status === 'Late' ? "bg-amber-50 text-amber-600 dark:bg-amber-900/30" :
+                                        "bg-red-50 text-red-600 dark:bg-red-900/30"
+                                  )}>
+                                    {record.status}
+                                  </span>
+                                </td>
+                                <td className="px-8 py-5">
+                                  <p className="text-[13px] text-zinc-500 font-medium">{record.remarks || '-'}</p>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    ) : (
+                      <div className="py-24 text-center space-y-5 bg-zinc-50/50 dark:bg-zinc-800/10 rounded-[3rem] border-2 border-dashed border-zinc-200 dark:border-zinc-800 max-w-2xl mx-auto">
+                        <div className="w-20 h-20 bg-white dark:bg-zinc-800 rounded-[2rem] mx-auto flex items-center justify-center shadow-sm">
+                          <Calendar className="w-10 h-10 text-zinc-300 dark:text-zinc-600" />
+                        </div>
+                        <p className="text-zinc-400 font-bold tracking-wide">No attendance records found for this student.</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ) : null}
             </div>
           )}
           renderForm={(item) => (

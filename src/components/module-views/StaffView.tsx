@@ -344,7 +344,7 @@ export const StorageModules = {
 };
 
 export const StaffAcademicModules = {
-  StudentManagement: ({ data, results = [], exams = [], classes = [], gradingScales = [] }: { data: Student[], results?: any[], exams?: any[], classes?: any[], gradingScales?: any[] }) => {
+  StudentManagement: ({ data, results = [], exams = [], classes = [], gradingScales = [], attendance = [] }: { data: Student[], results?: any[], exams?: any[], classes?: any[], gradingScales?: any[], attendance?: any[] }) => {
     const [viewItem, setViewItem] = useState<Student | null>(null);
 
     const getGrade = (score: number, classId: string) => {

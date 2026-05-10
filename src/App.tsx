@@ -2176,6 +2176,7 @@ export default function App() {
             exams={exams}
             classes={classList}
             gradingScales={gradingScales}
+            attendance={studentAttendance}
           />
         ) : (
           <AcademicModules.StudentManagement
@@ -2193,6 +2194,7 @@ export default function App() {
             exams={exams}
             classes={classList}
             gradingScales={gradingScales}
+            attendance={studentAttendance}
             onSave={(data) => handleEntitySave("student", data)}
             onDelete={(item) => handleEntityDelete("student", item)}
             onRefresh={loadData}
