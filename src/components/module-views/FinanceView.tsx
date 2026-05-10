@@ -1954,6 +1954,79 @@ export const FinanceModules = {
             onDelete={onDeleteRequest}
             onSave={onSaveRequest}
             onAdd={() => {}}
+            renderDetails={(item) => {
+              const student = students.find(s => String(s.id) === String(item.student_id));
+              const stockItem = data.find(d => d.item_name === item.item_name);
+              const isPending = item.status === 'Pending';
+              const isApproved = item.status === 'Approved';
+              return (
+                <div className="space-y-6">
+                  <div className="flex items-center gap-4 p-4 bg-indigo-50 dark:bg-indigo-900/10 rounded-2xl border border-indigo-100 dark:border-indigo-900/20">
+                    <div className="w-12 h-12 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-100 dark:shadow-none">
+                      <ShoppingCart className="w-6 h-6" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-xl font-black text-zinc-900 dark:text-white">{item.item_name}</h3>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className={cn(
+                          "px-3 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest",
+                          isPending ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400" :
+                          isApproved ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400" :
+                          "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400"
+                        )}>
+                          {item.status || 'Pending'}
+                        </span>
+                        <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Purchase Request</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-2xl border border-zinc-100 dark:border-zinc-800">
+                      <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">Requested By</p>
+                      <p className="text-sm font-black text-zinc-900 dark:text-white">{student?.name || 'Unknown Student'}</p>
+                      <p className="text-[10px] text-zinc-500 font-bold uppercase mt-0.5">{student?.class || 'N/A'} {student?.section || ''}</p>
+                    </div>
+                    <div className="p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-2xl border border-zinc-100 dark:border-zinc-800">
+                      <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">Request Date</p>
+                      <p className="text-sm font-black text-zinc-900 dark:text-white">
+                        {item.created_at || item.date ? new Date(item.created_at || item.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : 'N/A'}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-2xl border border-zinc-100 dark:border-zinc-800 flex justify-between items-center">
+                    <div>
+                      <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">Item Ordered</p>
+                      <p className="text-lg font-black text-indigo-600">{item.item_name}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">Quantity</p>
+                      <p className="text-lg font-black text-zinc-900 dark:text-white">{item.quantity || 1}</p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-2xl border border-zinc-100 dark:border-zinc-800">
+                      <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">Unit Price</p>
+                      <p className="text-sm font-black text-zinc-900 dark:text-white">{currency}{Number(stockItem?.price || item.price || 0).toLocaleString()}</p>
+                    </div>
+                    <div className="p-4 bg-indigo-50/50 dark:bg-indigo-900/10 rounded-2xl border border-indigo-100 dark:border-indigo-900/20">
+                      <p className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest mb-1">Total Price</p>
+                      <p className="text-lg font-black text-indigo-700 dark:text-indigo-400">{currency}{Number(item.total_price || item.price || 0).toLocaleString()}</p>
+                    </div>
+                  </div>
+
+                  {item.id && (
+                    <div className="pt-4 border-t border-zinc-100 dark:border-zinc-800">
+                      <p className="text-[10px] text-zinc-400 uppercase tracking-widest text-center">
+                        Reference: #{String(item.id).substring(0, 8).toUpperCase()}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              );
+            }}
             renderForm={(item, isViewOnly) => (
               <div className="space-y-4">
                 <div className="space-y-1.5">
