@@ -234,8 +234,12 @@ function LowStockAlert({ items, onNavigate }: { items: any[], onNavigate?: (view
     // Exclude items assigned to Alumni
     if (i.student_status === 'Alumni') return false;
     
+    // Ignore items that don't have any quantity tracking
+    if (i.quantity === undefined && i.stock === undefined) return false;
+
     const qty = parseFloat(i.quantity || i.stock || 0);
-    const minLevel = parseFloat(i.min_stock_level || 5);
+    const minLevel = i.min_stock_level !== undefined && i.min_stock_level !== null ? parseFloat(i.min_stock_level) : 0;
+    
     return qty <= minLevel;
   });
   if (lowStockItems.length === 0) return null;
@@ -584,12 +588,12 @@ function SMSPurchasePanel({ organization, onRefresh }: { organization: any, onRe
           columns={[
             { 
               header: "Date", 
-              accessor: (tx) => new Date(tx.created_at).toLocaleDateString(),
+              accessor: (tx: any) => new Date(tx.created_at).toLocaleDateString(),
               hiddenOnMobile: false 
             },
             { 
               header: "Type", 
-              accessor: (tx) => (
+              accessor: (tx: any) => (
                 <span className={cn(
                   "px-2 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest",
                   tx.type === 'Purchase' ? "bg-emerald-50 text-emerald-600" : "bg-blue-50 text-blue-600"
@@ -601,19 +605,19 @@ function SMSPurchasePanel({ organization, onRefresh }: { organization: any, onRe
             },
             { 
               header: "Units", 
-              accessor: (tx) => `+${tx.amount?.toLocaleString()}`,
+              accessor: (tx: any) => `+${tx.amount?.toLocaleString()}`,
               className: "text-right font-black",
               hiddenOnMobile: false
             },
             { 
               header: "Balance", 
-              accessor: (tx) => tx.new_balance?.toLocaleString(),
+              accessor: (tx: any) => tx.new_balance?.toLocaleString(),
               className: "text-right font-bold text-zinc-500",
               hiddenOnMobile: true
             },
             { 
               header: "Status", 
-              accessor: (tx) => (
+              accessor: (tx: any) => (
                 <div className="flex items-center gap-1.5">
                   <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                   <span className="text-[10px] font-bold text-emerald-600 uppercase">Completed</span>

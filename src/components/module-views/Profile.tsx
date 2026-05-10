@@ -3,7 +3,8 @@ import {
   User, Mail, Shield, ShieldCheck, Activity, 
   Building2, Users, Receipt, Globe, 
   Settings, Lock, Bell, LogOut,
-  TrendingUp, CreditCard, PieChart
+  TrendingUp, CreditCard, PieChart,
+  GraduationCap, Briefcase, Layers
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
