@@ -1915,95 +1915,12 @@ export const FinanceModules = {
   },
   Stocks: ({ students = [], data = [], requests = [], onSave, onDelete, onSaveRequest, onDeleteRequest }: { students?: Student[], data?: any[], requests?: any[], onSave?: (data: any) => void, onDelete?: (item: any) => void, onSaveRequest?: (data: any) => void, onDeleteRequest?: (item: any) => void }) => {
     const { t, currency } = useLanguage();
-    const [viewMode, setViewMode] = useState<'inventory' | 'requests'>('inventory');
 
-    const renderUniformForm = (item?: any, isViewOnly?: boolean) => {
-      return (
-        <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Item Name</label>
-              <input
-                type="text"
-                name="item_name"
-                defaultValue={item?.item_name}
-                readOnly={isViewOnly}
-                required
-                className="w-full px-4 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Category / Size</label>
-              <input
-                type="text"
-                name="size"
-                defaultValue={item?.size}
-                readOnly={isViewOnly}
-                placeholder="e.g. Stationery, M, L"
-                className="w-full px-4 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50"
-              />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Available Stock</label>
-              <input
-                type="number"
-                name="stock"
-                defaultValue={item?.stock}
-                readOnly={isViewOnly}
-                className="w-full px-4 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Unit Price ({currency})</label>
-              <input
-                type="number"
-                name="price"
-                defaultValue={item?.price}
-                readOnly={isViewOnly}
-                className="w-full px-4 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50"
-              />
-            </div>
-          </div>
-        </div>
-      );
-    };
 
     return (
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div className="flex p-1 bg-zinc-100 dark:bg-zinc-800 rounded-2xl w-fit border border-zinc-200 dark:border-zinc-700 shadow-sm">
-            <button
-              onClick={() => setViewMode('inventory')}
-              className={cn(
-                "px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all",
-                viewMode === 'inventory' 
-                  ? "bg-white dark:bg-zinc-700 text-indigo-600 shadow-lg shadow-indigo-500/10" 
-                  : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
-              )}
-            >
-              Inventory List
-            </button>
-            <button
-              onClick={() => setViewMode('requests')}
-              className={cn(
-                "px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all relative",
-                viewMode === 'requests' 
-                  ? "bg-white dark:bg-zinc-700 text-indigo-600 shadow-lg shadow-indigo-500/10" 
-                  : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
-              )}
-            >
-              Order Requests
-              {requests.filter(r => r.status === 'Pending').length > 0 && (
-                <span className="absolute -top-1 -right-1 w-5 h-5 bg-rose-500 text-white text-[10px] flex items-center justify-center rounded-full border-2 border-white dark:border-zinc-800 font-bold animate-pulse">
-                  {requests.filter(r => r.status === 'Pending').length}
-                </span>
-              )}
-            </button>
-          </div>
-
-          {viewMode === 'requests' && requests.filter(r => r.status === 'Pending').length > 0 && (
+        <div className="flex items-center justify-end">
+          {requests.filter(r => r.status === 'Pending').length > 0 && (
             <button
               onClick={async () => {
                 if (!confirm(`Are you sure you want to approve all ${requests.filter(r => r.status === 'Pending').length} pending requests? This will also generate invoices for each.`)) return;
@@ -2022,65 +1939,12 @@ export const FinanceModules = {
               className="px-6 py-2 bg-emerald-600 text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-emerald-700 active:scale-95 transition-all shadow-lg shadow-emerald-500/20 flex items-center gap-2"
             >
               <Check className="w-4 h-4" />
-              Approve All Pending
+              Approve All Pending ({requests.filter(r => r.status === 'Pending').length})
             </button>
           )}
         </div>
 
-        {viewMode === 'inventory' ? (
-          <DataTable
-            title={t('stock')}
-            data={data || []}
-            onSave={onSave}
-            onDelete={onDelete}
-            renderDetails={(item) => (
-              <div className="space-y-6">
-                <div className="flex items-center gap-4 p-4 bg-emerald-50 dark:bg-emerald-900/10 rounded-2xl border border-emerald-100 dark:border-emerald-900/20">
-                  <div className="w-12 h-12 rounded-xl bg-emerald-600 flex items-center justify-center text-white shadow-lg shadow-emerald-100 dark:shadow-none">
-                    <ShoppingCart className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-black text-zinc-900 dark:text-white">{item.item_name}</h3>
-                    <div className="flex items-center gap-2">
-                      <span className="px-2 py-0.5 bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-lg text-[10px] font-bold uppercase tracking-widest">
-                        {item.size || 'Standard'}
-                      </span>
-                      <span className="text-xs font-bold text-zinc-500 uppercase tracking-wider">{t('inventory_item')}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-2xl border border-zinc-100 dark:border-zinc-800">
-                    <p className="text-xs font-bold text-zinc-500 uppercase mb-1">Available Stock</p>
-                    <p className="text-2xl font-black text-zinc-900 dark:text-white">{item.stock} Units</p>
-                  </div>
-                  <div className="p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-2xl border border-zinc-100 dark:border-zinc-800">
-                    <p className="text-xs font-bold text-zinc-500 uppercase mb-1">Unit Price</p>
-                    <p className="text-2xl font-black text-indigo-600">{currency}{parseFloat(item.price).toLocaleString()}</p>
-                  </div>
-                </div>
-
-                <div className="p-4 bg-indigo-50/50 dark:bg-indigo-900/10 rounded-2xl border border-indigo-100 dark:border-indigo-900/20">
-                  <p className="text-xs font-bold text-indigo-600 uppercase mb-1">Total Inventory Value</p>
-                  <p className="text-3xl font-black text-indigo-700 dark:text-indigo-400 font-serif">
-                    {currency}{(parseFloat(item.stock) * parseFloat(item.price)).toLocaleString()}
-                  </p>
-                </div>
-              </div>
-            )}
-            onEdit={() => { }}
-            columns={[
-              { header: 'Item', accessor: 'item_name', className: 'font-bold' },
-              { header: 'Category/Size', accessor: 'size' },
-              { header: 'Stock', accessor: 'stock' },
-              { header: 'Price', accessor: (item: any) => `${currency} ${item.price}` },
-            ]}
-            onAdd={onSave ? () => { } : undefined}
-            renderForm={renderUniformForm}
-          />
-        ) : (
-          <DataTable
+        <DataTable
             title="Purchase Requests"
             data={requests || []}
             onDelete={onDeleteRequest}
@@ -2152,7 +2016,6 @@ export const FinanceModules = {
               { header: 'Total Price', accessor: (item: any) => `${currency} ${(parseFloat(item.total_price || item.price) || 0).toLocaleString()}` },
             ]}
           />
-        )}
       </div>
     );
   },

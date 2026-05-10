@@ -211,6 +211,53 @@ export const InventoryAssetManagement = () => {
           onEdit={(item) => {}}
           onDelete={(item) => deleteRecord(item.id, '/inventory/items')}
           onSave={handleSaveItem}
+          renderDetails={(item) => (
+            <div className="space-y-6">
+              <div className="flex items-center gap-4 p-4 bg-indigo-50 dark:bg-indigo-900/10 rounded-2xl border border-indigo-100 dark:border-indigo-900/20">
+                <div className="w-12 h-12 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-100 dark:shadow-none">
+                  <Box className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-black text-zinc-900 dark:text-white">{item.name}</h3>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="px-2 py-0.5 bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 rounded-lg text-[10px] font-bold uppercase tracking-widest">
+                      {item.category}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-2xl border border-zinc-100 dark:border-zinc-800">
+                  <p className="text-xs font-bold text-zinc-500 uppercase mb-1">In Stock</p>
+                  <p className={cn("text-2xl font-black", item.quantity <= item.min_stock_level ? "text-red-600" : "text-zinc-900 dark:text-white")}>{item.quantity} Units</p>
+                  {item.quantity <= item.min_stock_level && <p className="text-[10px] text-red-500 font-bold uppercase mt-1">Low Stock</p>}
+                </div>
+                <div className="p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-2xl border border-zinc-100 dark:border-zinc-800">
+                  <p className="text-xs font-bold text-zinc-500 uppercase mb-1">Unit Price</p>
+                  <p className="text-2xl font-black text-indigo-600">{currency}{item.unit_price}</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                 <div className="space-y-1">
+                    <p className="text-xs font-bold text-zinc-500 uppercase">Min Stock Level</p>
+                    <p className="text-sm font-bold text-zinc-900 dark:text-white">{item.min_stock_level}</p>
+                 </div>
+                 <div className="space-y-1">
+                    <p className="text-xs font-bold text-zinc-500 uppercase">Total Value</p>
+                    <p className="text-sm font-bold text-zinc-900 dark:text-white">{currency}{(parseFloat(item.quantity) * parseFloat(item.unit_price)).toLocaleString()}</p>
+                 </div>
+              </div>
+              
+              {item.description && (
+                <div className="space-y-1">
+                  <p className="text-xs font-bold text-zinc-500 uppercase">Description</p>
+                  <p className="text-sm text-zinc-700 dark:text-zinc-300">{item.description}</p>
+                </div>
+              )}
+            </div>
+          )}
           renderForm={(item, isViewOnly) => (
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
@@ -258,6 +305,39 @@ export const InventoryAssetManagement = () => {
           onEdit={(item) => {}}
           onDelete={(item) => deleteRecord(item.id, '/assets')}
           onSave={handleSaveAsset}
+          renderDetails={(item) => (
+            <div className="space-y-6">
+              <div className="flex items-center gap-4 p-4 bg-emerald-50 dark:bg-emerald-900/10 rounded-2xl border border-emerald-100 dark:border-emerald-900/20">
+                <div className="w-12 h-12 rounded-xl bg-emerald-600 flex items-center justify-center text-white shadow-lg shadow-emerald-100 dark:shadow-none">
+                  <HardDrive className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-black text-zinc-900 dark:text-white">{item.name}</h3>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className={cn("px-2 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-widest", item.condition === 'Good' ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400" : "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400")}>
+                      {item.condition}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                 <div className="space-y-1">
+                    <p className="text-xs font-bold text-zinc-500 uppercase">Serial Number</p>
+                    <p className="text-sm font-bold text-zinc-900 dark:text-white font-mono">{item.serial_number || 'N/A'}</p>
+                 </div>
+                 <div className="space-y-1">
+                    <p className="text-xs font-bold text-zinc-500 uppercase">Assigned To</p>
+                    <p className="text-sm font-bold text-zinc-900 dark:text-white">{item.assigned_to_name || 'Unassigned'}</p>
+                 </div>
+              </div>
+              
+              <div className="space-y-1">
+                 <p className="text-xs font-bold text-zinc-500 uppercase">Location</p>
+                 <p className="text-sm text-zinc-700 dark:text-zinc-300">{item.location || 'N/A'}</p>
+              </div>
+            </div>
+          )}
           renderForm={(item, isViewOnly) => (
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
@@ -305,6 +385,55 @@ export const InventoryAssetManagement = () => {
           ]}
           onAdd={() => {}}
           onSave={handleSaveTransaction}
+          renderDetails={(item) => (
+            <div className="space-y-6">
+              <div className="flex items-center gap-4 p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-2xl border border-zinc-200 dark:border-zinc-700">
+                <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center text-white shadow-lg", item.type === 'IN' ? "bg-indigo-600 shadow-indigo-100 dark:shadow-none" : "bg-amber-500 shadow-amber-100 dark:shadow-none")}>
+                  {item.type === 'IN' ? <Box className="w-6 h-6" /> : <Package className="w-6 h-6" />}
+                </div>
+                <div>
+                  <h3 className="text-xl font-black text-zinc-900 dark:text-white">{item.item_name}</h3>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className={cn("px-2 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-widest", item.type === 'IN' ? "bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-400" : "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400")}>
+                      {item.type === 'IN' ? 'Purchase (IN)' : 'Issuance (OUT)'}
+                    </span>
+                    <span className="text-xs font-bold text-zinc-500">{new Date(item.created_at).toLocaleDateString()}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="p-4 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800">
+                  <p className="text-xs font-bold text-zinc-500 uppercase mb-1">Quantity</p>
+                  <p className="text-2xl font-black text-zinc-900 dark:text-white">{item.quantity} Units</p>
+                </div>
+                <div className="p-4 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800">
+                  <p className="text-xs font-bold text-zinc-500 uppercase mb-1">Total Price</p>
+                  <p className="text-2xl font-black text-indigo-600">{item.total_price ? `${currency}${item.total_price}` : 'N/A'}</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                 <div className="space-y-1">
+                    <p className="text-xs font-bold text-zinc-500 uppercase">Unit Price</p>
+                    <p className="text-sm font-bold text-zinc-900 dark:text-white">{item.unit_price ? `${currency}${item.unit_price}` : 'N/A'}</p>
+                 </div>
+                 <div className="space-y-1">
+                    <p className="text-xs font-bold text-zinc-500 uppercase">Reference Number</p>
+                    <p className="text-sm font-bold text-zinc-900 dark:text-white font-mono">{item.reference_number || 'N/A'}</p>
+                 </div>
+              </div>
+              
+              {item.type === 'IN' && item.supplier_id && (
+                <div className="space-y-1">
+                  <p className="text-xs font-bold text-zinc-500 uppercase">Supplier</p>
+                  <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                    {suppliers.find((s: any) => s.id === item.supplier_id)?.name || 'Unknown Supplier'}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
           renderForm={(item, isViewOnly) => (
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
@@ -361,6 +490,39 @@ export const InventoryAssetManagement = () => {
           onEdit={(item) => {}}
           onDelete={(item) => deleteRecord(item.id, '/inventory/suppliers')}
           onSave={handleSaveSupplier}
+          renderDetails={(item) => (
+            <div className="space-y-6">
+              <div className="flex items-center gap-4 p-4 bg-blue-50 dark:bg-blue-900/10 rounded-2xl border border-blue-100 dark:border-blue-900/20">
+                <div className="w-12 h-12 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-lg shadow-blue-100 dark:shadow-none">
+                  <Truck className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-black text-zinc-900 dark:text-white">{item.name}</h3>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="px-2 py-0.5 bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 rounded-lg text-[10px] font-bold uppercase tracking-widest">
+                      Supplier
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-6">
+                 <div className="space-y-1">
+                    <p className="text-xs font-bold text-zinc-500 uppercase">Contact Person</p>
+                    <p className="text-sm font-bold text-zinc-900 dark:text-white">{item.contact_person || 'N/A'}</p>
+                 </div>
+                 <div className="space-y-1">
+                    <p className="text-xs font-bold text-zinc-500 uppercase">Phone</p>
+                    <p className="text-sm font-bold text-zinc-900 dark:text-white">{item.phone || 'N/A'}</p>
+                 </div>
+              </div>
+              
+              <div className="space-y-1">
+                 <p className="text-xs font-bold text-zinc-500 uppercase">Email</p>
+                 <p className="text-sm text-zinc-700 dark:text-zinc-300">{item.email || 'N/A'}</p>
+              </div>
+            </div>
+          )}
           renderForm={(item, isViewOnly) => (
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
