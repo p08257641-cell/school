@@ -589,7 +589,7 @@ export async function init() {
       CREATE TABLE IF NOT EXISTS feedbacks (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         org_id UUID REFERENCES organizations(id) ON DELETE CASCADE,
-        parent_id UUID REFERENCES users(id) ON DELETE CASCADE,
+        parent_id UUID REFERENCES students(id) ON DELETE CASCADE,
         student_id UUID REFERENCES students(id) ON DELETE SET NULL,
         category VARCHAR(100),
         subject VARCHAR(255) NOT NULL,

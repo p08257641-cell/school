@@ -326,9 +326,9 @@ export const getFeedbacks = async (req: AuthRequest, res: Response) => {
     const user_id = req.user.id;
 
     let query = `
-      SELECT f.*, u.name as parent_name, u.email as parent_email, s.name as student_name
+      SELECT f.*, s2.parent_name, s2.parent_email, s.name as student_name
       FROM feedbacks f
-      JOIN users u ON f.parent_id = u.id
+      LEFT JOIN students s2 ON f.parent_id = s2.id
       LEFT JOIN students s ON f.student_id = s.id
       WHERE f.org_id = $1
     `;
