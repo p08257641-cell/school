@@ -41,7 +41,8 @@ import {
   Image as ImageIcon,
   ArrowUp,
   ArrowDown,
-  RefreshCw
+  RefreshCw,
+  AlertCircle
 } from 'lucide-react';
 import { useLanguage } from '../lib/LanguageContext';
 import { cn } from '../lib/utils';
@@ -222,6 +223,41 @@ function BirthdayAlert({ items }: { items: { name: string, role: string, isSelf?
               ))}
             </div>
           </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+function LowStockAlert({ items, onNavigate }: { items: any[], onNavigate?: (view: string) => void }) {
+  const lowStockItems = items.filter(i => (parseFloat(i.quantity || i.stock || 0)) <= (parseFloat(i.min_stock_level || 5)));
+  if (lowStockItems.length === 0) return null;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -20 }}
+      animate={{ opacity: 1, y: 0 }}
+      onClick={() => onNavigate?.('Inventory & Assets')}
+      className="p-6 bg-gradient-to-br from-red-500/10 to-rose-500/10 dark:from-red-500/20 dark:to-rose-500/20 border border-red-500/20 dark:border-red-500/30 rounded-3xl shadow-lg cursor-pointer group relative overflow-hidden mb-6"
+    >
+      <div className="absolute -right-4 -top-4 w-24 h-24 bg-red-500/10 rounded-full blur-2xl group-hover:bg-red-500/20 transition-all" />
+      <div className="relative flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 bg-red-500/20 rounded-2xl flex items-center justify-center">
+            <AlertCircle className="w-6 h-6 text-red-600 dark:text-red-400" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <h3 className="text-lg font-bold text-red-900 dark:text-red-100 flex items-center gap-2">
+              {lowStockItems.length} Low Stock Alert{lowStockItems.length > 1 ? 's' : ''}
+              <span className="flex h-2 w-2 rounded-full bg-red-500 animate-ping" />
+            </h3>
+            <p className="text-red-600 dark:text-red-400/80 text-sm font-medium truncate">
+              {lowStockItems.map(i => i.name || i.item_name).join(', ')}
+            </p>
+          </div>
+        </div>
+        <div className="w-10 h-10 bg-red-500/20 rounded-xl flex items-center justify-center transition-transform group-hover:translate-x-1 shrink-0">
+          <ChevronRight className="w-6 h-6 text-red-600 dark:text-red-400" />
         </div>
       </div>
     </motion.div>
@@ -587,7 +623,7 @@ function SMSPurchasePanel({ organization, onRefresh }: { organization: any, onRe
   );
 }
 
-export function SchoolAdminDashboard({ stats, invoices = [], payments = [], students = [], classes = [], organization, attendanceHistory = [], activities = [], unreadMessagesCount = 0, onNavigate, onUpdateOrganization, staffList = [], departments = [], initialShowSMS = false }: { stats?: { totalStudents: string; totalStaff: string; attendanceRate: string; feesCollected: string }, invoices?: any[], payments?: any[], students?: any[], classes?: any[], organization?: any, attendanceHistory?: any[], activities?: any[], unreadMessagesCount?: number, onNavigate?: (view: string) => void, onUpdateOrganization?: (data: any) => void, staffList?: any[], departments?: any[], initialShowSMS?: boolean }) {
+export function SchoolAdminDashboard({ stats, invoices = [], payments = [], students = [], classes = [], organization, attendanceHistory = [], activities = [], unreadMessagesCount = 0, onNavigate, onUpdateOrganization, staffList = [], departments = [], initialShowSMS = false, inventoryItems = [] }: { stats?: { totalStudents: string; totalStaff: string; attendanceRate: string; feesCollected: string }, invoices?: any[], payments?: any[], students?: any[], classes?: any[], organization?: any, attendanceHistory?: any[], activities?: any[], unreadMessagesCount?: number, onNavigate?: (view: string) => void, onUpdateOrganization?: (data: any) => void, staffList?: any[], departments?: any[], initialShowSMS?: boolean, inventoryItems?: any[] }) {
   const { currency, t } = useLanguage();
   const [showOwingModal, setShowOwingModal] = useState(false);
   const [modalType, setModalType] = useState<'paid' | 'owing'>('owing');
@@ -712,6 +748,7 @@ export function SchoolAdminDashboard({ stats, invoices = [], payments = [], stud
   return (
     <div className="space-y-8">
       <MessageAlert count={unreadMessagesCount} onNavigate={onNavigate} />
+      <LowStockAlert items={inventoryItems} onNavigate={onNavigate} />
       <BirthdayAlert items={birthdayItems} />
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>

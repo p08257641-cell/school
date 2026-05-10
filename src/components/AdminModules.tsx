@@ -1105,7 +1105,7 @@ export function SchoolBilling({
       if (plans.length > 0) {
         handlePaystackPayment(plans[0]);
       } else {
-        alert('No plans loaded to test with.');
+        (window as any).showToast?.('No plans loaded to test with.', 'error');
       }
     };
   }, [plans]);

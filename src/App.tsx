@@ -1254,9 +1254,12 @@ export default function App() {
 
       switch (entityType) {
         case "inventory-sale":
-          if (currentRole === "STUDENT" && currentUser?.id) {
+          if (!data.status) data.status = "Pending";
+          if (currentRole === "STUDENT" && currentUser?.id && !data.student_id) {
             data.student_id = currentUser.id;
-            data.status = "Pending";
+          }
+          if (currentRole === "PARENT" && selectedWardId && !data.student_id) {
+            data.student_id = selectedWardId;
           }
           result = isUpdate
             ? await updateInventorySale(data.id, data)
@@ -1881,6 +1884,7 @@ export default function App() {
                   )}
                   attendanceHistory={studentAttendance}
                   activities={auditLogs.slice(0, 10)}
+                  inventoryItems={combinedInventory}
                   onUpdateOrganization={(data: any) => handleEntitySave("organization", data)}
                 />
               </div>

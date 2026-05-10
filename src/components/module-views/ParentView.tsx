@@ -360,10 +360,10 @@ export const ParentModules = {
                         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
                       });
                       const data = await res.json();
-                      if (res.ok) alert("Test notification sent!");
-                      else alert(data.error || "Failed to send test");
+                      if (res.ok) (window as any).showToast?.("Test notification sent!", "success");
+                      else (window as any).showToast?.(data.error || "Failed to send test", "error");
                     } catch (e) {
-                      alert("Error sending test");
+                      (window as any).showToast?.("Error sending test", "error");
                     }
                   }}
                   className="flex items-center justify-between w-full p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-2xl hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors group"

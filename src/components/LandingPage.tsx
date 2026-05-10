@@ -601,7 +601,7 @@ export default function LandingPage({ onGetStarted, onLogin, onPartnerLogin }: L
                         onSubmit={async (e) => {
                           e.preventDefault();
                           if (!partnerLeadData.acceptedTerms) {
-                            alert('Please accept the terms and conditions');
+                            (window as any).showToast?.('Please accept the terms and conditions', 'error');
                             return;
                           }
                           setPartnerLoading(true);
@@ -757,7 +757,7 @@ export default function LandingPage({ onGetStarted, onLogin, onPartnerLogin }: L
                             setIsDemoSubmitted(true);
                           } catch (error) {
                             console.error('Demo request failed:', error);
-                            alert('Failed to request demo. Please try again.');
+                            (window as any).showToast?.('Failed to request demo. Please try again.', 'error');
                           } finally {
                             setDemoLoading(false);
                           }

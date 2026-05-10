@@ -8065,7 +8065,7 @@ export const ExamModules = {
                   const classIdsJson = formData.class_ids;
                   const classIds = classIdsJson ? (typeof classIdsJson === 'string' ? JSON.parse(classIdsJson) : classIdsJson) : [];
                   if (classIds.length === 0) {
-                    alert("Please select at least one class.");
+                    (window as any).showToast?.("Please select at least one class.", "error");
                     return;
                   }
                   const payload = {
@@ -8185,7 +8185,7 @@ export const ExamModules = {
                       const classIds = classIdsJson ? JSON.parse(classIdsJson) : [];
 
                       if (classIds.length === 0) {
-                        alert("Please select at least one class.");
+                        (window as any).showToast?.("Please select at least one class.", "error");
                         return;
                       }
 

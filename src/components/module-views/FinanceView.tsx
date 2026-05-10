@@ -1948,6 +1948,62 @@ export const FinanceModules = {
             title="Purchase Requests"
             data={requests || []}
             onDelete={onDeleteRequest}
+            onSave={onSaveRequest}
+            onAdd={() => {}}
+            renderForm={(item, isViewOnly) => (
+              <div className="space-y-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Select Student</label>
+                  <select 
+                    name="student_id" 
+                    defaultValue={item?.student_id} 
+                    disabled={isViewOnly} 
+                    required 
+                    className="w-full px-4 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500"
+                  >
+                    <option value="">Select Student...</option>
+                    {(students || []).map(s => (
+                      <option key={s.id} value={s.id}>{s.name} ({s.class} {s.section})</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Item Name</label>
+                    <select 
+                      name="item_name" 
+                      defaultValue={item?.item_name} 
+                      disabled={isViewOnly} 
+                      required 
+                      className="w-full px-4 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500"
+                    >
+                      <option value="">Select Item...</option>
+                      {(data || []).map(i => (
+                        <option key={i.id} value={i.item_name}>{i.item_name} ({currency}{i.price})</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Quantity</label>
+                    <input 
+                      type="number" 
+                      name="quantity" 
+                      defaultValue={item?.quantity || 1} 
+                      min="1"
+                      disabled={isViewOnly} 
+                      required 
+                      className="w-full px-4 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
+                </div>
+                {!item?.id && (
+                   <div className="p-4 bg-indigo-50 dark:bg-indigo-900/10 rounded-2xl border border-indigo-100 dark:border-indigo-900/20">
+                     <p className="text-[10px] text-indigo-600 font-bold uppercase tracking-widest">Note</p>
+                     <p className="text-xs text-zinc-500 mt-1 italic">Adding a request as an admin will set it to 'Pending' status by default. You can approve it immediately after creation to generate an invoice.</p>
+                   </div>
+                )}
+              </div>
+            )}
             columns={[
               { header: 'Date', accessor: (item: any) => new Date(item.created_at || item.date).toLocaleDateString() },
               { header: 'Student', accessor: (item: any) => {

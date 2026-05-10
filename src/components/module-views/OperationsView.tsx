@@ -506,7 +506,7 @@ export const OperationsModules = {
                     const sid = (document.getElementById('newStudentId') as HTMLSelectElement).value;
                     const rid = (document.getElementById('newRouteId') as HTMLSelectElement).value;
                     const loc = (document.getElementById('newPickupLocation') as HTMLInputElement).value;
-                    if (!sid || !rid) return alert('Select student and route');
+                    if (!sid || !rid) return (window as any).showToast?.('Select student and route', 'error');
                     try {
                       const { assignStudentToTransport } = await import('../../lib/api');
                       await assignStudentToTransport(rid, sid, loc);
@@ -1241,7 +1241,7 @@ export const OperationsModules = {
                   onClick={async () => {
                     const sid = (document.getElementById('newResStudentId') as HTMLSelectElement).value;
                     const rid = (document.getElementById('newResRoomId') as HTMLSelectElement).value;
-                    if (!sid || !rid) return alert('Select student and room');
+                    if (!sid || !rid) return (window as any).showToast?.('Select student and room', 'error');
                     try {
                       const { assignStudentToRoom } = await import('../../lib/api');
                       await assignStudentToRoom(rid, sid);
