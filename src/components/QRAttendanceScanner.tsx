@@ -43,8 +43,9 @@ export default function QRAttendanceScanner({ classes = [], onNavigate, onRefres
                     fetchStudents(),
                     fetchStaff()
                 ]);
+                const activeStudents = studentsData.filter((s: any) => s.status?.toLowerCase() !== 'alumni');
                 const combined = [
-                    ...studentsData.map((s: any) => ({ ...s, type: 'student' })),
+                    ...activeStudents.map((s: any) => ({ ...s, type: 'student' })),
                     ...staffData.map((s: any) => ({ ...s, type: 'staff', admission_no: 'Staff', admission_no_original: s.email }))
                 ];
                 setAllPeople(combined);
