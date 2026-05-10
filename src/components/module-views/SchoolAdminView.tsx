@@ -881,7 +881,7 @@ export const AdmissionsModules = {
                 </div>
               </div>
 
-              {item.status !== 'Converted' && (
+              {item.status !== 'Converted' ? (
                 <div className="pt-6 relative">
                   <div className="absolute inset-0 bg-gradient-to-t from-zinc-50/50 to-transparent dark:from-zinc-900/50 pointer-events-none" />
                   <button
@@ -893,6 +893,12 @@ export const AdmissionsModules = {
                   >
                     <UserPlus className="w-4 h-4" /> Convert to Application
                   </button>
+                </div>
+              ) : (
+                <div className="pt-6">
+                  <div className="w-full py-4 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 rounded-2xl font-black uppercase tracking-[0.2em] text-xs flex items-center justify-center gap-3 border border-emerald-200/50 dark:border-emerald-800">
+                    <CheckCircle2 className="w-4 h-4" /> Already Converted
+                  </div>
                 </div>
               )}
             </div>
@@ -1089,7 +1095,7 @@ export const AdmissionsModules = {
             },
           ]}
           extraActions={(item) => (
-            item.status !== 'Converted' && (
+            item.status !== 'Converted' ? (
               <button
                 onClick={() => onConvert(item)}
                 className="flex items-center w-full gap-3 px-3 py-2 text-sm text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/10 rounded-lg transition-colors"
@@ -1097,6 +1103,11 @@ export const AdmissionsModules = {
                 <UserPlus className="w-4 h-4" />
                 Convert
               </button>
+            ) : (
+              <div className="flex items-center w-full gap-3 px-3 py-2 text-sm text-emerald-600 font-bold bg-emerald-50 dark:bg-emerald-900/10 rounded-lg cursor-default">
+                <CheckCircle2 className="w-4 h-4" />
+                Converted
+              </div>
             )
           )}
           onAdd={onSave ? () => { } : undefined}
@@ -1189,13 +1200,17 @@ export const AdmissionsModules = {
                 </div>
               </div>
 
-              {viewItem.status !== 'Converted' && (
+              {viewItem.status !== 'Converted' ? (
                 <button
                   onClick={() => { setViewItem(null); onConvert(viewItem); }}
                   className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-black uppercase tracking-[0.2em] text-xs hover:bg-indigo-700 hover:scale-[1.01] transition-all active:scale-95 flex items-center justify-center gap-3 shadow-xl shadow-indigo-200 dark:shadow-none"
                 >
                   <UserPlus className="w-4 h-4" /> Convert to Application
                 </button>
+              ) : (
+                <div className="w-full py-4 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 rounded-2xl font-black uppercase tracking-[0.2em] text-xs flex items-center justify-center gap-3 border border-emerald-200/50 dark:border-emerald-800">
+                  <CheckCircle2 className="w-4 h-4" /> Already Converted
+                </div>
               )}
             </div>
           )}
