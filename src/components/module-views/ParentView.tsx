@@ -64,12 +64,14 @@ export const ParentModules = {
           setShowForm(false);
           setFormData({ category: 'General', subject: '', description: '' });
           fetchFeedbacks();
+          (window as any).showToast?.('Feedback submitted successfully', 'success');
         } else {
-          alert('Failed to submit feedback');
+          const errData = await res.json().catch(() => ({}));
+          (window as any).showToast?.(`Failed to submit: ${errData.error || 'Unknown error'}`, 'error');
         }
-      } catch (e) {
+      } catch (e: any) {
         console.error(e);
-        alert('An error occurred');
+        (window as any).showToast?.(`An error occurred: ${e.message}`, 'error');
       } finally {
         setIsSubmitting(false);
       }

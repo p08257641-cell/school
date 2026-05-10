@@ -363,10 +363,10 @@ export const createFeedback = async (req: AuthRequest, res: Response) => {
     const feedback = result.rows[0];
 
     // Get school admins to notify them
-    const admins = await pool.query(`SELECT id, fcm_token FROM users WHERE org_id = $1 AND role = 'SCHOOL_ADMIN' AND fcm_token IS NOT NULL`, [org_id]);
+    const admins = await pool.query(`SELECT id, push_subscription FROM users WHERE org_id = $1 AND role = 'SCHOOL_ADMIN' AND push_subscription IS NOT NULL`, [org_id]);
     for (const admin of admins.rows) {
       try {
-        const sub = JSON.parse(admin.fcm_token);
+        const sub = typeof admin.push_subscription === 'string' ? JSON.parse(admin.push_subscription) : admin.push_subscription;
         await sendNativePush(sub, 'New Feedback Received', `Category: ${category} | Subject: ${subject}`);
       } catch (e) {
         console.error('Push notification failed for admin', admin.id, e);
@@ -398,13 +398,13 @@ export const updateFeedback = async (req: AuthRequest, res: Response) => {
 
     const feedback = result.rows[0];
 
-    // Notify the parent if there's an update
+    // If there's an admin reply, try to notify the parent
     if (status === 'Resolved' || reply) {
-       const parent = await pool.query(`SELECT fcm_token FROM users WHERE id = $1`, [feedback.parent_id]);
-       if (parent.rows[0]?.fcm_token) {
+       const parent = await pool.query(`SELECT push_subscription FROM users WHERE id = $1`, [feedback.parent_id]);
+       if (parent.rows[0]?.push_subscription) {
          try {
-           const sub = JSON.parse(parent.rows[0].fcm_token);
-           await sendNativePush(sub, 'Feedback Updated', `Your feedback "${feedback.subject}" was updated.`);
+           const sub = typeof parent.rows[0].push_subscription === 'string' ? JSON.parse(parent.rows[0].push_subscription) : parent.rows[0].push_subscription;
+           await sendNativePush(sub, 'Feedback Update', `Your feedback (${feedback.subject}) has been updated: ${status}`);
          } catch(e) {}
        }
     }

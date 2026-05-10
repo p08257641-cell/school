@@ -653,7 +653,7 @@ export function FeedbackManagement({ students = [], staff = [] }: { students?: a
         },
         body: JSON.stringify({
           status,
-          admin_reply: replyText || null
+          reply: replyText || null
         })
       });
       if (res.ok) {
