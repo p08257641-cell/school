@@ -304,6 +304,63 @@ export function DataTable<T extends { id: string | number }>({
                         >
                           <MoreVertical className="w-5 h-5" />
                         </button>
+
+                        {activeDropdown === item.id && anchorRect && createPortal(
+                          <div
+                            ref={dropdownRef}
+                            className="z-[9999] w-48 origin-top-right rounded-xl bg-white dark:bg-zinc-900 shadow-2xl border border-zinc-200 dark:border-zinc-800 focus:outline-none"
+                            style={dropdownStyles}
+                          >
+                            <div className="p-1.5 space-y-0.5" onClick={(e) => e.stopPropagation()}>
+                              {(onView || (autoModal && autoViewModal && (renderDetails || renderForm))) && (
+                                <button
+                                  onClick={() => {
+                                    handleView(item);
+                                    setActiveDropdown(null);
+                                    setAnchorRect(null);
+                                  }}
+                                  className="flex items-center w-full gap-3 px-3 py-2 text-sm text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 hover:text-indigo-600 rounded-lg transition-colors"
+                                >
+                                  <Eye className="w-4 h-4" />
+                                  {t('view')}
+                                </button>
+                              )}
+
+                              {extraActions && (
+                                <div className="px-1 py-1 border-y border-zinc-100 dark:border-zinc-800 my-1">
+                                  {extraActions(item)}
+                                </div>
+                              )}
+
+                              {(onEdit || (autoModal && renderForm && onSave)) && (!props.canEdit || props.canEdit(item)) && (
+                                <button
+                                  onClick={() => {
+                                    handleEdit(item);
+                                    setActiveDropdown(null);
+                                    setAnchorRect(null);
+                                  }}
+                                  className="flex items-center w-full gap-3 px-3 py-2 text-sm text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 hover:text-indigo-600 rounded-lg transition-colors"
+                                >
+                                  <Edit className="w-4 h-4" />
+                                  {t('edit')}
+                                </button>
+                              )}
+
+                              {onDelete && (!props.canDelete || props.canDelete(item)) && (
+                                <button
+                                  onClick={() => {
+                                    onDelete(item);
+                                    setActiveDropdown(null);
+                                  }}
+                                  className="flex items-center w-full gap-3 px-3 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-lg transition-colors"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                  {t('delete')}
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                          , document.body)}
                       </div>
                     )}
                   </div>
