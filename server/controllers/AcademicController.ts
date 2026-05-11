@@ -692,10 +692,17 @@ export const deleteTimetableEntry = async (req: AuthRequest, res: Response) => {
 export const generateSmartTimetable = async (req: AuthRequest, res: Response) => {
   try {
     const orgId = req.user.org_id;
-    const { subjectFrequencies = {} } = req.body; // Map of subject_id -> frequency per week
+    const { subjectFrequencies = {}, classId } = req.body; // Map of subject_id -> frequency, optional classId
     
-    // 1. Gather all necessary context
-    const classes = await pool.query('SELECT id, name, section FROM classes WHERE org_id = $1', [orgId]);
+    // 1. Gather context
+    let classesResult;
+    if (classId) {
+      classesResult = await pool.query('SELECT id, name, section FROM classes WHERE id = $1 AND org_id = $2', [classId, orgId]);
+    } else {
+      classesResult = await pool.query('SELECT id, name, section FROM classes WHERE org_id = $1', [orgId]);
+    }
+    const classes = classesResult;
+
     const subjects = await pool.query(`
       SELECT s.id, s.name, s.code, s.teacher_id, st.name as teacher_name,
              COALESCE((SELECT JSON_AGG(class_id) FROM subject_assignments WHERE subject_id = s.id), '[]') as assigned_classes
@@ -718,6 +725,17 @@ export const generateSmartTimetable = async (req: AuthRequest, res: Response) =>
 
     const generatedEntries: any[] = [];
     const teacherSchedules: Record<string, Set<string>> = {}; // teacherId -> Set of "Day-StartTime"
+
+    // If generating for a specific class, we should still consider other classes' existing schedules for teacher conflicts
+    // For simplicity in this deterministic version, we'll fetch existing entries to populate teacherSchedules
+    const existing = await pool.query('SELECT teacher_id, day_of_week, start_time FROM timetables WHERE org_id = $1', [orgId]);
+    for (const row of existing.rows) {
+      if (row.teacher_id) {
+        const key = `${row.day_of_week}-${row.start_time.slice(0, 5)}`;
+        if (!teacherSchedules[row.teacher_id]) teacherSchedules[row.teacher_id] = new Set();
+        teacherSchedules[row.teacher_id].add(key);
+      }
+    }
 
     // Initialize subject counters per class
     const classSubjectUsage: Record<string, Record<string, number>> = {}; // classId -> { subjectId -> count }
@@ -744,7 +762,6 @@ export const generateSmartTimetable = async (req: AuthRequest, res: Response) =>
 
           // Find a subject for this lesson slot
           let assigned = false;
-          // Sort subjects to prioritize those with higher remaining frequency
           const sortedClassSubjects = [...classSubjects].sort((a, b) => {
             const freqA = subjectFrequencies[a.id] || 2;
             const freqB = subjectFrequencies[b.id] || 2;
@@ -758,10 +775,8 @@ export const generateSmartTimetable = async (req: AuthRequest, res: Response) =>
             const currentFreq = classSubjectUsage[cls.id][sub.id] || 0;
 
             if (currentFreq < requiredFreq) {
-              // Check if teacher is available
               const teacherKey = `${day}-${slot.start}`;
               if (sub.teacher_id && (!teacherSchedules[sub.teacher_id] || !teacherSchedules[sub.teacher_id].has(teacherKey))) {
-                // Assign!
                 generatedEntries.push({
                   day_of_week: day,
                   start_time: slot.start,
@@ -773,13 +788,9 @@ export const generateSmartTimetable = async (req: AuthRequest, res: Response) =>
                   room: sub.room || 'Classroom'
                 });
 
-                // Update usage
                 classSubjectUsage[cls.id][sub.id] = currentFreq + 1;
-                
-                // Update teacher schedule
                 if (!teacherSchedules[sub.teacher_id]) teacherSchedules[sub.teacher_id] = new Set();
                 teacherSchedules[sub.teacher_id].add(teacherKey);
-                
                 assigned = true;
                 break;
               }
@@ -787,7 +798,6 @@ export const generateSmartTimetable = async (req: AuthRequest, res: Response) =>
           }
 
           if (!assigned) {
-            // Free period if no subject fits or teacher is busy
             generatedEntries.push({
               day_of_week: day,
               start_time: slot.start,
@@ -803,7 +813,7 @@ export const generateSmartTimetable = async (req: AuthRequest, res: Response) =>
       }
     }
 
-    await recordAuditLog(req.user.id, 'GENERATE_SMART_TIMETABLE', `Generated rule-based timetable proposal for organization`, orgId, req.ip || '');
+    await recordAuditLog(req.user.id, 'GENERATE_SMART_TIMETABLE', `Generated rule-based timetable proposal for ${classId ? 'class ' + classId : 'organization'}`, orgId, req.ip || '');
     
     res.json({
       success: true,

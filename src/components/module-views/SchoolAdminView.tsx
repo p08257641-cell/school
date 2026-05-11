@@ -5659,7 +5659,7 @@ export const AcademicModules = {
       setIsGenerating(true);
       setShowSmartSettings(false);
       try {
-        const res = await generateSmartTimetable(subjectFrequencies);
+        const res = await generateSmartTimetable(subjectFrequencies, selectedClassId);
         if (res.success && res.entries) {
           setGeneratedPreview(res.entries);
         } else {
@@ -6159,7 +6159,16 @@ export const AcademicModules = {
             </div>
 
             <div className="space-y-4 max-h-[50vh] overflow-y-auto pr-2">
-              {subjects.map(sub => (
+              {subjects.filter(sub => {
+                // If a class is selected, only show subjects assigned to that class
+                if (selectedClassId) {
+                  const assignedToClass = sub.classes?.some((c: any) => String(c.id) === String(selectedClassId));
+                  // Fallback for different data structures
+                  const assignedToClassLegacy = Array.isArray(sub.assigned_classes) && sub.assigned_classes.includes(selectedClassId);
+                  return assignedToClass || assignedToClassLegacy;
+                }
+                return true;
+              }).map(sub => (
                 <div key={sub.id} className="flex items-center justify-between p-3 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl border border-zinc-100 dark:border-zinc-800">
                   <div>
                     <p className="text-sm font-black text-zinc-900 dark:text-white">{sub.name}</p>
