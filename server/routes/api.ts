@@ -139,6 +139,7 @@ router.get('/academic/timetables', AcademicController.getTimetables);
 router.post('/academic/timetables', checkRole(['SCHOOL_ADMIN', 'HOD']), AcademicController.createTimetableEntry);
 router.patch('/academic/timetables/:id', checkRole(['SCHOOL_ADMIN', 'HOD']), AcademicController.updateTimetableEntry);
 router.delete('/academic/timetables/:id', checkRole(['SCHOOL_ADMIN', 'HOD']), AcademicController.deleteTimetableEntry);
+router.post('/academic/timetables/generate-smart', checkRole(['SCHOOL_ADMIN', 'HOD']), AcademicController.generateSmartTimetable);
 router.post('/academic/assign-subject', checkRole(['SCHOOL_ADMIN', 'HOD']), AcademicController.assignSubjectToTeacher);
 router.get('/academic/lesson-notes', AcademicController.getLessonNotes);
 router.post('/academic/lesson-notes', checkRole(['STAFF', 'SCHOOL_ADMIN']), AcademicController.createLessonNote);

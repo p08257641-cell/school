@@ -551,6 +551,11 @@ export const deleteTimetableEntry = async (id: string) => {
   return response.data;
 };
 
+export const generateSmartTimetable = async () => {
+  const response = await api.post('/academic/timetables/generate-smart');
+  return response.data;
+};
+
 // Finance
 export const fetchInvoices = async () => {
   const response = await api.get('/finance/invoices');

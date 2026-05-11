@@ -56,7 +56,8 @@ import {
   Save,
   Send,
   BellRing,
-  LogOut
+  LogOut,
+  Sparkles
 } from 'lucide-react';
 import TimetableEntryModal from '../modals/TimetableEntryModal';
 import {
@@ -77,7 +78,7 @@ import { API_BASE_URL } from '../../constants';
 import { useLanguage } from '../../lib/LanguageContext';
 import { downloadStudentTemplate, parseStudentExcel } from '../../lib/excel';
 import { Download, FileUp } from 'lucide-react';
-import { fetchCalendarEvents, createCalendarEvent, deleteCalendarEvent, syncPublicHolidays, sendBulkSMS } from '../../lib/api';
+import { fetchCalendarEvents, createCalendarEvent, deleteCalendarEvent, syncPublicHolidays, sendBulkSMS, generateSmartTimetable } from '../../lib/api';
 
 const SectionEditor: React.FC<{ section: ReportCardSection, onUpdate: (s: ReportCardSection) => void, onRemove: () => void }> = ({ section, onUpdate, onRemove }) => {
   return (
@@ -5649,6 +5650,43 @@ export const AcademicModules = {
     const [editingItem, setEditingItem] = useState<any | null>(null);
     const [showForm, setShowForm] = useState(false);
     const [viewMode, setViewMode] = useState<'grid' | 'list'>(role === 'STAFF' ? 'list' : 'grid');
+    const [isGenerating, setIsGenerating] = useState(false);
+    const [generatedPreview, setGeneratedPreview] = useState<any[] | null>(null);
+
+    const handleGenerateSmart = async () => {
+      if (!window.confirm('This will use AI to suggest a balanced timetable based on your classes, subjects, and staff. Existing entries will be considered as constraints. Proceed?')) return;
+      
+      setIsGenerating(true);
+      try {
+        const res = await generateSmartTimetable();
+        if (res.success && res.entries) {
+          setGeneratedPreview(res.entries);
+        } else {
+          (window as any).showToast?.(res.message || 'AI failed to generate a timetable. Please check your settings.', 'error');
+        }
+      } catch (err: any) {
+        (window as any).showToast?.(err.message || 'Failed to generate smart timetable', 'error');
+      } finally {
+        setIsGenerating(false);
+      }
+    };
+
+    const handleApplyGenerated = async () => {
+      if (!generatedPreview) return;
+      if (!window.confirm(`Are you sure you want to apply these ${generatedPreview.length} generated entries? This will add them to the current schedule.`)) return;
+
+      try {
+        // Save each entry sequentially or use a bulk endpoint if available
+        // Since we don't have a bulk endpoint, we'll loop
+        for (const entry of generatedPreview) {
+          await onSave?.(entry);
+        }
+        (window as any).showToast?.('Smart timetable applied successfully!', 'success');
+        setGeneratedPreview(null);
+      } catch (err: any) {
+        (window as any).showToast?.('Failed to apply some entries. Please refresh.', 'error');
+      }
+    };
 
     useEffect(() => {
       if (initialClassId) {
@@ -5810,6 +5848,14 @@ export const AcademicModules = {
                 >
                   <Plus className="w-4 h-4" />
                   Add Entry
+                </button>
+                <button
+                  onClick={handleGenerateSmart}
+                  disabled={isGenerating}
+                  className="px-4 py-2 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-xl font-black text-sm flex items-center gap-2 hover:bg-indigo-100 transition-all border border-indigo-100 dark:border-indigo-800 disabled:opacity-50"
+                >
+                  {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                  Generate Smart
                 </button>
               </>
             )}
@@ -6022,6 +6068,74 @@ export const AcademicModules = {
           editingItem={editingItem}
           selectedClassId={selectedClassId}
         />
+
+        {/* Smart Timetable Review Modal */}
+        <Modal
+          isOpen={!!generatedPreview}
+          onClose={() => setGeneratedPreview(null)}
+          title="Review AI-Generated Timetable"
+          maxWidth="max-w-5xl"
+        >
+          <div className="space-y-6">
+            <div className="p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-2xl border border-indigo-100 dark:border-indigo-800 flex items-start gap-4">
+              <div className="w-10 h-10 rounded-xl bg-white dark:bg-zinc-800 flex items-center justify-center text-indigo-600 shrink-0 shadow-sm">
+                <Sparkles className="w-5 h-5" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-bold text-zinc-900 dark:text-white">AI Suggestion Ready</p>
+                <p className="text-xs text-zinc-500 dark:text-zinc-400 font-medium mt-0.5">
+                  The AI has generated {generatedPreview?.length} proposed schedule entries. Review them below before applying.
+                </p>
+              </div>
+            </div>
+
+            <div className="max-h-[60vh] overflow-y-auto rounded-2xl border border-zinc-100 dark:border-zinc-800">
+              <table className="w-full text-left border-collapse">
+                <thead className="sticky top-0 bg-zinc-50 dark:bg-zinc-800 z-10">
+                  <tr>
+                    <th className="p-4 text-[10px] font-black uppercase tracking-widest text-zinc-400 border-b border-zinc-100 dark:border-zinc-700">Day</th>
+                    <th className="p-4 text-[10px] font-black uppercase tracking-widest text-zinc-400 border-b border-zinc-100 dark:border-zinc-700">Time</th>
+                    <th className="p-4 text-[10px] font-black uppercase tracking-widest text-zinc-400 border-b border-zinc-100 dark:border-zinc-700">Class</th>
+                    <th className="p-4 text-[10px] font-black uppercase tracking-widest text-zinc-400 border-b border-zinc-100 dark:border-zinc-700">Subject</th>
+                    <th className="p-4 text-[10px] font-black uppercase tracking-widest text-zinc-400 border-b border-zinc-100 dark:border-zinc-700">Teacher</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-zinc-50 dark:divide-zinc-800">
+                  {generatedPreview?.map((entry, idx) => {
+                    const cls = classes.find(c => c.id === entry.class_id);
+                    const sub = subjects.find(s => s.id === entry.subject_id);
+                    const tchr = staff.find(s => s.id === entry.teacher_id);
+                    return (
+                      <tr key={idx} className="hover:bg-zinc-50/50 dark:hover:bg-zinc-800/30 transition-colors">
+                        <td className="p-4 text-xs font-bold text-zinc-900 dark:text-white">{entry.day_of_week}</td>
+                        <td className="p-4 text-xs font-bold text-indigo-600">{entry.start_time} - {entry.end_time}</td>
+                        <td className="p-4 text-xs font-medium text-zinc-500">{cls ? `${cls.name} ${cls.section || ''}` : 'N/A'}</td>
+                        <td className="p-4 text-xs font-black text-zinc-900 dark:text-white">{sub?.name || entry.type}</td>
+                        <td className="p-4 text-xs font-medium text-zinc-500">{tchr?.name || 'N/A'}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="flex gap-4 pt-4">
+              <button
+                onClick={() => setGeneratedPreview(null)}
+                className="flex-1 px-6 py-4 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-400 rounded-2xl text-sm font-black uppercase tracking-widest transition-all"
+              >
+                Discard
+              </button>
+              <button
+                onClick={handleApplyGenerated}
+                className="flex-[2] px-6 py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-sm font-black uppercase tracking-widest shadow-lg shadow-indigo-200 dark:shadow-none transition-all flex items-center justify-center gap-2"
+              >
+                <CheckCircle2 className="w-4 h-4" />
+                Apply Generated Schedule
+              </button>
+            </div>
+          </div>
+        </Modal>
       </div>
     );
   },
