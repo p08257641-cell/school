@@ -5654,6 +5654,8 @@ export const AcademicModules = {
     const [generatedPreview, setGeneratedPreview] = useState<any[] | null>(null);
     const [showSmartSettings, setShowSmartSettings] = useState(false);
     const [subjectFrequencies, setSubjectFrequencies] = useState<Record<string, number>>({});
+    const [showApplyConfirm, setShowApplyConfirm] = useState(false);
+    const [isApplying, setIsApplying] = useState(false);
 
     const handleGenerateSmart = async () => {
       setIsGenerating(true);
@@ -5674,18 +5676,23 @@ export const AcademicModules = {
 
     const handleApplyGenerated = async () => {
       if (!generatedPreview) return;
-      if (!window.confirm(`Are you sure you want to apply these ${generatedPreview.length} generated entries? This will add them to the current schedule.`)) return;
+      setShowApplyConfirm(true);
+    };
 
+    const handleConfirmApply = async () => {
+      if (!generatedPreview) return;
+      setIsApplying(true);
       try {
-        // Save each entry sequentially or use a bulk endpoint if available
-        // Since we don't have a bulk endpoint, we'll loop
         for (const entry of generatedPreview) {
           await onSave?.(entry);
         }
         (window as any).showToast?.('Smart timetable applied successfully!', 'success');
         setGeneratedPreview(null);
+        setShowApplyConfirm(false);
       } catch (err: any) {
         (window as any).showToast?.('Failed to apply some entries. Please refresh.', 'error');
+      } finally {
+        setIsApplying(false);
       }
     };
 
@@ -6202,6 +6209,43 @@ export const AcademicModules = {
               >
                 <RefreshCw className="w-4 h-4" />
                 Generate Proposal
+              </button>
+            </div>
+          </div>
+        </Modal>
+        
+        {/* Apply Confirmation Modal */}
+        <Modal
+          isOpen={showApplyConfirm}
+          onClose={() => setShowApplyConfirm(false)}
+          title="Confirm Apply Schedule"
+          maxWidth="max-w-md"
+        >
+          <div className="space-y-6 text-center">
+            <div className="w-16 h-16 rounded-full bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 mx-auto">
+              <CheckCircle2 className="w-8 h-8" />
+            </div>
+            <div>
+              <p className="text-lg font-black text-zinc-900 dark:text-white">Persist Schedule?</p>
+              <p className="text-sm text-zinc-500 dark:text-zinc-400 font-medium mt-2">
+                You are about to add <span className="font-bold text-indigo-600">{generatedPreview?.length}</span> entries to the current timetable. This action will be recorded in the audit logs.
+              </p>
+            </div>
+            <div className="flex gap-4">
+              <button
+                onClick={() => setShowApplyConfirm(false)}
+                disabled={isApplying}
+                className="flex-1 px-6 py-4 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-400 rounded-2xl text-sm font-black uppercase tracking-widest transition-all disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmApply}
+                disabled={isApplying}
+                className="flex-[2] px-6 py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-sm font-black uppercase tracking-widest shadow-lg shadow-indigo-200 dark:shadow-none transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                {isApplying ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+                {isApplying ? 'Applying...' : 'Confirm Apply'}
               </button>
             </div>
           </div>
