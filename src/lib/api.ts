@@ -551,8 +551,8 @@ export const deleteTimetableEntry = async (id: string) => {
   return response.data;
 };
 
-export const generateSmartTimetable = async () => {
-  const response = await api.post('/academic/timetables/generate-smart');
+export const generateSmartTimetable = async (subjectFrequencies?: Record<string, number>) => {
+  const response = await api.post('/academic/timetables/generate-smart', { subjectFrequencies });
   return response.data;
 };
 

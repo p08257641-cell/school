@@ -692,6 +692,7 @@ export const deleteTimetableEntry = async (req: AuthRequest, res: Response) => {
 export const generateSmartTimetable = async (req: AuthRequest, res: Response) => {
   try {
     const orgId = req.user.org_id;
+    const { subjectFrequencies = {} } = req.body; // Map of subject_id -> frequency per week
     
     // 1. Gather all necessary context
     const classes = await pool.query('SELECT id, name, section FROM classes WHERE org_id = $1', [orgId]);
@@ -702,116 +703,107 @@ export const generateSmartTimetable = async (req: AuthRequest, res: Response) =>
       LEFT JOIN staff st ON s.teacher_id = st.id
       WHERE s.org_id = $1
     `, [orgId]);
-    const staff = await pool.query('SELECT id, name, department_id FROM staff WHERE org_id = $1', [orgId]);
-    const existing = await pool.query('SELECT * FROM timetables WHERE org_id = $1', [orgId]);
-
-    // 2. Get AI API Key
-    let apiKey = process.env.GROQ_API_KEY;
-    const keyResult = await pool.query('SELECT api_key FROM gemini_api_keys WHERE org_id = $1', [orgId]);
-    if (keyResult.rows.length > 0 && keyResult.rows[0].api_key) {
-      apiKey = keyResult.rows[0].api_key;
-    }
-
-    if (!apiKey) {
-      return res.status(503).json({ 
-        error: 'AI Service Not Configured', 
-        message: 'Please configure your Groq API Key in Settings to use Smart Timetable Generation.' 
-      });
-    }
-
-    // 3. Construct Prompt
-    const prompt = `
-      You are an expert school scheduler. Create a weekly timetable (Monday to Friday) for the following school context:
-      
-      CLASSES:
-      ${JSON.stringify(classes.rows.map(c => ({ id: c.id, name: `${c.name} ${c.section || ''}` })))}
-      
-      SUBJECTS (with assigned teachers and target classes):
-      ${JSON.stringify(subjects.rows.map(s => ({ 
-        id: s.id, 
-        name: s.name, 
-        code: s.code, 
-        teacher_id: s.teacher_id, 
-        teacher_name: s.teacher_name,
-        classes: s.assigned_classes 
-      })))}
-      
-      STAFF:
-      ${JSON.stringify(staff.rows.map(s => ({ id: s.id, name: s.name })))}
-      
-      EXISTING ENTRIES (Avoid duplicating or contradicting these):
-      ${JSON.stringify(existing.rows.slice(0, 50).map(e => ({ 
-        day: e.day_of_week, 
-        start: e.start_time, 
-        end: e.end_time, 
-        class_id: e.class_id, 
-        teacher_id: e.teacher_id 
-      })))}
-
-      SCHEDULE RULES:
-      - School starts at 08:00 and ends at 16:00.
-      - Standard period length is 60 minutes (1 hour).
-      - Include a "Short Break" (type: 'Short Break') from 10:30 to 11:00 daily.
-      - Include a "Lunch Break" (type: 'Lunch Break') from 12:30 to 13:30 daily.
-      - Each subject should appear at least 2-3 times a week for each assigned class.
-      - NO CONFLICTS: A teacher cannot be in two classes at once. A class cannot have two subjects at once.
-      - Only assign subjects to the classes they are specifically assigned to.
-      
-      OUTPUT FORMAT:
-      Return ONLY a JSON array of objects. Do not include any explanatory text.
-      Each object must have these keys:
-      - day_of_week (e.g., "Monday")
-      - start_time (e.g., "08:00")
-      - end_time (e.g., "09:00")
-      - class_id (the UUID)
-      - subject_id (the UUID, or null for breaks)
-      - teacher_id (the UUID, or null for breaks)
-      - type ("Lesson", "Short Break", or "Lunch Break")
-      - room (optional string)
-    `;
-
-    // 4. Call AI Service (Groq)
-    const aiResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
-        messages: [
-          { role: 'system', content: 'You are a precise data generator that only outputs JSON.' },
-          { role: 'user', content: prompt }
-        ],
-        temperature: 0.2, // Low temperature for consistency
-        max_tokens: 4096
-      })
-    });
-
-    if (!aiResponse.ok) {
-      throw new Error(`AI Service Error: ${aiResponse.statusText}`);
-    }
-
-    const aiData = await aiResponse.json();
-    const content = aiData.choices?.[0]?.message?.content;
     
-    if (!content) {
-      throw new Error('AI failed to generate a response.');
+    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+    const timeSlots = [
+      { start: '08:00', end: '09:00', type: 'Lesson' },
+      { start: '09:00', end: '10:00', type: 'Lesson' },
+      { start: '10:00', end: '10:30', type: 'Short Break' },
+      { start: '10:30', end: '11:30', type: 'Lesson' },
+      { start: '11:30', end: '12:30', type: 'Lesson' },
+      { start: '12:30', end: '13:30', type: 'Lunch Break' },
+      { start: '13:30', end: '14:30', type: 'Lesson' },
+      { start: '14:30', end: '15:30', type: 'Lesson' }
+    ];
+
+    const generatedEntries: any[] = [];
+    const teacherSchedules: Record<string, Set<string>> = {}; // teacherId -> Set of "Day-StartTime"
+
+    // Initialize subject counters per class
+    const classSubjectUsage: Record<string, Record<string, number>> = {}; // classId -> { subjectId -> count }
+
+    for (const cls of classes.rows) {
+      classSubjectUsage[cls.id] = {};
+      const classSubjects = subjects.rows.filter(s => s.assigned_classes.includes(cls.id));
+      
+      for (const day of days) {
+        for (const slot of timeSlots) {
+          if (slot.type !== 'Lesson') {
+            generatedEntries.push({
+              day_of_week: day,
+              start_time: slot.start,
+              end_time: slot.end,
+              class_id: cls.id,
+              subject_id: null,
+              teacher_id: null,
+              type: slot.type,
+              room: 'General'
+            });
+            continue;
+          }
+
+          // Find a subject for this lesson slot
+          let assigned = false;
+          // Sort subjects to prioritize those with higher remaining frequency
+          const sortedClassSubjects = [...classSubjects].sort((a, b) => {
+            const freqA = subjectFrequencies[a.id] || 2;
+            const freqB = subjectFrequencies[b.id] || 2;
+            const usedA = classSubjectUsage[cls.id][a.id] || 0;
+            const usedB = classSubjectUsage[cls.id][b.id] || 0;
+            return (freqB - usedB) - (freqA - usedA);
+          });
+
+          for (const sub of sortedClassSubjects) {
+            const requiredFreq = subjectFrequencies[sub.id] || 2;
+            const currentFreq = classSubjectUsage[cls.id][sub.id] || 0;
+
+            if (currentFreq < requiredFreq) {
+              // Check if teacher is available
+              const teacherKey = `${day}-${slot.start}`;
+              if (sub.teacher_id && (!teacherSchedules[sub.teacher_id] || !teacherSchedules[sub.teacher_id].has(teacherKey))) {
+                // Assign!
+                generatedEntries.push({
+                  day_of_week: day,
+                  start_time: slot.start,
+                  end_time: slot.end,
+                  class_id: cls.id,
+                  subject_id: sub.id,
+                  teacher_id: sub.teacher_id,
+                  type: 'Lesson',
+                  room: sub.room || 'Classroom'
+                });
+
+                // Update usage
+                classSubjectUsage[cls.id][sub.id] = currentFreq + 1;
+                
+                // Update teacher schedule
+                if (!teacherSchedules[sub.teacher_id]) teacherSchedules[sub.teacher_id] = new Set();
+                teacherSchedules[sub.teacher_id].add(teacherKey);
+                
+                assigned = true;
+                break;
+              }
+            }
+          }
+
+          if (!assigned) {
+            // Free period if no subject fits or teacher is busy
+            generatedEntries.push({
+              day_of_week: day,
+              start_time: slot.start,
+              end_time: slot.end,
+              class_id: cls.id,
+              subject_id: null,
+              teacher_id: null,
+              type: 'Free Period',
+              room: 'Library/Study Hall'
+            });
+          }
+        }
+      }
     }
 
-    // 5. Parse and Return
-    let generatedEntries = [];
-    try {
-      // Try to find JSON in the content if there's markdown
-      const jsonMatch = content.match(/\[\s*\{[\s\S]*\}\s*\]/);
-      const jsonString = jsonMatch ? jsonMatch[0] : content;
-      generatedEntries = JSON.parse(jsonString);
-    } catch (parseErr) {
-      console.error('Failed to parse AI response:', content);
-      throw new Error('AI returned invalid JSON data.');
-    }
-
-    await recordAuditLog(req.user.id, 'GENERATE_SMART_TIMETABLE', `Generated AI timetable proposal for organization`, orgId, req.ip || '');
+    await recordAuditLog(req.user.id, 'GENERATE_SMART_TIMETABLE', `Generated rule-based timetable proposal for organization`, orgId, req.ip || '');
     
     res.json({
       success: true,
@@ -823,6 +815,7 @@ export const generateSmartTimetable = async (req: AuthRequest, res: Response) =>
     res.status(500).json({ error: 'Failed to generate smart timetable', message: err.message });
   }
 };
+
 
 
 // SUBJECT ASSIGNMENTS

@@ -5652,17 +5652,18 @@ export const AcademicModules = {
     const [viewMode, setViewMode] = useState<'grid' | 'list'>(role === 'STAFF' ? 'list' : 'grid');
     const [isGenerating, setIsGenerating] = useState(false);
     const [generatedPreview, setGeneratedPreview] = useState<any[] | null>(null);
+    const [showSmartSettings, setShowSmartSettings] = useState(false);
+    const [subjectFrequencies, setSubjectFrequencies] = useState<Record<string, number>>({});
 
     const handleGenerateSmart = async () => {
-      if (!window.confirm('This will use AI to suggest a balanced timetable based on your classes, subjects, and staff. Existing entries will be considered as constraints. Proceed?')) return;
-      
       setIsGenerating(true);
+      setShowSmartSettings(false);
       try {
-        const res = await generateSmartTimetable();
+        const res = await generateSmartTimetable(subjectFrequencies);
         if (res.success && res.entries) {
           setGeneratedPreview(res.entries);
         } else {
-          (window as any).showToast?.(res.message || 'AI failed to generate a timetable. Please check your settings.', 'error');
+          (window as any).showToast?.(res.message || 'Failed to generate a timetable. Please check your data.', 'error');
         }
       } catch (err: any) {
         (window as any).showToast?.(err.message || 'Failed to generate smart timetable', 'error');
@@ -5850,7 +5851,7 @@ export const AcademicModules = {
                   Add Entry
                 </button>
                 <button
-                  onClick={handleGenerateSmart}
+                  onClick={() => setShowSmartSettings(true)}
                   disabled={isGenerating}
                   className="px-4 py-2 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-xl font-black text-sm flex items-center gap-2 hover:bg-indigo-100 transition-all border border-indigo-100 dark:border-indigo-800 disabled:opacity-50"
                 >
@@ -6073,7 +6074,7 @@ export const AcademicModules = {
         <Modal
           isOpen={!!generatedPreview}
           onClose={() => setGeneratedPreview(null)}
-          title="Review AI-Generated Timetable"
+          title="Review Generated Timetable"
           maxWidth="max-w-5xl"
         >
           <div className="space-y-6">
@@ -6082,9 +6083,9 @@ export const AcademicModules = {
                 <Sparkles className="w-5 h-5" />
               </div>
               <div className="flex-1">
-                <p className="text-sm font-bold text-zinc-900 dark:text-white">AI Suggestion Ready</p>
+                <p className="text-sm font-bold text-zinc-900 dark:text-white">New Proposal Ready</p>
                 <p className="text-xs text-zinc-500 dark:text-zinc-400 font-medium mt-0.5">
-                  The AI has generated {generatedPreview?.length} proposed schedule entries. Review them below before applying.
+                  A new schedule has been generated based on your frequency settings. Review the {generatedPreview?.length} entries below.
                 </p>
               </div>
             </div>
@@ -6132,6 +6133,66 @@ export const AcademicModules = {
               >
                 <CheckCircle2 className="w-4 h-4" />
                 Apply Generated Schedule
+              </button>
+            </div>
+          </div>
+        </Modal>
+
+        {/* Smart Timetable Settings Modal */}
+        <Modal
+          isOpen={showSmartSettings}
+          onClose={() => setShowSmartSettings(false)}
+          title="Timetable Generation Requirements"
+          maxWidth="max-w-2xl"
+        >
+          <div className="space-y-6">
+            <div className="p-4 bg-amber-50 dark:bg-amber-900/20 rounded-2xl border border-amber-100 dark:border-amber-800 flex items-start gap-4">
+              <div className="w-10 h-10 rounded-xl bg-white dark:bg-zinc-800 flex items-center justify-center text-amber-600 shrink-0 shadow-sm">
+                <Settings className="w-5 h-5" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-bold text-zinc-900 dark:text-white">Configure Subject Frequency</p>
+                <p className="text-xs text-zinc-500 dark:text-zinc-400 font-medium mt-0.5">
+                  Specify how many times each subject should appear in the weekly schedule for its assigned classes.
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-4 max-h-[50vh] overflow-y-auto pr-2">
+              {subjects.map(sub => (
+                <div key={sub.id} className="flex items-center justify-between p-3 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl border border-zinc-100 dark:border-zinc-800">
+                  <div>
+                    <p className="text-sm font-black text-zinc-900 dark:text-white">{sub.name}</p>
+                    <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">{sub.code}</p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-[10px] font-black text-zinc-400 uppercase">Periods / Week:</span>
+                    <input
+                      type="number"
+                      min="0"
+                      max="10"
+                      value={subjectFrequencies[sub.id] ?? 2}
+                      onChange={(e) => setSubjectFrequencies(prev => ({ ...prev, [sub.id]: parseInt(e.target.value) }))}
+                      className="w-16 px-3 py-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg text-sm font-bold text-center outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex gap-4 pt-4 border-t border-zinc-100 dark:border-zinc-800">
+              <button
+                onClick={() => setShowSmartSettings(false)}
+                className="flex-1 px-6 py-4 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-400 rounded-2xl text-sm font-black uppercase tracking-widest transition-all"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleGenerateSmart}
+                className="flex-[2] px-6 py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-sm font-black uppercase tracking-widest shadow-lg shadow-indigo-200 dark:shadow-none transition-all flex items-center justify-center gap-2"
+              >
+                <RefreshCw className="w-4 h-4" />
+                Generate Proposal
               </button>
             </div>
           </div>
