@@ -8568,6 +8568,9 @@ export const ExamModules = {
     const [broadcastProgress, setBroadcastProgress] = useState(0);
     const [promotionRecords, setPromotionRecords] = useState<any[]>([]);
 
+    const [searchQuery, setSearchQuery] = useState("");
+    const [smsTemplate, setSmsTemplate] = useState("Dear Parent, your ward {student_name}'s results for {term} are ready. View here: {link}");
+
     useEffect(() => {
       const loadPromotionRecords = async () => {
         try {
@@ -8595,11 +8598,8 @@ export const ExamModules = {
     const results = data || [];
     const filteredResults = results.filter((r: any) => exams.some((e: any) => String(e.id) === String(r.exam_id)));
 
-    // Calculate Ranks and Percentages locally
     const processedResults = useMemo(() => {
       const groups: Record<string, any[]> = {};
-
-      // We always process all results for correct ranking
       results.forEach((r: any) => {
         if (!groups[r.exam_id]) groups[r.exam_id] = [];
         groups[r.exam_id].push({ ...r, score: parseFloat(String(r.score)) || 0 });
@@ -8633,7 +8633,6 @@ export const ExamModules = {
       return allProcessed;
     }, [filteredResults, exams, classes, reportCardTemplates]);
 
-    // Calculate Summary (Student-Subject Grouped) - UNFILTERED version for stats/ranks
     const fullSummarizedResults = useMemo(() => {
       const summaryMap: Record<string, any> = {};
 
@@ -8668,13 +8667,11 @@ export const ExamModules = {
         const type = (r.exam_type || exam?.type || exam?.name || '').toLowerCase();
         const score = parseFloat(String(r.score)) || 0;
 
-        // Priority 1: Check score_details for breakdown (if entered by staff)
         const details = typeof r.score_details === 'string' ? JSON.parse(r.score_details) : r.score_details;
         if (details && (details.showClassScore !== undefined || details.showExamScore !== undefined)) {
           entry.caScore += parseFloat(String(details.showClassScore || 0)) || 0;
           entry.examScore += parseFloat(String(details.showExamScore || 0)) || 0;
         }
-        // Priority 2: Fallback to string-based categorization of the total score
         else if (type.includes('class score') || type.includes('ca') || type.includes('class test') || type.includes('assignment') || type.includes('project') || type.includes('test')) {
           entry.caScore += score;
         } else if (type.includes('mid-term') || type.includes('midterm')) {
@@ -8682,7 +8679,7 @@ export const ExamModules = {
         } else if (type.includes('final exam') || type.includes('exam')) {
           entry.examScore += score;
         } else {
-          entry.caScore += score; // Fallback to CA for any other assessment type
+          entry.caScore += score;
         }
       });
 
@@ -8719,7 +8716,6 @@ export const ExamModules = {
       return summaryList;
     }, [results, exams, classes, reportCardTemplates, organization]);
 
-    // FILTERED version for actual table display
     const summarizedResults = useMemo(() => {
       let filtered = fullSummarizedResults;
 
@@ -8772,6 +8768,79 @@ export const ExamModules = {
       return Object.values(groups);
     }, [summarizedResults, performanceGroupBy]);
 
+    const filteredSummaryGroups = useMemo(() => {
+      if (!searchQuery.trim()) return performanceSummaryGroups;
+      const query = searchQuery.toLowerCase();
+      return performanceSummaryGroups.filter((g: any) =>
+        g.name.toLowerCase().includes(query)
+      );
+    }, [performanceSummaryGroups, searchQuery]);
+
+    const overallStats = useMemo(() => {
+      const allResults = summarizedResults;
+      const totalResults = allResults.length;
+      if (totalResults === 0) return { schoolAvg: '0.0', completeness: '0.0', topClass: 'N/A', topSubject: 'N/A', studentCount: 0, totalResults: 0 };
+      
+      const sum = allResults.reduce((acc, r) => acc + (parseFloat(r.totalScore) || 0), 0);
+      const schoolAvg = (sum / totalResults).toFixed(1);
+      
+      let expectedCount = 0;
+      classes.forEach((c: any) => {
+        const sCount = students.filter((s: any) => String(s.class_id) === String(c.id)).length;
+        const subCount = subjects.filter((sub: any) => String(sub.class_id) === String(c.id)).length;
+        expectedCount += sCount * subCount;
+      });
+      const completeness = expectedCount > 0 ? Math.min(100, (totalResults / expectedCount) * 100).toFixed(1) : '0.0';
+      
+      const classScores: Record<string, { total: number, count: number, name: string }> = {};
+      const subjectScores: Record<string, { total: number, count: number, name: string }> = {};
+      
+      allResults.forEach(r => {
+        if (r.class_id) {
+          if (!classScores[r.class_id]) classScores[r.class_id] = { total: 0, count: 0, name: r.class_name };
+          classScores[r.class_id].total += r.totalScore;
+          classScores[r.class_id].count++;
+        }
+        if (r.subject_id) {
+          const sName = r.subject_name || r.subject || 'Subject';
+          if (!subjectScores[r.subject_id]) subjectScores[r.subject_id] = { total: 0, count: 0, name: sName };
+          subjectScores[r.subject_id].total += r.totalScore;
+          subjectScores[r.subject_id].count++;
+        }
+      });
+      
+      let topClass = 'N/A';
+      let maxClassAvg = 0;
+      Object.values(classScores).forEach(c => {
+        const avg = c.total / c.count;
+        if (avg > maxClassAvg) {
+          maxClassAvg = avg;
+          topClass = `${c.name} (${avg.toFixed(1)}%)`;
+        }
+      });
+      
+      let topSubject = 'N/A';
+      let maxSubAvg = 0;
+      Object.values(subjectScores).forEach(s => {
+        const avg = s.total / s.count;
+        if (avg > maxSubAvg) {
+          maxSubAvg = avg;
+          topSubject = `${s.name} (${avg.toFixed(1)}%)`;
+        }
+      });
+      
+      const distinctStudents = new Set(allResults.map(r => r.student_id)).size;
+      
+      return {
+        schoolAvg,
+        completeness,
+        topClass,
+        topSubject,
+        studentCount: distinctStudents,
+        totalResults
+      };
+    }, [summarizedResults, classes, students, subjects]);
+
     const overallClassRanks = useMemo(() => {
       const classGroups: Record<string, Record<string, { total: number, name: string, subjectCount: number }>> = {};
       summarizedResults.forEach(sr => {
@@ -8807,7 +8876,6 @@ export const ExamModules = {
       return finalRanks;
     }, [summarizedResults]);
 
-    // Calculate Top Performers across academic calendars
     const topPerformersRecord = useMemo(() => {
       const yearTermMap: Record<string, any> = {};
 
@@ -8824,12 +8892,10 @@ export const ExamModules = {
 
         const cal = yearTermMap[key];
 
-        // Best in Class logic
         if (!cal.byClass[r.class_id] || r.totalScore > cal.byClass[r.class_id].totalScore) {
           cal.byClass[r.class_id] = r;
         }
 
-        // Best in Subject logic
         if (!cal.bySubject[r.subject_id] || r.totalScore > cal.bySubject[r.subject_id].totalScore) {
           cal.bySubject[r.subject_id] = r;
         }
@@ -8838,25 +8904,104 @@ export const ExamModules = {
       return yearTermMap;
     }, [summarizedResults]);
 
+    const topOverallStudents = useMemo(() => {
+      const studentTotals: Record<string, { student_name: string, total: number, count: number, class_name: string, academic_year: string, term: string }> = {};
+      summarizedResults.forEach(r => {
+        if (!studentTotals[r.student_id]) {
+          studentTotals[r.student_id] = {
+            student_name: r.student_name,
+            total: 0,
+            count: 0,
+            class_name: r.class_name,
+            academic_year: r.academic_year,
+            term: r.term
+          };
+        }
+        studentTotals[r.student_id].total += r.totalScore;
+        studentTotals[r.student_id].count++;
+      });
+      
+      const sorted = Object.values(studentTotals)
+        .map(s => ({
+          ...s,
+          average: parseFloat((s.total / s.count).toFixed(1))
+        }))
+        .sort((a, b) => b.average - a.average);
+        
+      return sorted.slice(0, 3);
+    }, [summarizedResults]);
+
+    const classAuditData = useMemo(() => {
+      if (!selectedClassRemarksId) return [];
+      const isAll = selectedClassRemarksId === 'all';
+      
+      const targetStudents = isAll 
+        ? students 
+        : students.filter((s: any) => String(s.class_id) === String(selectedClassRemarksId));
+        
+      return targetStudents.map((s: any) => {
+        const studentClassId = s.class_id;
+        const classSubjects = subjects.filter((sub: any) => String(sub.class_id) === String(studentClassId));
+        
+        const studentResults = summarizedResults.filter((r: any) => String(r.student_id) === String(s.id));
+        const uploadedSubjectIds = new Set(studentResults.map((r: any) => String(r.subject_id)));
+        
+        const missingSubjects = classSubjects.filter((sub: any) => !uploadedSubjectIds.has(String(sub.id)));
+        const completeness = classSubjects.length > 0 
+          ? ((studentResults.length / classSubjects.length) * 100)
+          : 100;
+          
+        return {
+          student: s,
+          classSubjects,
+          studentResults,
+          missingSubjects,
+          completeness: Math.min(100, completeness),
+          isReady: missingSubjects.length === 0 && classSubjects.length > 0
+        };
+      });
+    }, [selectedClassRemarksId, students, subjects, summarizedResults]);
+
+    const previewStudent = classAuditData?.[0]?.student || students?.[0] || { name: "Alex Johnson", contact: "+123 456 7890", class_id: "" };
+    const previewStudentClass = classes.find(c => String(c.id) === String(previewStudent.class_id))?.name || "JSS 1";
+    const previewLink = `${window.location.origin}/?view=Result&token=MOCK_TOKEN`;
+    const formattedPreviewMsg = smsTemplate
+      .replace(/{student_name}/g, previewStudent.name)
+      .replace(/{class_name}/g, previewStudentClass)
+      .replace(/{term}/g, selectedTerm || "1st Term")
+      .replace(/{link}/g, previewLink);
+      
+    const charCount = formattedPreviewMsg.length;
+    const estimatedSmsParts = Math.ceil(charCount / 160) || 1;
+
     const academicYears = useMemo(() => Array.from(new Set(fullSummarizedResults.map(r => r.academic_year))), [fullSummarizedResults]);
     const academicTerms = useMemo(() => Array.from(new Set(fullSummarizedResults.map(r => r.term))), [fullSummarizedResults]);
 
-    // Role-based view logic removed to allow full access to results and report cards for parents/students
-
     return (
       <div className="space-y-6">
-        <div className="flex flex-col gap-4 bg-white dark:bg-zinc-900 p-4 sm:p-6 rounded-[1.5rem] sm:rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800 shadow-sm">
+        <div className="flex flex-col gap-4 bg-white dark:bg-zinc-900 p-4 sm:p-6 rounded-[1.5rem] sm:rounded-[2.5rem] border border-zinc-200/50 dark:border-zinc-800 shadow-sm">
           <div className="flex items-center gap-3 sm:gap-4">
             <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-200 dark:shadow-none shrink-0">
               <ClipboardCheck className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
             <div className="min-w-0">
               <h2 className="text-lg sm:text-2xl font-black text-zinc-900 dark:text-white tracking-tight truncate">Academic Results</h2>
-              <p className="text-[10px] sm:text-xs font-bold text-zinc-500 uppercase tracking-widest truncate">{performanceGroupBy} summary — {(organization as any)?.academic_year || '2025/2026'}</p>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:gap-3 mt-1">
+                <p className="text-[10px] sm:text-xs font-bold text-zinc-500 uppercase tracking-widest truncate">{performanceGroupBy} summary — {(organization as any)?.academic_year || '2025/2026'}</p>
+                <div className="flex flex-wrap items-center gap-2 mt-2 sm:mt-0">
+                  <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 text-[10px] font-bold uppercase tracking-[0.25em]">
+                    <Calendar className="w-3.5 h-3.5" />
+                    {(organization as any)?.academic_year || '2025/2026'}
+                  </span>
+                  <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 text-[10px] font-bold uppercase tracking-[0.25em]">
+                    <Layers className="w-3.5 h-3.5" />
+                    {(organization as any)?.current_term || 'Term'}
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-            {/* Primary View Tabs */}
             <div className="flex items-center p-1.5 bg-zinc-100/80 dark:bg-zinc-800/80 backdrop-blur-xl rounded-[1.25rem] sm:rounded-[2rem] border border-zinc-200/50 dark:border-zinc-700/50 overflow-x-auto no-scrollbar scroll-smooth w-full lg:w-auto shadow-inner">
               <button
                 onClick={() => {
@@ -8867,8 +9012,8 @@ export const ExamModules = {
                 className={cn(
                   "flex items-center gap-2 px-5 sm:px-8 py-2.5 sm:py-3 rounded-[1rem] sm:rounded-[1.5rem] text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all duration-300 whitespace-nowrap",
                   (!showTopPerformers && !showClassRemarks && !showBroadcaster) 
-                    ? "bg-white dark:bg-zinc-700 shadow-[0_8px_20px_-4px_rgba(79,70,229,0.1)] dark:shadow-none text-indigo-600 scale-105" 
-                    : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300 hover:bg-white/50 dark:hover:bg-zinc-700/30"
+                    ? "bg-indigo-600 text-white shadow-[0_10px_30px_-10px_rgba(79,70,229,0.35)] scale-105" 
+                    : "bg-transparent text-zinc-500 hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-white hover:bg-indigo-50 dark:hover:bg-zinc-800"
                 )}
               >
                 <ClipboardCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
@@ -8885,7 +9030,7 @@ export const ExamModules = {
                   className={cn(
                     "flex items-center gap-2 px-5 sm:px-8 py-2.5 sm:py-3 rounded-[1rem] sm:rounded-[1.5rem] text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all duration-300 whitespace-nowrap",
                     showTopPerformers 
-                      ? "bg-white dark:bg-zinc-700 shadow-[0_8px_20px_-4px_rgba(79,70,229,0.1)] dark:shadow-none text-indigo-600 scale-105" 
+                      ? "bg-indigo-600 text-white shadow-[0_10px_30px_-10px_rgba(79,70,229,0.35)] scale-105" 
                       : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300 hover:bg-white/50 dark:hover:bg-zinc-700/30"
                   )}
                 >
@@ -8909,7 +9054,7 @@ export const ExamModules = {
                   className={cn(
                     "flex items-center gap-2 px-5 sm:px-8 py-2.5 sm:py-3 rounded-[1rem] sm:rounded-[1.5rem] text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all duration-300 whitespace-nowrap",
                     (showClassRemarks && !showTopPerformers && !showBroadcaster) 
-                      ? "bg-white dark:bg-zinc-700 shadow-[0_8px_20px_-4px_rgba(79,70,229,0.1)] dark:shadow-none text-indigo-600 scale-105" 
+                      ? "bg-indigo-600 text-white shadow-[0_10px_30px_-10px_rgba(79,70,229,0.35)] scale-105" 
                       : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300 hover:bg-white/50 dark:hover:bg-zinc-700/30"
                   )}
                 >
@@ -8928,7 +9073,7 @@ export const ExamModules = {
                   className={cn(
                     "flex items-center gap-2 px-5 sm:px-8 py-2.5 sm:py-3 rounded-[1rem] sm:rounded-[1.5rem] text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all duration-300 whitespace-nowrap",
                     showBroadcaster 
-                      ? "bg-white dark:bg-zinc-700 shadow-[0_8px_20px_-4px_rgba(79,70,229,0.1)] dark:shadow-none text-indigo-600 scale-105" 
+                      ? "bg-indigo-600 text-white shadow-[0_10px_30px_-10px_rgba(79,70,229,0.35)] scale-105" 
                       : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300 hover:bg-white/50 dark:hover:bg-zinc-700/30"
                   )}
                 >
@@ -8938,9 +9083,8 @@ export const ExamModules = {
               )}
             </div>
 
-            {/* Secondary Grouping Toggle */}
             {!showBroadcaster && !showTopPerformers && !showClassRemarks && (
-              <div className="flex items-center gap-2 p-1 bg-zinc-100 dark:bg-zinc-800 rounded-2xl border border-zinc-200/50 dark:border-zinc-700/50 w-full lg:w-auto self-end lg:self-center">
+              <div className="flex items-center gap-2 p-1 bg-zinc-100 dark:bg-zinc-800 rounded-2xl border border-zinc-200/50 dark:border-zinc-700/50 w-full lg:w-auto self-end lg:self-center shadow-inner">
                 <button
                   onClick={() => setPerformanceGroupBy('class')}
                   className={cn(
@@ -8967,212 +9111,316 @@ export const ExamModules = {
         {showBroadcaster ? (
           <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[1.5rem] sm:rounded-[2.5rem] p-4 sm:p-8 shadow-sm">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-6 mb-6 sm:mb-8">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-6 mb-6 sm:mb-8 border-b border-zinc-100 dark:border-zinc-800 pb-6">
                 <div className="space-y-1">
                   <h3 className="text-lg sm:text-2xl font-black text-zinc-900 dark:text-white tracking-tight uppercase">Result Broadcaster</h3>
-                  <p className="text-[10px] sm:text-xs font-bold text-zinc-500 uppercase tracking-widest">Audit completeness and notify parents via SMS.</p>
+                  <p className="text-[10px] sm:text-xs font-bold text-zinc-500 uppercase tracking-widest">Audit completeness and notify parents via customized SMS templates.</p>
                 </div>
                 <div className="flex items-center gap-4">
-                  <div className="p-3 sm:p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl sm:rounded-2xl border border-indigo-100 dark:border-indigo-800/50">
-                    <p className="text-[10px] font-black text-indigo-600 uppercase tracking-widest mb-1">SMS Balance</p>
+                  <div className="p-3 sm:p-4 bg-indigo-50 dark:bg-indigo-950/40 rounded-xl sm:rounded-2xl border border-indigo-100/50 dark:border-indigo-800/30">
+                    <p className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest mb-1">SMS Balance</p>
                     <p className="text-lg sm:text-xl font-black text-zinc-900 dark:text-white">{organization?.sms_balance || 0} Units</p>
                   </div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
-                <div className="space-y-6">
-                  <div className="space-y-2">
-                    <select
-                      value={selectedClassRemarksId}
-                      onChange={(e) => setSelectedClassRemarksId(e.target.value)}
-                      className="w-full px-4 sm:px-6 py-3 sm:py-4 bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700 rounded-xl sm:rounded-[1.5rem] font-bold outline-none focus:ring-2 focus:ring-indigo-500 transition-all text-sm"
-                    >
-                      <option value="">-- Select Class to Audit --</option>
-                      <option value="all">ALL CLASSES (School-wide)</option>
-                      {classes.map((c: any) => (
-                        <option key={c.id} value={c.id}>{c.name} {c.section || ''}</option>
-                      ))}
-                    </select>
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="lg:col-span-2 space-y-6">
+                  <div className="p-6 bg-zinc-50/50 dark:bg-zinc-800/30 rounded-3xl border border-zinc-200/50 dark:border-zinc-800/50 space-y-4">
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Target Class</label>
+                      <select
+                        value={selectedClassRemarksId}
+                        onChange={(e) => setSelectedClassRemarksId(e.target.value)}
+                        className="w-full px-5 py-3.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl font-bold outline-none focus:ring-2 focus:ring-indigo-500 transition-all text-sm shadow-sm"
+                      >
+                        <option value="">-- Select Class to Audit --</option>
+                        <option value="all">ALL CLASSES (School-wide)</option>
+                        {classes.map((c: any) => (
+                          <option key={c.id} value={c.id}>{c.name} {c.section || ''}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {selectedClassRemarksId && (() => {
+                      const isAll = selectedClassRemarksId === 'all';
+                      const classStudents = isAll ? students : students.filter((s: any) => String(s.class_id) === String(selectedClassRemarksId));
+                      const classSubjects = isAll ? subjects : subjects.filter((sub: any) => String(sub.class_id) === String(selectedClassRemarksId));
+                      
+                      let totalExpected = 0;
+                      if (isAll) {
+                        classes.forEach((c: any) => {
+                          const sCount = students.filter((s: any) => String(s.class_id) === String(c.id)).length;
+                          const subCount = subjects.filter((sub: any) => String(sub.class_id) === String(c.id)).length;
+                          totalExpected += sCount * subCount;
+                        });
+                      } else {
+                        totalExpected = classStudents.length * classSubjects.length;
+                      }
+
+                      const classResults = isAll ? summarizedResults : summarizedResults.filter((r: any) => String(r.class_id) === String(selectedClassRemarksId));
+                      const completeness = totalExpected > 0 ? (classResults.length / totalExpected) * 100 : 0;
+                      
+                      return (
+                        <div className="space-y-4">
+                          <div className="flex items-center justify-between">
+                            <h4 className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Class Readiness</h4>
+                            <span className={cn(
+                              "px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest",
+                              completeness === 100 ? "bg-emerald-50 text-emerald-600" : "bg-indigo-50 text-indigo-600"
+                            )}>
+                              {completeness.toFixed(1)}% Ready
+                            </span>
+                          </div>
+                          
+                          <div className="h-3 w-full bg-zinc-200 dark:bg-zinc-800 rounded-full overflow-hidden shadow-inner">
+                            <div 
+                              className={cn(
+                                "h-full transition-all duration-1000",
+                                completeness === 100 ? "bg-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.4)]" : "bg-indigo-500"
+                              )}
+                              style={{ width: `${completeness}%` }}
+                            />
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="p-4 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200/50 dark:border-zinc-800 shadow-sm">
+                              <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest mb-1">Uploaded Grades</p>
+                              <p className="text-xl font-black text-zinc-900 dark:text-white">{classResults.length}</p>
+                            </div>
+                            <div className="p-4 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200/50 dark:border-zinc-800 shadow-sm">
+                              <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest mb-1">Expected Grades</p>
+                              <p className="text-xl font-black text-zinc-900 dark:text-white">{totalExpected}</p>
+                            </div>
+                          </div>
+
+                          {completeness < 100 && (
+                            <div className="p-4 bg-amber-50/50 dark:bg-amber-950/20 border border-amber-100 dark:border-amber-900/30 rounded-2xl flex gap-3">
+                              <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-500 shrink-0" />
+                              <p className="text-[11px] font-medium text-amber-800 dark:text-amber-300 leading-relaxed">
+                                Some results are still missing. We highly recommend broadcasting only when 100% of results are uploaded to avoid parental confusion.
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()}
                   </div>
 
-                  {selectedClassRemarksId && (() => {
-                    const isAll = selectedClassRemarksId === 'all';
-                    const classStudents = isAll ? students : students.filter((s: any) => String(s.class_id) === String(selectedClassRemarksId));
-                    const classSubjects = isAll ? subjects : subjects.filter((sub: any) => String(sub.class_id) === String(selectedClassRemarksId));
-                    
-                    // Total Expected: For each class, students in that class * subjects for that class
-                    let totalExpected = 0;
-                    if (isAll) {
-                      classes.forEach((c: any) => {
-                        const sCount = students.filter((s: any) => String(s.class_id) === String(c.id)).length;
-                        const subCount = subjects.filter((sub: any) => String(sub.class_id) === String(c.id)).length;
-                        totalExpected += sCount * subCount;
-                      });
-                    } else {
-                      totalExpected = classStudents.length * classSubjects.length;
-                    }
-
-                    const classResults = isAll ? summarizedResults : summarizedResults.filter((r: any) => String(r.class_id) === String(selectedClassRemarksId));
-                    const completeness = totalExpected > 0 ? (classResults.length / totalExpected) * 100 : 0;
-                    
-                    return (
-                      <div className="p-4 sm:p-8 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl sm:rounded-[2rem] border border-zinc-100 dark:border-zinc-800 space-y-4 sm:space-y-6">
-                        <div className="flex items-center justify-between gap-2">
-                          <h4 className="text-xs sm:text-sm font-black text-zinc-900 dark:text-white uppercase tracking-widest">Class Readiness</h4>
-                          <span className={cn(
-                            "px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest",
-                            completeness === 100 ? "bg-emerald-100 text-emerald-600" : "bg-amber-100 text-amber-600"
-                          )}>
-                            {completeness.toFixed(1)}% Ready
-                          </span>
-                        </div>
-                        
-                        <div className="h-3 w-full bg-zinc-200 dark:bg-zinc-700 rounded-full overflow-hidden">
-                          <div 
-                            className={cn(
-                              "h-full transition-all duration-1000",
-                              completeness === 100 ? "bg-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.4)]" : "bg-indigo-500"
-                            )}
-                            style={{ width: `${completeness}%` }}
-                          />
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                          <div className="p-3 sm:p-4 bg-white dark:bg-zinc-900 rounded-xl sm:rounded-2xl border border-zinc-100 dark:border-zinc-800">
-                            <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">Uploaded</p>
-                            <p className="text-lg font-black text-zinc-900 dark:text-white">{classResults.length}</p>
-                          </div>
-                          <div className="p-3 sm:p-4 bg-white dark:bg-zinc-900 rounded-xl sm:rounded-2xl border border-zinc-100 dark:border-zinc-800">
-                            <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">Expected</p>
-                            <p className="text-lg font-black text-zinc-900 dark:text-white">{totalExpected}</p>
-                          </div>
-                        </div>
-
-                        {completeness < 100 && (
-                          <div className="p-4 bg-amber-50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-800/30 rounded-2xl flex gap-3">
-                            <AlertCircle className="w-5 h-5 text-amber-600 shrink-0" />
-                            <p className="text-[11px] font-medium text-amber-800 dark:text-amber-200 leading-relaxed">
-                              Some results are still missing. We recommend broadcasting only when 100% of results are uploaded to avoid parental confusion.
-                            </p>
-                          </div>
-                        )}
+                  <div className="p-6 bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-xs font-black text-zinc-900 dark:text-white tracking-tight uppercase">Custom Message Template</h4>
+                      <div className="flex items-center gap-2">
+                        <Sparkles className="w-4 h-4 text-indigo-600 animate-pulse" />
+                        <span className="text-[9px] font-black text-indigo-600 bg-indigo-50 dark:bg-indigo-950/40 px-2 py-0.5 rounded-full uppercase tracking-wider">Dynamic Fields</span>
                       </div>
-                    );
-                  })()}
+                    </div>
+
+                    <textarea
+                      value={smsTemplate}
+                      onChange={(e) => setSmsTemplate(e.target.value)}
+                      placeholder="Write your broadcast template here..."
+                      className="w-full p-4 min-h-[120px] bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-2xl text-xs sm:text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-500 transition-all font-mono leading-relaxed"
+                    />
+
+                    <div className="flex flex-wrap gap-2 pt-2">
+                      {[
+                        { label: "Student Name", value: "{student_name}" },
+                        { label: "Class", value: "{class_name}" },
+                        { label: "Term", value: "{term}" },
+                        { label: "Results Link", value: "{link}" }
+                      ].map((btn) => (
+                        <button
+                          key={btn.value}
+                          type="button"
+                          onClick={() => setSmsTemplate(prev => prev + btn.value)}
+                          className="px-3 py-1.5 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 hover:border-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
+                        >
+                          + {btn.label}
+                        </button>
+                      ))}
+                    </div>
+
+                    <button
+                      disabled={!selectedClassRemarksId || isBroadcasting}
+                      onClick={async () => {
+                        const isAll = selectedClassRemarksId === 'all';
+                        const targetStudents = isAll ? students : students.filter((s: any) => String(s.class_id) === String(selectedClassRemarksId));
+                        const studentsWithContact = targetStudents.filter((s: any) => s.contact);
+                        
+                        if (studentsWithContact.length === 0) {
+                          (window as any).showToast?.("No students with parent contacts found for selection.", "error");
+                          return;
+                        }
+
+                        if ((organization?.sms_balance || 0) < studentsWithContact.length) {
+                          (window as any).showToast?.(`Insufficient SMS credits (${organization?.sms_balance || 0}) to broadcast to ${studentsWithContact.length} students.`, "error");
+                          return;
+                        }
+
+                        if (!window.confirm(`Broadcast SMS to ${studentsWithContact.length} parents across ${isAll ? 'all classes' : 'the selected class'}?`)) return;
+
+                        setIsBroadcasting(true);
+                        setBroadcastProgress(0);
+                        
+                        try {
+                          const messages = targetStudents
+                            .filter((s: any) => s.contact)
+                            .map((s: any) => {
+                              const token = btoa(`${s.id}|${selectedTerm}|${selectedAcademicYear}|${currentUser?.org_id || (organization as any)?.id}`);
+                              const link = `${window.location.origin}/?view=Result&token=${token}`;
+                              
+                              const customText = smsTemplate
+                                .replace(/{student_name}/g, s.name)
+                                .replace(/{class_name}/g, classes.find(c => String(c.id) === String(s.class_id))?.name || "")
+                                .replace(/{term}/g, selectedTerm)
+                                .replace(/{link}/g, link);
+
+                              return {
+                                recipient: s.contact as string,
+                                message: customText
+                              };
+                            });
+
+                          const uniqueRecipientsCount = new Set(messages.map(m => m.recipient)).size;
+
+                          const chunkSize = 100;
+                          for (let i = 0; i < messages.length; i += chunkSize) {
+                            const chunk = messages.slice(i, i + chunkSize);
+                            await sendBulkSMS({ messages: chunk });
+                            setBroadcastProgress(Math.round(((i + chunk.length) / messages.length) * 100));
+                          }
+
+                          (window as any).showToast?.(`Broadcast sent successfully to ${uniqueRecipientsCount} parents!`, "success");
+                        } catch (err: any) {
+                          (window as any).showToast?.(err?.message || "Broadcast failed", "error");
+                        } finally {
+                          setTimeout(() => {
+                            setIsBroadcasting(false);
+                            setBroadcastProgress(0);
+                          }, 2000);
+                        }
+                      }}
+                      className={cn(
+                        "w-full py-4 rounded-2xl text-[10px] sm:text-xs font-black uppercase tracking-[0.2em] shadow-lg transition-all flex items-center justify-center gap-2.5 mt-4",
+                        (!selectedClassRemarksId || isBroadcasting) 
+                          ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500 cursor-not-allowed" 
+                          : "bg-indigo-600 text-white hover:bg-indigo-700 hover:-translate-y-0.5 active:translate-y-0 shadow-indigo-100 dark:shadow-none"
+                      )}
+                    >
+                      {isBroadcasting ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          Broadcasting {broadcastProgress}%
+                        </>
+                      ) : (
+                        <>
+                          <Send className="w-4 h-4" />
+                          Launch Custom Broadcast
+                        </>
+                      )}
+                    </button>
+                  </div>
                 </div>
 
                 <div className="space-y-6">
-                  <div className="p-4 sm:p-8 bg-indigo-600 rounded-xl sm:rounded-[2.5rem] text-white space-y-4 sm:space-y-6 shadow-xl shadow-indigo-200 dark:shadow-none relative overflow-hidden">
-                    <div className="relative z-10 space-y-4">
-                      <div className="flex items-center gap-3">
-                        <BellRing className="w-6 h-6" />
-                        <h4 className="text-lg font-black uppercase tracking-tight">Broadcast Message</h4>
+                  <div className="flex flex-col items-center justify-center p-6 bg-zinc-50/50 dark:bg-zinc-800/30 border border-zinc-200/50 dark:border-zinc-800/50 rounded-[2rem] relative overflow-hidden shadow-inner min-h-[480px]">
+                    <div className="w-[250px] h-[400px] bg-zinc-950 rounded-[2rem] border-[6px] border-zinc-800 dark:border-zinc-700 shadow-2xl relative overflow-hidden flex flex-col">
+                      <div className="absolute top-0 inset-x-0 h-5 bg-zinc-800 dark:bg-zinc-700 flex items-center justify-center z-20">
+                        <div className="w-10 h-2.5 bg-black rounded-full" />
                       </div>
                       
-                      <div className="bg-white/10 backdrop-blur-md rounded-xl sm:rounded-2xl p-3 sm:p-4 border border-white/20">
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-indigo-100 mb-2">Sample Template</p>
-                        <p className="text-sm font-medium leading-relaxed italic">
-                          "Dear Parent, your ward's results for {selectedTerm} are ready. View here: {window.location.origin}/?view=Result&token=..."
-                        </p>
+                      <div className="bg-zinc-900 border-b border-zinc-800 pt-7 pb-2.5 px-3 flex items-center gap-2">
+                        <div className="w-6 h-6 rounded-full bg-zinc-800 flex items-center justify-center text-[8px] font-black text-zinc-300">
+                          P
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-[9px] font-black text-zinc-100 leading-none truncate">{previewStudent.name}'s Parent</p>
+                          <p className="text-[7px] text-zinc-500 font-bold tracking-wider mt-0.5 uppercase truncate">{previewStudent.contact || "No number"}</p>
+                        </div>
                       </div>
-
-                        <button
-                        disabled={!selectedClassRemarksId || isBroadcasting}
-                        onClick={async () => {
-                          const isAll = selectedClassRemarksId === 'all';
-                          const targetStudents = isAll ? students : students.filter((s: any) => String(s.class_id) === String(selectedClassRemarksId));
-                          const studentsWithContact = targetStudents.filter((s: any) => s.contact);
-                          
-                          if (studentsWithContact.length === 0) {
-                            (window as any).showToast?.("No students with parent contacts found for selection.", "error");
-                            return;
-                          }
-
-                          if ((organization?.sms_balance || 0) < studentsWithContact.length) {
-                            (window as any).showToast?.(`Insufficient SMS credits (${organization?.sms_balance || 0}) to broadcast to ${studentsWithContact.length} students.`, "error");
-                            return;
-                          }
-
-                          if (!window.confirm(`Broadcast SMS to ${studentsWithContact.length} parents across ${isAll ? 'all classes' : 'the selected class'}?`)) return;
-
-                          setIsBroadcasting(true);
-                          setBroadcastProgress(0);
-                          
-                          try {
-                            const messages = targetStudents
-                              .filter((s: any) => s.contact)
-                              .map((s: any) => {
-                                const token = btoa(`${s.id}|${selectedTerm}|${selectedAcademicYear}|${currentUser?.org_id || (organization as any)?.id}`);
-                                const link = `${window.location.origin}/?view=Result&token=${token}`;
-                                return {
-                                  recipient: s.contact as string,
-                                  message: `Dear Parent, your ward ${s.name}'s results for ${selectedTerm} are ready. View here: ${link}`
-                                };
-                              });
-
-                            const uniqueRecipientsCount = new Set(messages.map(m => m.recipient)).size;
-
-                            // Split into chunks if there are many contacts to avoid payload limits
-                            const chunkSize = 100;
-                            for (let i = 0; i < messages.length; i += chunkSize) {
-                              const chunk = messages.slice(i, i + chunkSize);
-                              await sendBulkSMS({ messages: chunk });
-                              setBroadcastProgress(Math.round(((i + chunk.length) / messages.length) * 100));
-                            }
-
-                            (window as any).showToast?.(`Broadcast sent successfully to ${uniqueRecipientsCount} parents!`, "success");
-                          } catch (err: any) {
-                            (window as any).showToast?.(err?.message || "Broadcast failed", "error");
-                          } finally {
-                            setTimeout(() => {
-                              setIsBroadcasting(false);
-                              setBroadcastProgress(0);
-                            }, 2000);
-                          }
-                        }}
-                        className={cn(
-                          "w-full py-3 sm:py-4 rounded-xl sm:rounded-2xl text-[10px] sm:text-xs font-black uppercase tracking-[0.15em] sm:tracking-[0.2em] shadow-lg transition-all flex items-center justify-center gap-2 sm:gap-3",
-                          (!selectedClassRemarksId || isBroadcasting) 
-                            ? "bg-white/20 text-white/50 cursor-not-allowed" 
-                            : "bg-white text-indigo-600 hover:bg-indigo-50 hover:-translate-y-1 active:translate-y-0"
-                        )}
-                      >
-                        {isBroadcasting ? (
-                          <>
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                            Broadcasting {broadcastProgress}%
-                          </>
-                        ) : (
-                          <>
-                            <Send className="w-4 h-4" />
-                            Launch Broadcast
-                          </>
-                        )}
-                      </button>
+                      
+                      <div className="flex-1 bg-zinc-900 p-2.5 space-y-4 overflow-y-auto flex flex-col justify-end">
+                        <p className="text-[7px] text-zinc-600 font-bold text-center uppercase tracking-widest leading-none my-1">
+                          Today, {new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                        </p>
+                        
+                        <div className="max-w-[90%] self-start bg-indigo-600 text-white p-3 rounded-2xl rounded-tl-none shadow-md text-[9px] font-medium leading-relaxed relative border border-indigo-500/10">
+                          {formattedPreviewMsg}
+                          <div className="text-[6px] text-indigo-200 text-right mt-1.5 font-bold tracking-wider uppercase">Delivered • SMS</div>
+                        </div>
+                      </div>
+                      
+                      <div className="bg-zinc-900 border-t border-zinc-800 p-2 flex items-center gap-2">
+                        <div className="flex-1 bg-zinc-800 rounded-full h-5 px-3 flex items-center text-[7px] text-zinc-500 font-bold">iMessage / SMS...</div>
+                        <div className="w-4 h-4 rounded-full bg-indigo-600 flex items-center justify-center text-white"><Send className="w-2 h-2" /></div>
+                      </div>
                     </div>
-                    <div className="absolute -right-10 -bottom-10 opacity-10">
-                      <Send className="w-48 h-48 rotate-12" />
+
+                    <div className="mt-4 flex items-center gap-3 w-full justify-center">
+                      <div className="px-2.5 py-1.5 bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200/50 dark:border-zinc-800 shadow-sm text-center flex-1">
+                        <p className="text-[7px] font-black text-zinc-400 uppercase tracking-widest">Char Count</p>
+                        <p className="text-xs font-black text-zinc-800 dark:text-zinc-200 mt-0.5">{charCount}</p>
+                      </div>
+                      <div className="px-2.5 py-1.5 bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200/50 dark:border-zinc-800 shadow-sm text-center flex-1">
+                        <p className="text-[7px] font-black text-zinc-400 uppercase tracking-widest">SMS Parts</p>
+                        <p className="text-xs font-black text-indigo-600 dark:text-indigo-400 mt-0.5">{estimatedSmsParts}</p>
+                      </div>
                     </div>
                   </div>
-
-                  {selectedClassRemarksId && (
-                    <div className="bg-zinc-50 dark:bg-zinc-800/30 rounded-xl sm:rounded-[2rem] border border-zinc-100 dark:border-zinc-800 p-4 sm:p-6">
-                      <h5 className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-4">
-                        Target Recipients ({selectedClassRemarksId === 'all' ? students.length : students.filter((s: any) => String(s.class_id) === String(selectedClassRemarksId)).length})
-                      </h5>
-                      <div className="max-h-[150px] overflow-y-auto space-y-2 pr-2">
-                        {(selectedClassRemarksId === 'all' ? students : students.filter((s: any) => String(s.class_id) === String(selectedClassRemarksId))).map((s: any) => (
-                          <div key={s.id} className="flex items-center justify-between p-3 bg-white dark:bg-zinc-900 rounded-xl border border-zinc-100 dark:border-zinc-800">
-                            <span className="text-[11px] font-bold text-zinc-600">{s.name}</span>
-                            <span className="text-[10px] font-mono text-zinc-400">{s.contact || 'No Contact'}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
                 </div>
               </div>
+
+              {selectedClassRemarksId && (
+                <div className="bg-zinc-50/50 dark:bg-zinc-800/30 rounded-3xl border border-zinc-200/50 dark:border-zinc-800/50 p-6 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h5 className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
+                      Student Completeness Audit ({classAuditData.length} records)
+                    </h5>
+                    <div className="flex items-center gap-4 text-[9px] font-bold text-zinc-500 uppercase">
+                      <span className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-full bg-emerald-500" /> Complete</span>
+                      <span className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-full bg-red-500" /> Incomplete</span>
+                    </div>
+                  </div>
+                  <div className="max-h-[300px] overflow-y-auto space-y-2.5 pr-2 no-scrollbar">
+                    {classAuditData.map(({ student, missingSubjects, completeness, isReady }) => (
+                      <div key={student.id} className="flex items-center justify-between p-3.5 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200/50 dark:border-zinc-800/50 shadow-sm hover:border-indigo-200 dark:hover:border-indigo-900/40 transition-colors group">
+                        <div className="min-w-0 flex items-center gap-3">
+                          <div className={cn(
+                            "w-2.5 h-2.5 rounded-full shrink-0 animate-pulse",
+                            isReady ? "bg-emerald-500" : "bg-red-500"
+                          )} />
+                          <div className="min-w-0">
+                            <span className="text-xs font-black text-zinc-800 dark:text-zinc-200 truncate block uppercase tracking-tight">{student.name}</span>
+                            <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
+                              <span className="text-[8px] font-mono text-zinc-400 font-bold">{student.contact || 'No Contact Number'}</span>
+                              {isReady ? (
+                                <span className="text-[8px] font-black text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30 px-2 py-0.5 rounded-lg uppercase tracking-wider">All Grades Ready</span>
+                              ) : (
+                                <span className="text-[8px] font-black text-red-600 bg-red-50 dark:bg-red-950/30 px-2 py-0.5 rounded-lg uppercase tracking-wider">
+                                  Missing: {missingSubjects.map((sub: any) => sub.name || sub.title).join(', ')}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-right flex items-center gap-3 shrink-0">
+                          <div className="hidden sm:block">
+                            <p className="text-[8px] font-black text-zinc-400 uppercase tracking-widest leading-none mb-1">Completeness</p>
+                            <p className="text-xs font-black text-zinc-850 dark:text-zinc-150">{completeness.toFixed(0)}%</p>
+                          </div>
+                          <span className={cn(
+                            "p-1.5 rounded-full",
+                            isReady ? "bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400" : "bg-red-50 dark:bg-red-950/20 text-red-600 dark:text-red-400"
+                          )}>
+                            {isReady ? <Check className="w-3.5 h-3.5" /> : <AlertCircle className="w-3.5 h-3.5" />}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         ) : showTopPerformers ? (
@@ -9188,7 +9436,7 @@ export const ExamModules = {
                   <select
                     value={selectedAcademicYear}
                     onChange={(e) => setSelectedAcademicYear(e.target.value)}
-                    className="bg-transparent text-sm font-bold outline-none border-none focus:ring-0"
+                    className="bg-transparent text-sm font-bold outline-none border-none focus:ring-0 text-zinc-900 dark:text-white"
                   >
                     <option value="" className="text-zinc-900">All Years</option>
                     {academicYears.map(year => <option key={year} value={year} className="text-zinc-900">{year}</option>)}
@@ -9199,7 +9447,7 @@ export const ExamModules = {
                   <select
                     value={selectedTerm}
                     onChange={(e) => setSelectedTerm(e.target.value)}
-                    className="bg-transparent text-sm font-bold outline-none border-none focus:ring-0"
+                    className="bg-transparent text-sm font-bold outline-none border-none focus:ring-0 text-zinc-900 dark:text-white"
                   >
                     <option value="" className="text-zinc-900">All Terms</option>
                     {academicTerms.map(term => <option key={term} value={term} className="text-zinc-900">{term}</option>)}
@@ -9224,6 +9472,65 @@ export const ExamModules = {
                 <Trophy className="w-64 h-64 rotate-12" />
               </div>
             </div>
+
+            {topOverallStudents.length > 0 && (
+              <div className="space-y-4">
+                <h4 className="text-[10px] font-black text-zinc-400 uppercase tracking-widest text-center">Top Performing Students Overall</h4>
+                <div className="flex flex-col lg:flex-row items-end justify-center gap-6 py-12 px-6 bg-gradient-to-tr from-zinc-50 to-indigo-50/20 dark:from-zinc-950 dark:to-indigo-950/10 rounded-[2.5rem] border border-zinc-200/50 dark:border-zinc-850/50 shadow-inner max-w-5xl mx-auto overflow-hidden relative">
+                  <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-indigo-500/5 via-transparent to-transparent pointer-events-none" />
+                  
+                  {topOverallStudents[1] && (
+                    <div className="w-full lg:w-64 flex flex-col items-center group order-2 lg:order-1 mt-6 lg:mt-0">
+                      <div className="relative mb-4 flex flex-col items-center">
+                        <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-zinc-800 border-4 border-slate-300 shadow-md flex items-center justify-center font-black text-slate-700 dark:text-slate-350 text-xl relative group-hover:scale-105 transition-transform">
+                          {topOverallStudents[1].student_name.charAt(0)}
+                          <span className="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-slate-300 border-2 border-white dark:border-zinc-900 flex items-center justify-center text-xs font-black text-slate-800 shadow">2</span>
+                        </div>
+                      </div>
+                      <div className="w-full h-32 bg-gradient-to-b from-slate-100 to-slate-200/50 dark:from-zinc-800 dark:to-zinc-900/50 border border-slate-300/50 dark:border-zinc-700/50 rounded-t-[1.5rem] shadow-lg flex flex-col items-center justify-center p-4 text-center">
+                        <h4 className="text-xs font-black text-zinc-800 dark:text-zinc-200 truncate max-w-[150px] uppercase tracking-tight">{topOverallStudents[1].student_name}</h4>
+                        <p className="text-[8px] text-zinc-550 dark:text-zinc-400 font-black uppercase tracking-wider mt-1">{topOverallStudents[1].class_name}</p>
+                        <span className="text-lg font-black text-slate-600 dark:text-slate-350 mt-2">{topOverallStudents[1].average}%</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {topOverallStudents[0] && (
+                    <div className="w-full lg:w-72 flex flex-col items-center group order-1 lg:order-2 z-10">
+                      <div className="relative mb-4 flex flex-col items-center animate-bounce duration-[2000ms]">
+                        <Trophy className="w-7 h-7 text-amber-500 filter drop-shadow-[0_0_10px_rgba(245,158,11,0.5)] mb-1" />
+                        <div className="w-20 h-20 rounded-full bg-amber-50 dark:bg-amber-950/20 border-4 border-amber-400 shadow-lg flex items-center justify-center font-black text-amber-600 dark:text-amber-400 text-2xl relative group-hover:scale-105 transition-transform">
+                          {topOverallStudents[0].student_name.charAt(0)}
+                          <span className="absolute -top-3 -right-3 w-9 h-9 rounded-full bg-amber-400 border-2 border-white dark:border-zinc-900 flex items-center justify-center text-sm font-black text-amber-950 shadow animate-pulse">1</span>
+                        </div>
+                      </div>
+                      <div className="w-full h-40 bg-gradient-to-b from-amber-100 to-amber-200/30 dark:from-amber-950/20 dark:to-amber-900/10 border border-amber-400/50 dark:border-amber-800/40 rounded-t-[2rem] shadow-xl flex flex-col items-center justify-center p-4 text-center relative">
+                        <div className="absolute inset-x-0 -top-2 h-2 bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 rounded-t-full shadow-inner" />
+                        <h4 className="text-sm font-black text-amber-900 dark:text-amber-200 truncate max-w-[180px] uppercase tracking-tight">{topOverallStudents[0].student_name}</h4>
+                        <p className="text-[9px] text-amber-800 dark:text-amber-400/80 font-black uppercase tracking-wider mt-1">{topOverallStudents[0].class_name}</p>
+                        <span className="text-2xl font-black text-amber-600 dark:text-amber-300 mt-2 tracking-tighter">{topOverallStudents[0].average}%</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {topOverallStudents[2] && (
+                    <div className="w-full lg:w-60 flex flex-col items-center group order-3 lg:order-3 mt-6 lg:mt-0">
+                      <div className="relative mb-4 flex flex-col items-center">
+                        <div className="w-14 h-14 rounded-full bg-amber-50/50 dark:bg-zinc-800 border-4 border-amber-600/70 shadow-md flex items-center justify-center font-black text-amber-800 dark:text-amber-500 text-lg relative group-hover:scale-105 transition-transform">
+                          {topOverallStudents[2].student_name.charAt(0)}
+                          <span className="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-amber-600/80 border-2 border-white dark:border-zinc-900 flex items-center justify-center text-xs font-black text-white shadow">3</span>
+                        </div>
+                      </div>
+                      <div className="w-full h-24 bg-gradient-to-b from-amber-650/20 to-amber-700/5 dark:from-zinc-800 dark:to-zinc-900/50 border border-amber-600/30 dark:border-zinc-700/50 rounded-t-[1.25rem] shadow-md flex flex-col items-center justify-center p-3 text-center">
+                        <h4 className="text-xs font-black text-zinc-800 dark:text-zinc-200 truncate max-w-[140px] uppercase tracking-tight">{topOverallStudents[2].student_name}</h4>
+                        <p className="text-[8px] text-zinc-550 dark:text-zinc-400 font-black uppercase tracking-wider mt-0.5">{topOverallStudents[2].class_name}</p>
+                        <span className="text-base font-black text-amber-700 dark:text-amber-550 mt-1">{topOverallStudents[2].average}%</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-8">
               {(() => {
@@ -9265,7 +9572,7 @@ export const ExamModules = {
                           <Trophy className="w-8 h-8" />
                         </div>
                         <div className="text-right">
-                          <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest leading-none mb-1">Rank 1</p>
+                          <p className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest leading-none mb-1">Champion</p>
                           <h4 className="text-3xl font-black text-zinc-900 dark:text-white tracking-tighter">{winner.totalScore}%</h4>
                         </div>
                       </div>
@@ -9283,11 +9590,11 @@ export const ExamModules = {
                       </div>
                     </div>
 
-                    <div className="relative pt-6 mt-6 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-between">
-                      <div className="flex flex-col">
+                    <div className="flex items-center justify-between pt-6 border-t border-zinc-100 dark:border-zinc-800 relative z-10">
+                      <div>
                         <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">Grade Achieved</span>
                         <span className={cn(
-                          "text-lg font-black",
+                          "text-lg font-black block leading-none mt-1",
                           winner.grade === 'A' ? "text-emerald-600" :
                             winner.grade === 'B' ? "text-blue-600" : "text-amber-600"
                         )}>{winner.grade}</span>
@@ -9295,7 +9602,7 @@ export const ExamModules = {
                       <div className="flex -space-x-2">
                         {[1, 2, 3].map(j => (
                           <div key={j} className="w-8 h-8 rounded-full border-2 border-white dark:border-zinc-900 bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center">
-                            <Award className={cn("w-4 h-4", j === 1 ? "text-amber-400" : j === 2 ? "text-zinc-400" : "text-amber-700")} />
+                            <Award className={cn("w-4 h-4", j === 1 ? "text-amber-400" : j === 2 ? "text-slate-400" : "text-amber-700")} />
                           </div>
                         ))}
                       </div>
@@ -9449,11 +9756,65 @@ export const ExamModules = {
             )}
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             {!selectedPerformanceGroup ? (
               <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                  <div className="p-6 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[2rem] shadow-sm relative overflow-hidden group hover:shadow-md transition-shadow">
+                    <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-50/50 dark:bg-indigo-950/20 rounded-bl-[4rem] flex items-center justify-center">
+                      <TrendingUp className="w-6 h-6 text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform" />
+                    </div>
+                    <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest leading-none mb-2">School Average</p>
+                    <h3 className="text-3xl font-black text-zinc-900 dark:text-white mt-1">{overallStats.schoolAvg}%</h3>
+                    <p className="text-[9px] text-zinc-550 dark:text-zinc-400 font-bold uppercase mt-2">Overall grades standard</p>
+                  </div>
+
+                  <div className="p-6 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[2rem] shadow-sm relative overflow-hidden group hover:shadow-md transition-shadow">
+                    <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-50/50 dark:bg-emerald-950/20 rounded-bl-[4rem] flex items-center justify-center">
+                      <CheckCircle2 className="w-6 h-6 text-emerald-600 dark:text-emerald-400 group-hover:scale-110 transition-transform" />
+                    </div>
+                    <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest leading-none mb-2">Grade Completeness</p>
+                    <h3 className="text-3xl font-black text-zinc-900 dark:text-white mt-1">{overallStats.completeness}%</h3>
+                    <p className="text-[9px] text-zinc-550 dark:text-zinc-400 font-bold uppercase mt-2">{overallStats.totalResults} / {overallStats.studentCount * subjects.length} recorded</p>
+                  </div>
+
+                  <div className="p-6 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[2rem] shadow-sm relative overflow-hidden group hover:shadow-md transition-shadow col-span-1 lg:col-span-2">
+                    <div className="absolute top-0 right-0 w-20 h-20 bg-amber-50/50 dark:bg-amber-950/20 rounded-bl-[3rem] flex items-center justify-center">
+                      <Trophy className="w-5 h-5 text-amber-500 group-hover:scale-110 transition-transform" />
+                    </div>
+                    <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest leading-none mb-2">Leading Standard</p>
+                    <div className="grid grid-cols-2 gap-4 mt-2">
+                      <div>
+                        <span className="text-[8px] text-zinc-400 font-bold uppercase">Top Class</span>
+                        <p className="text-xs font-black text-zinc-850 dark:text-zinc-200 truncate uppercase mt-0.5">{overallStats.topClass}</p>
+                      </div>
+                      <div>
+                        <span className="text-[8px] text-zinc-400 font-bold uppercase">Top Subject</span>
+                        <p className="text-xs font-black text-zinc-850 dark:text-zinc-200 truncate uppercase mt-0.5">{overallStats.topSubject}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-t border-zinc-100 dark:border-zinc-800 pt-6">
+                  <div>
+                    <h4 className="text-xs font-black text-zinc-900 dark:text-white uppercase tracking-wider">{performanceGroupBy === 'class' ? "Class Overview" : "Subject Overview"}</h4>
+                    <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest mt-0.5">Quickly select or manage performance</p>
+                  </div>
+                  <div className="relative w-full sm:w-64 max-w-sm">
+                    <input
+                      type="text"
+                      placeholder={`Search ${performanceGroupBy}...`}
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl text-xs font-semibold outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm"
+                    />
+                    <Search className="w-4 h-4 text-zinc-400 absolute left-3.5 top-3" />
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {performanceSummaryGroups.map((group: any) => (
+                  {filteredSummaryGroups.map((group: any) => (
                     <div key={group.id} className="group p-6 sm:p-8 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[2rem] sm:rounded-[2.5rem] shadow-sm hover:shadow-xl hover:border-indigo-200 dark:hover:border-indigo-900/40 transition-all duration-500 relative overflow-hidden">
                       <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-50/50 dark:bg-indigo-900/10 rounded-bl-[5rem] -mr-16 -mt-16 group-hover:scale-125 transition-transform duration-700" />
 
@@ -9464,7 +9825,7 @@ export const ExamModules = {
                           </div>
                           <div className="text-right">
                             <p className="text-[10px] font-black text-indigo-600 uppercase tracking-widest leading-none mb-1">Avg. Score</p>
-                            <h4 className="text-3xl font-black text-zinc-900 dark:text-white leading-none tracking-tight">{group.avgScore}</h4>
+                            <h4 className="text-3xl font-black text-zinc-900 dark:text-white leading-none tracking-tight">{group.avgScore}%</h4>
                           </div>
                         </div>
 
@@ -9509,7 +9870,7 @@ export const ExamModules = {
                                   }))
                                 });
                               }}
-                              className="w-full px-6 py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-[9px] font-black uppercase tracking-widest shadow-lg shadow-indigo-100 dark:shadow-none transition-all flex items-center justify-center gap-2 group/btn"
+                              className="w-full px-6 py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-[9px] font-black uppercase tracking-widest shadow-lg shadow-indigo-100 dark:shadow-none transition-all duration-300 flex items-center justify-center gap-2 group/btn"
                             >
                               <Printer className="min-w-[14px] w-3.5 h-3.5 group-hover/btn:-translate-y-0.5 transition-transform" />
                               View Official Report Card
@@ -9517,7 +9878,7 @@ export const ExamModules = {
                           ) : (
                             <button
                               onClick={() => setSelectedPerformanceGroup(group)}
-                              className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] shadow-lg shadow-indigo-100 dark:shadow-none transition-all flex items-center justify-center gap-2"
+                              className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] shadow-lg shadow-indigo-100/50 dark:shadow-none transition-all flex items-center justify-center gap-2"
                             >
                               Manage Results
                               <ChevronRight className="w-4 h-4" />
@@ -9534,6 +9895,11 @@ export const ExamModules = {
                       </div>
                     </div>
                   ))}
+                  {filteredSummaryGroups.length === 0 && (
+                    <div className="col-span-full py-16 text-center space-y-4">
+                      <p className="text-xs text-zinc-400 font-bold uppercase tracking-widest">No matching results found</p>
+                    </div>
+                  )}
                 </div>
               </>
             ) : (
@@ -9620,19 +9986,19 @@ export const ExamModules = {
                                 style={{ width: `${Math.min(100, r.totalScore)}%` }}
                               />
                             </div>
-                            <div className="flex items-center justify-between text-[9px] font-black text-zinc-400 uppercase tracking-widest px-1">
+                            <div className="flex items-center justify-between text-[9px] font-black text-zinc-400 uppercase tracking-widest px-1 font-bold">
                               <div className="flex items-center gap-4">
                                 <span>CA: {r.caScore}</span>
                                 <span>Exam: {r.examScore}</span>
                               </div>
                               <div className="flex items-center gap-4">
                                 <span>Rank: {r.rank}{['st', 'nd', 'rd'][r.rank - 1] || 'th'}</span>
-                                <span className="text-indigo-600 font-black">Total: {r.totalScore}</span>
+                                <span className="text-indigo-600 font-black">Total: {r.totalScore}%</span>
                               </div>
                             </div>
                           </div>
                         </div>
-                        <div className="flex items-center gap-2 pt-4 border-t border-zinc-100 dark:border-zinc-800 mt-4">
+                        <div className="flex items-center gap-2 pt-4 border-t border-zinc-100 dark:border-zinc-800 mt-4 md:mt-0 md:pt-0 md:border-t-0 shrink-0">
                           <button
                             onClick={() => {
                               const studentResults = summarizedResults.filter(sr => sr.student_id === r.student_id && String(sr.class_id) === String(r.class_id));
@@ -9664,7 +10030,7 @@ export const ExamModules = {
                                 }))
                               });
                             }}
-                            className="flex items-center gap-1.5 px-4 py-2 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-colors"
+                            className="flex items-center gap-1.5 px-4 py-2 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-colors"
                           >
                             <Printer className="w-3.5 h-3.5" />
                             Print Report Card
@@ -9703,7 +10069,6 @@ export const ExamModules = {
   ResultAnalysis: ({ role, data = [], students = [], classes = [], exams = [] }: { role?: UserRole, data?: any[], students?: any[], classes?: any[], exams?: any[] }) => {
     const studentResults = data || [];
 
-    // Performance over time (Exam by Exam)
     const chartData = useMemo(() => {
       const sorted = [...studentResults].sort((a, b) => new Date(a.exam_date || 0).getTime() - new Date(b.exam_date || 0).getTime());
       const groups: Record<string, any> = {};
