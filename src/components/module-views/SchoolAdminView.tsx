@@ -8258,50 +8258,49 @@ export const ExamModules = {
     };
 
     return (
-      <div className="space-y-12">
-        <div className="relative p-8 md:p-12 bg-white dark:bg-zinc-900 rounded-[2rem] overflow-hidden border border-zinc-200 dark:border-zinc-800 shadow-sm group">
-          <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-10">
-            <div className="space-y-4">
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-50 dark:bg-indigo-900/20 rounded-2xl border border-indigo-100 dark:border-indigo-800/30">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-[0.2em]">{organization?.academic_year || 'Academic Calender'}</span>
+      <div className="space-y-6">
+        <div className="flex flex-col gap-4 bg-white dark:bg-zinc-900 p-4 sm:p-6 rounded-[1.5rem] sm:rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800 shadow-sm">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div className="flex items-center gap-3 sm:gap-4">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-200 dark:shadow-none shrink-0">
+                <Calendar className="w-5 h-5 sm:w-6 sm:h-6" />
               </div>
-              <div>
-                <h1 className="text-4xl md:text-5xl font-black text-zinc-900 dark:text-white tracking-tighter mb-4 leading-none lowercase">
-                  Examination<br /><span className="text-zinc-400 dark:text-zinc-500 font-light">Schedules</span>
-                </h1>
-                <p className="text-zinc-500 dark:text-zinc-400 font-medium max-w-sm leading-relaxed lowercase text-lg">
-                  Visualize academic assessments across departments with real-time tracking and official reporting.
-                </p>
+              <div className="min-w-0">
+                <h2 className="text-lg sm:text-2xl font-black text-zinc-900 dark:text-white tracking-tight truncate">Examination Schedules</h2>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 text-[10px] font-bold uppercase tracking-wider">
+                    {organization?.academic_year || 'Academic Calendar'}
+                  </span>
+                </div>
               </div>
             </div>
 
             <div className="flex flex-wrap items-center gap-3">
               <button
                 onClick={handlePrintSchedule}
-                className="px-8 py-4 bg-white hover:bg-zinc-50 text-indigo-600 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all hover:-translate-y-1 active:translate-y-0 shadow-lg shadow-zinc-200/50 flex items-center gap-3 group/btn border border-zinc-100"
+                className="px-5 py-2.5 bg-white hover:bg-zinc-50 dark:bg-zinc-900 dark:hover:bg-zinc-800 text-indigo-600 dark:text-indigo-400 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all hover:-translate-y-0.5 active:translate-y-0 shadow-sm flex items-center gap-2 border border-zinc-200 dark:border-zinc-850"
               >
-                <Printer className="w-4 h-4 group-hover/btn:rotate-12 transition-transform" />
+                <Printer className="w-3.5 h-3.5" />
                 Print Schedule
               </button>
               {(role === "SCHOOL_ADMIN" || role === "HOD") && (
                 <button
                   onClick={() => setIsAddModalOpen(true)}
-                  className="px-8 py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all hover:-translate-y-1 active:translate-y-0 shadow-lg shadow-indigo-500/20 flex items-center gap-3 group/btn"
+                  className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all hover:-translate-y-0.5 active:translate-y-0 shadow-md shadow-indigo-100 dark:shadow-none flex items-center gap-2"
                 >
-                  <Plus className="w-4 h-4 group-hover/btn:scale-125 transition-transform" />
-                  Add Examination
+                  <Plus className="w-3.5 h-3.5" />
+                  Add Exam
                 </button>
               )}
               {viewMode === 'timetable' && (
-                <div className="flex items-center gap-1 p-1.5 bg-zinc-100 dark:bg-zinc-800 rounded-2xl border border-zinc-200 dark:border-zinc-700 shadow-inner">
+                <div className="flex items-center gap-1 p-1 bg-zinc-100 dark:bg-zinc-800 rounded-xl border border-zinc-200 dark:border-zinc-750 shadow-inner">
                   {['day', 'week', 'month'].map((type) => (
                     <button
                       key={type}
                       onClick={() => setFilterType(type as any)}
                       className={cn(
-                        "px-6 py-2.5 rounded-[1.25rem] text-[10px] font-black uppercase tracking-widest transition-all",
-                        filterType === type ? "bg-indigo-600 text-white shadow-lg" : "text-zinc-500 hover:text-zinc-900 dark:hover:text-white"
+                        "px-4 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all",
+                        filterType === type ? "bg-indigo-600 text-white shadow-sm" : "text-zinc-500 hover:text-zinc-900 dark:hover:text-white"
                       )}
                     >
                       {type}
