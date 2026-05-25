@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: react-app
+    env: node
+    plan: starter
+    buildCommand: npm install && npm run build
+    startCommand: node server/dist/index.js
+    envVars:
+      - key: NODE_ENV
+        value: production
