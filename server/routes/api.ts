@@ -101,7 +101,7 @@ router.delete('/receipts/:id', checkRole(['SUPER_ADMIN', 'SCHOOL_ADMIN', 'FINANC
 router.get('/modules', OrganizationController.getModules);
 router.patch('/modules/:id', checkRole(['SUPER_ADMIN']), OrganizationController.updateModule);
 router.delete('/modules/:id', checkRole(['SUPER_ADMIN']), OrganizationController.deleteModule);
-router.get('/platform/users', checkRole(['SUPER_ADMIN', 'SCHOOL_ADMIN']), OrganizationController.getAllUsers);
+router.get('/platform/users', checkRole(['SUPER_ADMIN', 'SCHOOL_ADMIN', 'STAFF']), OrganizationController.getAllUsers);
 router.post('/platform/users/:id/reset-password', checkRole(['SUPER_ADMIN']), OrganizationController.resetUserPassword);
 router.delete('/platform/users/:id', checkRole(['SUPER_ADMIN']), OrganizationController.deleteUser);
 
@@ -593,10 +593,10 @@ router.patch('/academic/report-cards/templates/:id', verifyToken, ReportCardCont
 router.delete('/academic/report-cards/templates/:id', verifyToken, ReportCardController.deleteReportCardTemplate);
 
 // Document Templates
-router.get('/document-templates', checkRole(['SUPER_ADMIN', 'SCHOOL_ADMIN', 'HR', 'FINANCE']), DocumentTemplateController.getDocumentTemplates);
-router.post('/document-templates', checkRole(['SUPER_ADMIN', 'SCHOOL_ADMIN', 'HR', 'FINANCE']), DocumentTemplateController.createDocumentTemplate);
-router.patch('/document-templates/:id', checkRole(['SUPER_ADMIN', 'SCHOOL_ADMIN', 'HR', 'FINANCE']), DocumentTemplateController.updateDocumentTemplate);
-router.delete('/document-templates/:id', checkRole(['SUPER_ADMIN', 'SCHOOL_ADMIN', 'HR', 'FINANCE']), DocumentTemplateController.deleteDocumentTemplate);
+router.get('/document-templates', checkRole(['SUPER_ADMIN', 'SCHOOL_ADMIN', 'HR', 'FINANCE', 'STAFF']), DocumentTemplateController.getDocumentTemplates);
+router.post('/document-templates', checkRole(['SUPER_ADMIN', 'SCHOOL_ADMIN', 'HR', 'FINANCE', 'STAFF']), DocumentTemplateController.createDocumentTemplate);
+router.patch('/document-templates/:id', checkRole(['SUPER_ADMIN', 'SCHOOL_ADMIN', 'HR', 'FINANCE', 'STAFF']), DocumentTemplateController.updateDocumentTemplate);
+router.delete('/document-templates/:id', checkRole(['SUPER_ADMIN', 'SCHOOL_ADMIN', 'HR', 'FINANCE', 'STAFF']), DocumentTemplateController.deleteDocumentTemplate);
 
 // COMMUNICATION (ANNOUNCEMENTS & MESSAGES)
 router.get('/announcements', checkRole(['SUPER_ADMIN', 'SCHOOL_ADMIN', 'STAFF', 'STUDENT', 'PARENT']), CommunicationController.getAnnouncements);

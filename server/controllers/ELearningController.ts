@@ -596,13 +596,18 @@ export const getOnlineClasses = async (req: AuthRequest, res: Response) => {
 };
 
 export const createOnlineClass = async (req: AuthRequest, res: Response) => {
-  const { title, description, class_id, class_ids, subject_id, start_time, end_time } = req.body;
+  const { title, description, class_id, class_ids, subject_id, start_time, end_time, teacher_id } = req.body;
   try {
     const orgId = req.user.org_id;
-    const staffId = await getStaffId(req);
+    // Determine teacher ID: prefer explicit teacher_id, else staff record, else null
+    let teacherId = teacher_id;
+    if (!teacherId) {
+      const staffId = await getStaffId(req);
+      teacherId = staffId;
+    }
     const result = await pool.query(
       'INSERT INTO online_classes (org_id, teacher_id, class_id, class_ids, subject_id, title, description, start_time, end_time, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *',
-      [orgId, staffId, class_id, JSON.stringify(class_ids || []), subject_id, title, description, start_time, end_time, 'Upcoming']
+      [orgId, teacherId, class_id, JSON.stringify(class_ids || []), subject_id, title, description, start_time, end_time, 'Upcoming']
     );
     await recordAuditLog(req.user.id, 'CREATE_ONLINE_CLASS', `Created online class: ${title}`, orgId, req.ip || '');
     res.status(201).json(result.rows[0]);
