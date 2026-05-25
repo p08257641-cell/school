@@ -3177,10 +3177,8 @@ export const ELearningModules = {
 
     const fetchData = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/elearning/cbt-exams', {
-          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-        });
-        const data = await res.json();
+        const res = await api.get('/elearning/cbt-exams');
+        const data = res.data;
         let examsList = Array.isArray(data) ? data : [];
         if (role === 'STAFF' && instructorId) {
           examsList = examsList.filter((e: any) => String(e.created_by) === String(instructorId) || String(e.teacher_id) === String(instructorId));
@@ -3195,10 +3193,8 @@ export const ELearningModules = {
 
     const fetchQuestions = async (examId: string) => {
       try {
-        const res = await fetch(`http://localhost:5000/api/elearning/cbt-exams/${examId}/questions`, {
-          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-        });
-        const data = await res.json();
+        const res = await api.get(`/elearning/cbt-exams/${examId}/questions`);
+        const data = res.data;
         const questionList = Array.isArray(data) ? data : [];
         setQuestions(questionList);
         return questionList;
@@ -3211,10 +3207,8 @@ export const ELearningModules = {
 
     const fetchSubmissions = async (examId: string) => {
       try {
-        const res = await fetch(`http://localhost:5000/api/elearning/cbt-submissions?exam_id=${examId}`, {
-          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-        });
-        const data = await res.json();
+        const res = await api.get(`/elearning/cbt-submissions?exam_id=${examId}`);
+        const data = res.data;
         setSubmissions(Array.isArray(data) ? data : []);
       } catch (err) {
         console.error(err);
@@ -3250,22 +3244,12 @@ export const ELearningModules = {
       e.preventDefault();
       try {
         const isEditing = !!editingExam;
-        const url = isEditing
-          ? `http://localhost:5000/api/elearning/cbt-exams/${editingExam.id}`
-          : 'http://localhost:5000/api/elearning/cbt-exams';
-        const method = isEditing ? 'PATCH' : 'POST';
         const primaryClassId = formData.class_id || (formData.class_ids.length > 0 ? formData.class_ids[0] : null);
         const payload = { ...formData, class_id: primaryClassId };
-        const res = await fetch(url, {
-          method,
-          headers: { 
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token')}` 
-          },
-          body: JSON.stringify(payload)
-        });
-        if (res.ok) {
-          setShowCreateModal(false);
+        const res = isEditing
+          ? await api.patch(`/elearning/cbt-exams/${editingExam.id}`, payload)
+          : await api.post('/elearning/cbt-exams', payload);
+        setShowCreateModal(false);
           setEditingExam(null);
           setFormData(defaultForm);
           fetchData();
@@ -3306,26 +3290,17 @@ export const ELearningModules = {
       if (!selectedExam) return;
       setShowSubmitConfirm(false);
       try {
-        const res = await fetch(`http://localhost:5000/api/elearning/cbt-submit`, {
-          method: 'POST',
-          headers: { 
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token')}` 
-          },
-          body: JSON.stringify({ 
-            exam_id: selectedExam.id,
-            answers: answers 
-          })
+        const res = await api.post('/elearning/cbt-submit', { 
+          exam_id: selectedExam.id,
+          answers: answers 
         });
-        if (res.ok) {
-          // Compute score client-side — reliable even if backend returns NaN (null points)
+        // Compute score client-side — reliable even if backend returns NaN (null points)
           const correctCount = questions.reduce((acc, q) => {
             return acc + (answers[q.id] !== undefined && answers[q.id] === q.correct_option_index ? 1 : 0);
           }, 0);
           setIsTakingExam(false);
           setExamResult({ score: correctCount, total: questions.length, exam: selectedExam });
           fetchData();
-        }
       } catch (err) {
         console.error(err);
       }
@@ -3351,26 +3326,14 @@ export const ELearningModules = {
       e.preventDefault();
       try {
         const isEditing = !!editingQuestionId;
-        const url = isEditing 
-          ? `http://localhost:5000/api/elearning/cbt-questions/${editingQuestionId}`
-          : 'http://localhost:5000/api/elearning/cbt-questions';
-        const method = isEditing ? 'PATCH' : 'POST';
-        
-        const res = await fetch(url, {
-          method,
-          headers: { 
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token')}` 
-          },
-          body: JSON.stringify({ ...questionForm, exam_id: selectedExam.id })
-        });
-        if (res.ok) {
-          setShowAddQuestionModal(false);
+        const res = isEditing
+          ? await api.patch(`/elearning/cbt-questions/${editingQuestionId}`, { ...questionForm, exam_id: selectedExam.id })
+          : await api.post('/elearning/cbt-questions', { ...questionForm, exam_id: selectedExam.id });
+        setShowAddQuestionModal(false);
           setEditingQuestionId(null);
           fetchQuestions(selectedExam.id);
           setQuestionForm({ question_text: '', options: ['', '', '', ''], correct_option_index: 0 });
           (window as any).showToast?.(isEditing ? 'Question updated successfully!' : 'Question added successfully!', 'success');
-        }
       } catch (err) {
         console.error(err);
       }
@@ -3379,14 +3342,9 @@ export const ELearningModules = {
     const handleDeleteQuestion = async (id: string) => {
       if (!confirm('Are you sure you want to delete this question?')) return;
       try {
-        const res = await fetch(`http://localhost:5000/api/elearning/cbt-questions/${id}`, {
-          method: 'DELETE',
-          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-        });
-        if (res.ok) {
-          fetchQuestions(selectedExam.id);
+        const res = await api.delete(`/elearning/cbt-questions/${id}`);
+        fetchQuestions(selectedExam.id);
           (window as any).showToast?.('Question deleted successfully!', 'success');
-        }
       } catch (err) {
         console.error(err);
       }
@@ -3405,18 +3363,9 @@ export const ELearningModules = {
     const handleToggleStatus = async (exam: any) => {
       const newStatus = exam.status === 'Live' ? 'Draft' : 'Live';
       try {
-        const res = await fetch(`http://localhost:5000/api/elearning/cbt-exams/${exam.id}`, {
-          method: 'PATCH',
-          headers: { 
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token')}` 
-          },
-          body: JSON.stringify({ ...exam, status: newStatus })
-        });
-        if (res.ok) {
-          fetchData();
+        const res = await api.patch(`/elearning/cbt-exams/${exam.id}`, { ...exam, status: newStatus });
+        fetchData();
           (window as any).showToast?.(`Exam status changed to ${newStatus}!`, 'success');
-        }
       } catch (err) {
         console.error(err);
       }
@@ -3425,14 +3374,9 @@ export const ELearningModules = {
     const handleDeleteExam = async (id: string) => {
       if (!confirm('Are you sure you want to delete this exam?')) return;
       try {
-        const res = await fetch(`http://localhost:5000/api/elearning/cbt-exams/${id}`, {
-          method: 'DELETE',
-          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-        });
-        if (res.ok) {
-          fetchData();
+        const res = await api.delete(`/elearning/cbt-exams/${id}`);
+        fetchData();
           (window as any).showToast?.('Exam deleted successfully!', 'success');
-        }
       } catch (err) {
         console.error(err);
       }
@@ -3444,12 +3388,9 @@ export const ELearningModules = {
     useEffect(() => {
       const autoUpdate = async () => {
         try {
-          const res = await fetch('http://localhost:5000/api/elearning/cbt-exams/auto-update-status', {
-            method: 'POST',
-            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-          });
-          if (res.ok) {
-            const result = await res.json();
+          const res = await api.post('/elearning/cbt-exams/auto-update-status');
+          {
+            const result = res.data;
             // Only re-fetch if something actually changed
             if (result.went_live?.length > 0 || result.ended?.length > 0) {
               fetchData();
@@ -4206,10 +4147,8 @@ export const ELearningModules = {
 
     const fetchOnlineClasses = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/elearning/online-classes', {
-          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-        });
-        const data = await res.json();
+        const res = await api.get('/elearning/online-classes');
+        const data = res.data;
         let classesList = Array.isArray(data) ? data : [];
         if (role === 'STAFF' && instructorId) {
           classesList = classesList.filter((c: any) => String(c.created_by) === String(instructorId) || String(c.teacher_id) === String(instructorId));
@@ -4229,23 +4168,11 @@ export const ELearningModules = {
           ...formData,
           class_ids: formData.class_ids.length > 0 ? formData.class_ids : (formData.class_id ? [formData.class_id] : [])
         };
-        const res = await fetch('http://localhost:5000/api/elearning/online-classes', {
-          method: 'POST',
-          headers: { 
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token')}` 
-          },
-          body: JSON.stringify(payload)
-        });
-        if (res.ok) {
-          setShowCreateModal(false);
+        const res = await api.post('/elearning/online-classes', payload);
+        setShowCreateModal(false);
           setFormData({ title: '', description: '', class_id: '', class_ids: [], subject_id: '', start_time: '', end_time: '' });
           fetchOnlineClasses();
           (window as any).showToast?.('Class scheduled successfully!', 'success');
-        } else {
-          const errData = await res.json();
-          (window as any).showToast?.(errData.error || 'Could not schedule the class. Please try again.', 'error');
-        }
       } catch (err) {
         console.error(err);
         (window as any).showToast?.('Unable to connect to the server. Please check your internet connection.', 'error');
@@ -4255,14 +4182,9 @@ export const ELearningModules = {
     const handleDeleteClass = async (id: string) => {
       if (!confirm('Are you sure you want to delete this class?')) return;
       try {
-        const res = await fetch(`http://localhost:5000/api/elearning/online-classes/${id}`, {
-          method: 'DELETE',
-          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-        });
-        if (res.ok) {
-          fetchOnlineClasses();
+        const res = await api.delete(`/elearning/online-classes/${id}`);
+        fetchOnlineClasses();
           (window as any).showToast?.('Class deleted successfully!', 'success');
-        }
       } catch (err) {
         console.error(err);
       }
@@ -4272,12 +4194,9 @@ export const ELearningModules = {
       fetchOnlineClasses();
       const interval = setInterval(async () => {
         try {
-          const res = await fetch('http://localhost:5000/api/elearning/online-classes/auto-update-status', {
-            method: 'POST',
-            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-          });
-          if (res.ok) {
-            const result = await res.json();
+          const res = await api.post('/elearning/online-classes/auto-update-status');
+          {
+            const result = res.data;
             if (result.went_live?.length > 0 || result.ended?.length > 0) {
               fetchOnlineClasses();
             }
