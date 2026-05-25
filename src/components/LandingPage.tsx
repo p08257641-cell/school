@@ -129,7 +129,7 @@ export default function LandingPage({ onGetStarted, onLogin, onPartnerLogin }: L
             <img
               src="/assets/schoolhub_icon.png"
               alt="SchoolHub"
-              className="w-10 h-10 md:w-12 md:h-12 object-contain group-hover:rotate-12 transition-transform"
+              className="w-12 h-12 md:w-16 md:h-16 object-contain group-hover:rotate-12 transition-transform"
             />
           </div>
 

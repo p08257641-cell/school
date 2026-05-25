@@ -47,15 +47,15 @@ export default function Login({ onLogin, onBack }: LoginProps) {
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-md"
       >
-        <div className="text-center mb-8">
+        <div className="text-center mb-6">
           <button 
             onClick={onBack}
-            className="flex items-center gap-2 mx-auto mb-6 group transition-all border-none outline-none focus:outline-none focus:ring-0"
+            className="flex items-center gap-2 mx-auto mb-2 group transition-all border-none outline-none focus:outline-none focus:ring-0"
           >
             <img 
               src="/assets/schoolhub_full_logo.png" 
               alt="SchoolHub" 
-              className="h-24 md:h-32 w-auto object-contain group-hover:scale-105 transition-transform border-0" 
+              className="h-28 md:h-40 w-auto object-contain group-hover:scale-105 transition-transform border-0" 
             />
           </button>
           <h1 className="text-3xl font-black tracking-tight mb-2">
