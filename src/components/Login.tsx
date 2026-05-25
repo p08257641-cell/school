@@ -1,4 +1,4 @@
-
+import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { Zap, Mail, Lock, ArrowRight, Shield, Eye, EyeOff } from 'lucide-react';
 import { UserRole } from '../types';
