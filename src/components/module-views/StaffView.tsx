@@ -4291,7 +4291,7 @@ export const ELearningModules = {
       return (
         <JitsiVideoCall 
           channel={activeCall.channel}
-          userName={user?.name}
+          userName="Teacher"
           onClose={() => setActiveCall(null)}
         />
       );

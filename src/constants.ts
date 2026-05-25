@@ -243,12 +243,12 @@ export const NAVIGATION_CONFIG: NavItem[] = [
   {
     title: 'E-Learning',
     icon: BookOpen,
-    roles: ['STAFF', 'STUDENT'],
+    roles: ['SCHOOL_ADMIN', 'HOD', 'STAFF', 'STUDENT'],
     children: [
-      { title: 'CBT Exams', href: 'CBT Exams', roles: ['STAFF', 'STUDENT'], icon: Zap },
-      { title: 'Online Classes', href: 'Online Classes', roles: ['STAFF', 'STUDENT'], icon: Globe },
-      { title: 'Assignments', href: 'Assignments', roles: ['STAFF', 'STUDENT'], icon: FileText },
-      { title: 'Study Materials', href: 'Study Materials', roles: ['STAFF', 'STUDENT'], icon: BookOpen },
+      { title: 'CBT Exams', href: 'CBT Exams', roles: ['SCHOOL_ADMIN', 'HOD', 'STAFF', 'STUDENT'], icon: Zap },
+      { title: 'Online Classes', href: 'Online Classes', roles: ['SCHOOL_ADMIN', 'HOD', 'STAFF', 'STUDENT'], icon: Globe },
+      { title: 'Assignments', href: 'Assignments', roles: ['SCHOOL_ADMIN', 'HOD', 'STAFF', 'STUDENT'], icon: FileText },
+      { title: 'Study Materials', href: 'Study Materials', roles: ['SCHOOL_ADMIN', 'HOD', 'STAFF', 'STUDENT'], icon: BookOpen },
     ]
   },
   // SETTINGS
