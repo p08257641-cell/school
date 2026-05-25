@@ -11,7 +11,7 @@ import { cn } from '../../lib/utils';
 import { DataTable } from '../DataTable';
 import { Student, UserRole, Ward } from '../../types';
 import { GenericModuleView } from '../ModuleViews';
-import { AgoraVideoCall } from '../AgoraVideoCall';
+import { JitsiVideoCall } from '../JitsiVideoCall';
 import { Modal, SearchableSelect } from '../UI';
 import { ReportCardPreview, AcademicModules } from './SchoolAdminView';
 import { ReportCardTemplate } from '../../types';
@@ -4203,7 +4203,6 @@ export const ELearningModules = {
     });
 
     const isStudent = role === 'STUDENT' || role === 'PARENT';
-    const agoraAppId = (import.meta as any).env.VITE_AGORA_APP_ID || '';
 
     const fetchOnlineClasses = async () => {
       try {
@@ -4289,30 +4288,10 @@ export const ELearningModules = {
     }, []);
 
     if (activeCall) {
-      if (!agoraAppId) {
-        return (
-          <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-8 bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800">
-            <div className="w-20 h-20 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center mb-6">
-              <Zap className="w-10 h-10 text-amber-600" />
-            </div>
-            <h2 className="text-2xl font-bold text-zinc-900 dark:text-white">Agora App ID Missing</h2>
-            <p className="text-zinc-500 mt-2 max-w-md">
-              To enable video calls, please add your Agora App ID to the <code className="px-1.5 py-0.5 bg-zinc-100 dark:bg-zinc-800 rounded text-indigo-600 font-mono text-sm">VITE_AGORA_APP_ID</code> environment variable.
-            </p>
-            <button 
-              onClick={() => setActiveCall(null)}
-              className="mt-8 px-6 py-3 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 rounded-xl font-bold transition-all hover:scale-105 active:scale-95"
-            >
-              Back to Classes
-            </button>
-          </div>
-        );
-      }
-
       return (
-        <AgoraVideoCall 
-          appId={agoraAppId}
+        <JitsiVideoCall 
           channel={activeCall.channel}
+          userName={user?.name}
           onClose={() => setActiveCall(null)}
         />
       );
