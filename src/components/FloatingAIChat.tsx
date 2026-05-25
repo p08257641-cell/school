@@ -30,7 +30,7 @@ export function FloatingAIChat({ organization, currentUser, currentRole }: { org
       setMessages([
         {
           role: 'ai',
-          content: `Hello ${userName}! I'm OmniAI, your ${roleName} assistant for ${organization?.name || 'OmniPortal'}. How can I help you today?`,
+          content: `Hello ${userName}! I'm OmniAI, your ${roleName} assistant for ${organization?.name || 'SchoolHub'}. How can I help you today?`,
           timestamp: new Date()
         }
       ]);
@@ -59,9 +59,9 @@ export function FloatingAIChat({ organization, currentUser, currentRole }: { org
 
     try {
       const result = await generateAIResponse(prompt, {
-        systemPrompt: `You are OmniAI, a helpful assistant for OmniPortal school management system. 
+        systemPrompt: `You are OmniAI, a helpful assistant for SchoolHub school management system. 
         You are currently assisting ${currentUser?.name || 'a user'} who is logged in as a ${currentRole || 'user'}. 
-        The school is ${organization?.name || 'OmniPortal'}.
+        The school is ${organization?.name || 'SchoolHub'}.
         Keep responses concise, professional, and aware of the user's role.`
       });
 

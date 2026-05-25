@@ -181,8 +181,8 @@ export default function Layout({
             <div className="flex items-center gap-2">
               {currentRole === 'SUPER_ADMIN' ? (
                 <img 
-                  src="/assets/omni_portal_full_logo.png" 
-                  alt="OmniPortal" 
+                  src="/assets/schoolhub_full_logo.png" 
+                  alt="SchoolHub" 
                   className="h-8 w-auto object-contain" 
                 />
               ) : (
@@ -204,8 +204,8 @@ export default function Layout({
             <div className="w-8 h-8 rounded-lg flex items-center justify-center mx-auto overflow-hidden bg-indigo-600">
               {currentRole === 'SUPER_ADMIN' ? (
                 <img 
-                  src="/assets/omni_portal_icon.png" 
-                  alt="Omni" 
+                  src="/assets/schoolhub_icon.png" 
+                  alt="SchoolHub" 
                   className="w-full h-full object-contain p-1" 
                 />
               ) : (
@@ -626,7 +626,7 @@ export default function Layout({
                 <div className="flex items-center gap-2">
                   <div className="w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden bg-indigo-600">
                     {currentRole === 'SUPER_ADMIN' ? (
-                      <img src="/assets/omni_portal_icon.png" alt="Omni" className="w-full h-full object-contain p-1" />
+                      <img src="/assets/schoolhub_icon.png" alt="SchoolHub" className="w-full h-full object-contain p-1" />
                     ) : (
                       organization?.logo ? (
                         <img src={organization.logo} alt={organization.name} className="w-full h-full object-cover" />
@@ -636,7 +636,7 @@ export default function Layout({
                     )}
                   </div>
                   <span className="font-bold text-xl tracking-tight text-zinc-900 dark:text-white truncate max-w-[180px]">
-                    {currentRole === 'SUPER_ADMIN' ? 'OmniPortal' : (organization?.name || 'School Portal')}
+                    {currentRole === 'SUPER_ADMIN' ? 'SchoolHub' : (organization?.name || 'School Portal')}
                   </span>
                 </div>
                 <button 

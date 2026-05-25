@@ -339,7 +339,7 @@ export default function PartnerDashboard() {
             .signature-label { font-size: 12px; font-weight: 700; text-transform: uppercase; color: #a1a1a1; }
             .date-block { font-size: 14px; color: #1a1a1a; font-weight: 600; }
             
-            .seal { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); width: 120px; height: 120px; opacity: 0.1; background: url('/assets/omni_portal_icon.png') no-repeat center; background-size: contain; filter: grayscale(1); }
+            .seal { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); width: 120px; height: 120px; opacity: 0.1; background: url('/assets/schoolhub_icon.png') no-repeat center; background-size: contain; filter: grayscale(1); }
             
             @media print {
               body { background: none; min-height: auto; width: 1056px; height: 816px; margin: 0; padding: 0; }
@@ -356,7 +356,7 @@ export default function PartnerDashboard() {
               <div class="corner bottom-right"></div>
               
               <div class="header">
-                 <img src="/assets/omni_portal_icon.png" class="logo" />
+                 <img src="/assets/schoolhub_icon.png" class="logo" />
                  <div class="subtitle">Certificate of Recognition</div>
                  <div class="title">Partner Excellence Award</div>
               </div>
@@ -365,7 +365,7 @@ export default function PartnerDashboard() {
                 <div class="award-text">This esteemed certificate is proudly presented to</div>
                 <div class="recipient-name">${partner.name}</div>
                 <div class="achievement-title">${reward.title}</div>
-                <div class="description">${reward.description || 'Recognized for outstanding contributions and commitment to the growth of the OmniPortal ecosystem. Your partnership has been instrumental in our shared success.'}</div>
+                <div class="description">${reward.description || 'Recognized for outstanding contributions and commitment to the growth of the SchoolHub ecosystem. Your partnership has been instrumental in our shared success.'}</div>
                 <div style="margin-top: 30px; font-size: 12px; color: #c5a059; font-weight: 700; text-transform: uppercase; letter-spacing: 2px;">Verified Criteria: ${reward.criteria || 'Strategic Partnership Development'}</div>
               </div>
               
@@ -376,7 +376,7 @@ export default function PartnerDashboard() {
                 </div>
                 
                 <div class="signature-block">
-                   <div style="font-family: 'Great Vibes', cursive; font-size: 24px; margin-bottom: 5px;">OmniPortal Admin</div>
+                   <div style="font-family: 'Great Vibes', cursive; font-size: 24px; margin-bottom: 5px;">SchoolHub Admin</div>
                    <div class="signature-label">Principal Director</div>
                 </div>
               </div>
@@ -408,7 +408,7 @@ export default function PartnerDashboard() {
       {/* Sidebar */}
       <aside className="w-64 border-r border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hidden lg:flex flex-col transition-colors">
         <div className="p-6 flex items-center gap-3">
-          <img src="/assets/omni_portal_icon.png" alt="Logo" className="w-8 h-8" />
+          <img src="/assets/schoolhub_icon.png" alt="Logo" className="w-8 h-8" />
           <span className="font-bold text-xl tracking-tight">Partner Hub</span>
         </div>
 
@@ -1075,7 +1075,7 @@ export default function PartnerDashboard() {
                         placeholder="school-name"
                         className="flex-1 px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-l-xl outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
                       />
-                      <span className="px-4 py-2.5 bg-zinc-100 dark:bg-zinc-700 border border-l-0 border-zinc-200 dark:border-zinc-700 rounded-r-xl text-zinc-500 text-sm">.omniportal.com</span>
+                      <span className="px-4 py-2.5 bg-zinc-100 dark:bg-zinc-700 border border-l-0 border-zinc-200 dark:border-zinc-700 rounded-r-xl text-zinc-500 text-sm">.schoolhub.com</span>
                     </div>
                   </div>
                 </div>
@@ -1267,7 +1267,7 @@ export default function PartnerDashboard() {
               <div className="p-4 rounded-2xl border border-zinc-100 dark:border-zinc-800 space-y-1">
                 <p className="text-[10px] font-bold uppercase text-zinc-400 tracking-wider">Access Details</p>
                 <div className="flex items-center justify-between mt-1">
-                  <p className="text-sm font-bold text-indigo-600">{selectedSchool.custom_domain ? `${selectedSchool.custom_domain}.omniportal.com` : 'No custom domain'}</p>
+                  <p className="text-sm font-bold text-indigo-600">{selectedSchool.custom_domain ? `${selectedSchool.custom_domain}.schoolhub.com` : 'No custom domain'}</p>
                   <div className="flex gap-2">
                     <span className="text-[10px] font-black bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded-md uppercase">{selectedSchool.language || 'en'}</span>
                     <span className="text-[10px] font-black bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded-md uppercase">{selectedSchool.timezone || 'GMT'}</span>

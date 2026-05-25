@@ -452,7 +452,7 @@ export const AIModules = {
         setMessages([
           {
             role: 'ai',
-            content: `Hello ${userName}! I'm your OmniPortal AI assistant. I see you are logged in as a ${roleName}. How can I help you manage ${organization?.name || 'your school'} today?`,
+            content: `Hello ${userName}! I'm your SchoolHub AI assistant. I see you are logged in as a ${roleName}. How can I help you manage ${organization?.name || 'your school'} today?`,
             timestamp: new Date()
           }
         ]);
@@ -475,9 +475,9 @@ export const AIModules = {
 
       try {
         const result = await generateAIResponse(prompt, {
-          systemPrompt: `You are OmniAI, a helpful assistant for OmniPortal school management system. 
+          systemPrompt: `You are OmniAI, a helpful assistant for SchoolHub school management system. 
           You are currently assisting ${currentUser?.name || 'a user'} who is logged in as a ${role || 'user'}. 
-          The school is ${organization?.name || 'OmniPortal'}.
+          The school is ${organization?.name || 'SchoolHub'}.
           Keep responses concise, professional, and aware of the user's role.`
         });
 

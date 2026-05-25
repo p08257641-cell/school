@@ -53,8 +53,8 @@ export default function Login({ onLogin, onBack }: LoginProps) {
             className="flex items-center gap-2 mx-auto mb-6 group transition-all border-none outline-none focus:outline-none focus:ring-0"
           >
             <img 
-              src="/assets/omni_portal_full_logo.png" 
-              alt="OmniPortal" 
+              src="/assets/schoolhub_full_logo.png" 
+              alt="SchoolHub" 
               className="h-24 md:h-32 w-auto object-contain group-hover:scale-105 transition-transform border-0" 
             />
           </button>

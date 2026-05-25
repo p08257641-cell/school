@@ -1,5 +1,5 @@
 {
-  "name": "OmniPortal RBMS",
+  "name": "SchoolHub RBMS",
   "description": "A comprehensive role-based management system with multi-portal support for Super Admins, School Admins, Staff, Students, and Parents.",
   "requestFramePermissions": []
 }

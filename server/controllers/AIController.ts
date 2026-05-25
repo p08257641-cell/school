@@ -44,7 +44,7 @@ export const generateResponse = async (req: AuthRequest, res: Response) => {
       body: JSON.stringify({
         model,
         messages: [
-          { role: 'system', content: systemPrompt || 'You are helpful assistant for OmniPortal school management system.' },
+          { role: 'system', content: systemPrompt || 'You are helpful assistant for SchoolHub school management system.' },
           { role: 'user', content: prompt }
         ],
         temperature: 0.7,
