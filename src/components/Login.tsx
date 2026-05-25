@@ -52,11 +52,7 @@ export default function Login({ onLogin, onBack }: LoginProps) {
             onClick={onBack}
             className="flex items-center gap-2 mx-auto mb-2 group transition-all border-none outline-none focus:outline-none focus:ring-0"
           >
-            <img 
-              src="/assets/schoolhub_full_logo.png" 
-              alt="SchoolHub" 
-              className="h-28 md:h-40 w-auto object-contain group-hover:scale-105 transition-transform border-0" 
-            />
+
           </button>
           <h1 className="text-3xl font-black tracking-tight mb-2">
             {t('login_welcome')}
