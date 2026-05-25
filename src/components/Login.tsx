@@ -45,7 +45,7 @@ export default function Login({ onLogin, onBack }: LoginProps) {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md"
+        className="w-full max-w-md -mt-12 md:-mt-24"
       >
         <div className="text-center mb-6">
           <button 
