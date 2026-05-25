@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+
 import { motion } from 'motion/react';
 import { Zap, Mail, Lock, ArrowRight, Shield, Eye, EyeOff } from 'lucide-react';
 import { UserRole } from '../types';
@@ -37,7 +37,7 @@ export default function Login({ onLogin, onBack }: LoginProps) {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex flex-col items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-zinc-900 dark:via-zinc-800 dark:to-zinc-700 flex flex-col items-center justify-center p-4 relative overflow-hidden">
       {/* Background Decorations */}
       <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-500/5 blur-[120px] rounded-full" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-emerald-500/5 blur-[120px] rounded-full" />
@@ -45,19 +45,24 @@ export default function Login({ onLogin, onBack }: LoginProps) {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md -mt-12 md:-mt-24"
+        className="w-full max-w-md"
       >
-        <div className="text-center mb-6">
+        <div className="text-center mb-8 flex flex-col items-center gap-4">
           <button 
             onClick={onBack}
             className="flex items-center gap-2 mx-auto mb-2 group transition-all border-none outline-none focus:outline-none focus:ring-0"
           >
 
           </button>
-          <h1 className="text-3xl font-black tracking-tight mb-2">
+          <h1 className="text-3xl font-black tracking-tight mb-2 text-zinc-900 dark:text-white">
             {t('login_welcome')}
           </h1>
-          <p className="text-zinc-500 dark:text-zinc-400 text-sm">{t('login_subtitle')}</p>
+          <p className="text-zinc-500 dark:text-zinc-400 text-sm mb-1">
+            {t('login_tagline')}
+          </p>
+          <p className="text-indigo-600 dark:text-indigo-400 text-xs font-bold">
+            {t('school_name_note')}
+          </p>
         </div>
 
         <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[2rem] p-8 shadow-2xl relative overflow-hidden">
