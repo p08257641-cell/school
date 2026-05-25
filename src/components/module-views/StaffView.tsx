@@ -3254,7 +3254,6 @@ export const ELearningModules = {
           setFormData(defaultForm);
           fetchData();
           (window as any).showToast?.(isEditing ? 'CBT Exam updated successfully!' : 'CBT Exam created successfully!', 'success');
-        }
       } catch (err) {
         console.error(err);
       }
