@@ -93,6 +93,27 @@ export async function init() {
         IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'partners' AND column_name = 'registration_number') THEN
           ALTER TABLE partners ADD COLUMN registration_number VARCHAR(255);
         END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'partners' AND column_name = 'currency') THEN
+          ALTER TABLE partners ADD COLUMN currency VARCHAR(50) DEFAULT 'GH₵';
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'partners' AND column_name = 'payout_type') THEN
+          ALTER TABLE partners ADD COLUMN payout_type VARCHAR(50);
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'partners' AND column_name = 'bank_name') THEN
+          ALTER TABLE partners ADD COLUMN bank_name VARCHAR(255);
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'partners' AND column_name = 'bank_code') THEN
+          ALTER TABLE partners ADD COLUMN bank_code VARCHAR(100);
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'partners' AND column_name = 'account_number') THEN
+          ALTER TABLE partners ADD COLUMN account_number VARCHAR(100);
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'partners' AND column_name = 'account_name') THEN
+          ALTER TABLE partners ADD COLUMN account_name VARCHAR(255);
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'organizations' AND column_name = 'currency') THEN
+          ALTER TABLE organizations ADD COLUMN currency VARCHAR(50) DEFAULT 'GH₵';
+        END IF;
         IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'organizations' AND column_name = 'default_leave_limit') THEN
           ALTER TABLE organizations ADD COLUMN default_leave_limit INTEGER DEFAULT 20;
         END IF;
@@ -1868,10 +1889,20 @@ export async function init() {
       }
     }
 
+    // Clean up duplicate modules first
+    console.log('Deduplicating modules table...');
+    await client.query(`
+      DELETE FROM modules a USING modules b 
+      WHERE a.id < b.id 
+        AND a.name = b.name 
+        AND (a.org_id = b.org_id OR (a.org_id IS NULL AND b.org_id IS NULL))
+    `);
+
     console.log('Seeding system modules...');
     await client.query(`
       INSERT INTO modules (name, status, category, org_id)
-      VALUES 
+      SELECT m.name, m.status, m.category, m.org_id::uuid
+      FROM (VALUES 
         ('Academic Management', 'Enabled', 'Core', NULL),
         ('Admissions & Onboarding', 'Enabled', 'Core', NULL),
         ('Finance & Billing', 'Enabled', 'Core', NULL),
@@ -1882,6 +1913,12 @@ export async function init() {
         ('Cloud Storage (Drive)', 'Enabled', 'Add-on', NULL),
         ('AI & Advanced Analytics', 'Enabled', 'Premium', NULL),
         ('E-Learning & CBT', 'Enabled', 'Premium', NULL)
+      ) AS m(name, status, category, org_id)
+      WHERE NOT EXISTS (
+        SELECT 1 FROM modules 
+        WHERE modules.name = m.name 
+          AND (modules.org_id = m.org_id::uuid OR (modules.org_id IS NULL AND m.org_id IS NULL))
+      );
     `);
 
     await client.query(`

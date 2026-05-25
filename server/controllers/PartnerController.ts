@@ -239,13 +239,13 @@ export const getAllPartners = async (req: AuthRequest, res: Response) => {
 };
 
 export const createPartner = async (req: AuthRequest, res: Response) => {
-  const { name, email, password, contact_number, company_name, registration_number, status } = req.body;
+  const { name, email, password, contact_number, company_name, registration_number, status, currency } = req.body;
   try {
     const hashedPassword = await bcrypt.hash(password || 'zxcv123$$', 10);
     const referralCode = Math.random().toString(36).substring(2, 8).toUpperCase();
     const result = await pool.query(
-      'INSERT INTO partners (name, email, password, contact_number, company_name, registration_number, referral_code, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id, name, email, contact_number, company_name, registration_number, referral_code, total_earnings, status, created_at, payout_type, bank_name, account_number, account_name, currency',
-      [name, email, hashedPassword, contact_number || '', company_name || '', registration_number || '', referralCode, status || 'Active']
+      'INSERT INTO partners (name, email, password, contact_number, company_name, registration_number, referral_code, status, currency) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id, name, email, contact_number, company_name, registration_number, referral_code, total_earnings, status, created_at, payout_type, bank_name, account_number, account_name, currency',
+      [name, email, hashedPassword, contact_number || '', company_name || '', registration_number || '', referralCode, status || 'Active', currency || 'GH₵']
     );
     res.status(201).json(result.rows[0]);
   } catch (err: any) {
@@ -258,11 +258,11 @@ export const createPartner = async (req: AuthRequest, res: Response) => {
 
 export const updatePartner = async (req: AuthRequest, res: Response) => {
   const { id } = req.params;
-  const { name, email, contact_number, company_name, registration_number, status } = req.body;
+  const { name, email, contact_number, company_name, registration_number, status, currency } = req.body;
   try {
     const result = await pool.query(
-      'UPDATE partners SET name = COALESCE($1, name), email = COALESCE($2, email), contact_number = COALESCE($3, contact_number), company_name = COALESCE($4, company_name), registration_number = COALESCE($5, registration_number), status = COALESCE($6, status) WHERE id = $7 RETURNING id, name, email, contact_number, company_name, registration_number, referral_code, total_earnings, status, created_at, payout_type, bank_name, account_number, account_name, currency',
-      [name, email, contact_number, company_name, registration_number, status, id]
+      'UPDATE partners SET name = COALESCE($1, name), email = COALESCE($2, email), contact_number = COALESCE($3, contact_number), company_name = COALESCE($4, company_name), registration_number = COALESCE($5, registration_number), status = COALESCE($6, status), currency = COALESCE($7, currency) WHERE id = $8 RETURNING id, name, email, contact_number, company_name, registration_number, referral_code, total_earnings, status, created_at, payout_type, bank_name, account_number, account_name, currency',
+      [name, email, contact_number, company_name, registration_number, status, currency, id]
     );
     if (result.rows.length === 0) return res.status(404).json({ error: 'Partner not found' });
     res.json(result.rows[0]);

@@ -3960,7 +3960,7 @@ export function PartnersManagement({ onRefresh }: { onRefresh?: () => void }) {
   const [editingPartner, setEditingPartner] = useState<any>(null);
   const [viewingPartner, setViewingPartner] = useState<any>(null);
   const [formData, setFormData] = useState({
-    name: '', email: '', password: 'zxcv123$$', contact_number: '', company_name: '', registration_number: '', status: 'Active', language: 'en'
+    name: '', email: '', password: 'zxcv123$$', contact_number: '', company_name: '', registration_number: '', status: 'Active', language: 'en', currency: 'GH₵'
   });
   const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean, partner: any | null }>({ isOpen: false, partner: null });
   const [resetConfirm, setResetConfirm] = useState<{ isOpen: boolean, partner: any | null }>({ isOpen: false, partner: null });
@@ -3982,7 +3982,7 @@ export function PartnersManagement({ onRefresh }: { onRefresh?: () => void }) {
 
   const handleAdd = () => {
     setEditingPartner(null);
-    setFormData({ name: '', email: '', password: 'zxcv123$$', contact_number: '', company_name: '', registration_number: '', status: 'Active', language: 'en' });
+    setFormData({ name: '', email: '', password: 'zxcv123$$', contact_number: '', company_name: '', registration_number: '', status: 'Active', language: 'en', currency: 'GH₵' });
     setIsModalOpen(true);
   };
 
@@ -3990,7 +3990,7 @@ export function PartnersManagement({ onRefresh }: { onRefresh?: () => void }) {
     setEditingPartner(partner);
     setFormData({
       name: partner.name, email: partner.email, password: '', contact_number: partner.contact_number || '',
-      company_name: partner.company_name || '', registration_number: partner.registration_number || '', status: partner.status || 'Active', language: partner.language || 'en'
+      company_name: partner.company_name || '', registration_number: partner.registration_number || '', status: partner.status || 'Active', language: partner.language || 'en', currency: partner.currency || 'GH₵'
     });
     setIsModalOpen(true);
   };
@@ -4203,6 +4203,20 @@ export function PartnersManagement({ onRefresh }: { onRefresh?: () => void }) {
                 <option value="pt">Portuguese</option>
                 <option value="sw">Swahili</option>
                 <option value="ar">Arabic</option>
+              </select>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <label className="text-xs font-bold uppercase text-zinc-500">Currency</label>
+              <select value={(formData as any).currency || 'GH₵'} onChange={(e) => setFormData({ ...formData, currency: e.target.value } as any)} className="w-full px-4 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm">
+                <option value="GH₵">Ghana Cedis (GH₵)</option>
+                <option value="USD">US Dollar (USD)</option>
+                <option value="NGN">Nigerian Naira (NGN)</option>
+                <option value="EUR">Euro (EUR)</option>
+                <option value="GBP">British Pound (GBP)</option>
+                <option value="CFA">CFA Franc (CFA)</option>
+                <option value="ZAR">South African Rand (ZAR)</option>
               </select>
             </div>
           </div>

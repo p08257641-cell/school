@@ -8259,16 +8259,16 @@ export const ExamModules = {
 
     return (
       <div className="space-y-6">
-        <div className="flex flex-col gap-4 bg-white dark:bg-zinc-900 p-4 sm:p-6 rounded-[1.5rem] sm:rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800 shadow-sm">
+        <div className="flex flex-col gap-3 bg-white dark:bg-zinc-900 p-4 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-            <div className="flex items-center gap-3 sm:gap-4">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-200 dark:shadow-none shrink-0">
-                <Calendar className="w-5 h-5 sm:w-6 sm:h-6" />
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-sm shrink-0">
+                <Calendar className="w-5 h-5" />
               </div>
               <div className="min-w-0">
-                <h2 className="text-lg sm:text-2xl font-black text-zinc-900 dark:text-white tracking-tight truncate">Examination Schedules</h2>
-                <div className="flex items-center gap-2 mt-1">
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 text-[10px] font-bold uppercase tracking-wider">
+                <h2 className="text-lg font-bold text-zinc-900 dark:text-white tracking-tight truncate">Examination Schedules</h2>
+                <div className="flex items-center gap-2 mt-0.5">
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 text-[9px] font-bold uppercase tracking-wider">
                     {organization?.academic_year || 'Academic Calendar'}
                   </span>
                 </div>
@@ -9424,51 +9424,60 @@ export const ExamModules = {
           </div>
         ) : showTopPerformers ? (
           <div className="space-y-8">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-indigo-600 rounded-[2.5rem] p-8 text-white relative overflow-hidden shadow-xl shadow-indigo-200 dark:shadow-none">
-              <div className="relative z-10 space-y-2">
-                <h3 className="text-2xl font-black uppercase tracking-tight">Top Performers Record</h3>
-                <p className="text-indigo-100 font-medium text-sm">Recognizing excellence across all classes and subjects.</p>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-gradient-to-br from-indigo-600 via-violet-600 to-purple-700 rounded-[2.5rem] p-8 text-white relative overflow-hidden shadow-2xl shadow-indigo-500/20 dark:shadow-none group">
+              <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 group-hover:scale-105 transition-transform duration-1000"></div>
+              <div className="absolute -top-24 -right-24 w-64 h-64 bg-white/10 blur-3xl rounded-full"></div>
+              <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-purple-500/20 blur-3xl rounded-full"></div>
+              
+              <div className="relative z-10 space-y-3">
+                <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/10 backdrop-blur-md rounded-full border border-white/20">
+                  <Trophy className="w-3 h-3 text-amber-300" />
+                  <span className="text-[10px] font-black uppercase tracking-widest text-amber-100">Hall of Fame</span>
+                </div>
+                <h3 className="text-3xl font-black uppercase tracking-tight text-white drop-shadow-md">Top Performers Record</h3>
+                <p className="text-indigo-100/90 font-medium text-sm max-w-md leading-relaxed">Recognizing excellence across all classes and subjects. Celebrate the brightest minds in your institution.</p>
               </div>
+              
               <div className="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-3 sm:gap-4 relative z-10">
-                <div className="flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/20">
-                  <Calendar className="w-4 h-4 opacity-70" />
+                <div className="flex items-center gap-2 bg-white/10 hover:bg-white/15 backdrop-blur-xl px-4 py-2.5 rounded-2xl border border-white/20 transition-all cursor-pointer">
+                  <Calendar className="w-4 h-4 text-indigo-200" />
                   <select
                     value={selectedAcademicYear}
                     onChange={(e) => setSelectedAcademicYear(e.target.value)}
-                    className="bg-transparent text-sm font-bold outline-none border-none focus:ring-0 text-zinc-900 dark:text-white"
+                    className="bg-transparent text-sm font-bold outline-none border-none focus:ring-0 text-white [&>option]:text-zinc-900 cursor-pointer"
                   >
-                    <option value="" className="text-zinc-900">All Years</option>
-                    {academicYears.map(year => <option key={year} value={year} className="text-zinc-900">{year}</option>)}
+                    <option value="">All Years</option>
+                    {academicYears.map(year => <option key={year} value={year}>{year}</option>)}
                   </select>
                 </div>
-                <div className="flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/20">
-                  <Layers className="w-4 h-4 opacity-70" />
+                <div className="flex items-center gap-2 bg-white/10 hover:bg-white/15 backdrop-blur-xl px-4 py-2.5 rounded-2xl border border-white/20 transition-all cursor-pointer">
+                  <Layers className="w-4 h-4 text-indigo-200" />
                   <select
                     value={selectedTerm}
                     onChange={(e) => setSelectedTerm(e.target.value)}
-                    className="bg-transparent text-sm font-bold outline-none border-none focus:ring-0 text-zinc-900 dark:text-white"
+                    className="bg-transparent text-sm font-bold outline-none border-none focus:ring-0 text-white [&>option]:text-zinc-900 cursor-pointer"
                   >
-                    <option value="" className="text-zinc-900">All Terms</option>
-                    {academicTerms.map(term => <option key={term} value={term} className="text-zinc-900">{term}</option>)}
+                    <option value="">All Terms</option>
+                    {academicTerms.map(term => <option key={term} value={term}>{term}</option>)}
                   </select>
                 </div>
-                <div className="flex items-center p-1 bg-white/10 backdrop-blur-md rounded-xl border border-white/20">
+                <div className="flex items-center p-1.5 bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20">
                   <button
                     onClick={() => setPerformanceGroupBy('class')}
-                    className={cn("px-4 py-1 rounded-lg text-[10px] font-black uppercase transition-all", performanceGroupBy === 'class' ? "bg-white text-indigo-600 shadow-lg" : "text-white/70 hover:text-white")}
+                    className={cn("px-5 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all", performanceGroupBy === 'class' ? "bg-white text-indigo-600 shadow-lg scale-105" : "text-white/70 hover:text-white hover:bg-white/5")}
                   >
                     Class
                   </button>
                   <button
                     onClick={() => setPerformanceGroupBy('subject')}
-                    className={cn("px-4 py-1 rounded-lg text-[10px] font-black uppercase transition-all", performanceGroupBy === 'subject' ? "bg-white text-indigo-600 shadow-lg" : "text-white/70 hover:text-white")}
+                    className={cn("px-5 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all", performanceGroupBy === 'subject' ? "bg-white text-indigo-600 shadow-lg scale-105" : "text-white/70 hover:text-white hover:bg-white/5")}
                   >
                     Subject
                   </button>
                 </div>
               </div>
-              <div className="absolute -right-10 -bottom-10 opacity-10">
-                <Trophy className="w-64 h-64 rotate-12" />
+              <div className="absolute -right-10 -bottom-10 opacity-10 group-hover:rotate-12 transition-transform duration-700">
+                <Trophy className="w-72 h-72" />
               </div>
             </div>
 
