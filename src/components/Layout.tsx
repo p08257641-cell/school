@@ -160,6 +160,9 @@ export default function Layout({
     if (currentRole === 'SUPER_ADMIN') return true;
     if (!allowedModules) return true; // Fallback if data not yet loaded
 
+    // Always allow E-Learning for key staff roles regardless of subscription
+    if (item.title === 'E-Learning' && ['SCHOOL_ADMIN', 'HOD', 'STAFF'].includes(currentRole)) return true;
+
     const moduleName = MODULE_LINK_MAP[item.title];
     if (!moduleName) return true; // General items like Dashboard always allowed
 
