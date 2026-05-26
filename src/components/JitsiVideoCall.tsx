@@ -19,6 +19,16 @@ export const JitsiVideoCall: React.FC<JitsiVideoCallProps> = ({ channel, userNam
   const [participantCount, setParticipantCount] = useState(1);
 
   useEffect(() => {
+    // Sanitize channel name - remove special characters, convert to lowercase
+    const sanitizedChannel = (channel || 'meeting')
+      .toLowerCase()
+      .replace(/[^a-z0-9\-]/g, '-')
+      .replace(/--+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 50); // Jitsi has a limit on room names
+
+    console.log('Connecting to Jitsi channel:', sanitizedChannel);
+
     // Load Jitsi script
     const script = document.createElement('script');
     script.src = 'https://meet.jit.si/external_api.js';
@@ -28,7 +38,7 @@ export const JitsiVideoCall: React.FC<JitsiVideoCallProps> = ({ channel, userNam
     script.onload = () => {
       if (containerRef.current && window.JitsiMeetExternalAPI) {
         const options = {
-          roomName: channel,
+          roomName: sanitizedChannel,
           width: '100%',
           height: '100%',
           parentNode: containerRef.current,
@@ -46,6 +56,7 @@ export const JitsiVideoCall: React.FC<JitsiVideoCallProps> = ({ channel, userNam
           interfaceConfigOverwrite: {
             MOBILE_APP_PROMO: false,
             SHOW_JITSI_WATERMARK: false,
+            TOOLBAR_TIMEOUT: 4000,
           },
         };
 
@@ -53,18 +64,27 @@ export const JitsiVideoCall: React.FC<JitsiVideoCallProps> = ({ channel, userNam
           const api = new window.JitsiMeetExternalAPI('meet.jit.si', options);
           jitsiApiRef.current = api;
 
+          console.log('Jitsi API initialized successfully');
+
           // Listen for participant changes
           api.addEventListener('participantsInfoChanged', (data: any) => {
             setParticipantCount(data.participants?.length + 1 || 1);
           });
 
           api.addEventListener('videoConferenceLeft', () => {
+            console.log('User left the conference');
             onClose();
           });
         } catch (error) {
           console.error('Jitsi initialization error:', error);
+          alert('Failed to initialize video meeting. Please try again.');
         }
       }
+    };
+
+    script.onerror = () => {
+      console.error('Failed to load Jitsi script');
+      alert('Failed to load Jitsi. Please check your internet connection.');
     };
 
     return () => {
@@ -75,7 +95,9 @@ export const JitsiVideoCall: React.FC<JitsiVideoCallProps> = ({ channel, userNam
           console.error('Error disposing Jitsi API:', error);
         }
       }
-      document.body.removeChild(script);
+      if (document.body.contains(script)) {
+        document.body.removeChild(script);
+      }
     };
   }, [channel, userName, onClose]);
 

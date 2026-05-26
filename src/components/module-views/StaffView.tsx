@@ -4322,7 +4322,17 @@ export const ELearningModules = {
                 </div>
 
                 <button 
-                  onClick={() => c.status === 'Live' && setActiveCall({ channel: c.channel })}
+                  onClick={() => {
+                    if (c.status === 'Live') {
+                      // Use channel if available, fallback to meeting_id, then generate from title
+                      const roomName = c.channel || c.meeting_id || `class-${c.title?.toLowerCase().replace(/\s+/g, '-')}-${c.id}`;
+                      if (!roomName) {
+                        (window as any).showToast?.('Unable to join: missing room identifier', 'error');
+                        return;
+                      }
+                      setActiveCall({ channel: roomName });
+                    }
+                  }}
                   disabled={c.status !== 'Live'}
                   className={cn(
                     "w-full mt-6 py-4 rounded-2xl font-bold text-sm transition-all flex items-center justify-center gap-2",
