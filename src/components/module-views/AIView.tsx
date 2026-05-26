@@ -529,7 +529,7 @@ export const AIModules = {
                 {msg.role === 'ai' ? <Bot className="w-5 h-5" /> : <Users className="w-5 h-5" />}
               </div>
               <div className={cn(
-                "p-4 rounded-2xl text-sm shadow-sm",
+                "p-4 rounded-2xl text-sm shadow-sm whitespace-pre-wrap",
                 msg.role === 'ai' ? "bg-zinc-100 dark:bg-zinc-800 rounded-tl-none text-zinc-800 dark:text-zinc-200" : "bg-indigo-600 text-white rounded-tr-none"
               )}>
                 {msg.content}
