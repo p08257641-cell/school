@@ -2,11 +2,31 @@ import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth.ts';
 import pool from '../db.ts';
 import { GoogleGenAI } from '@google/genai';
+import axios from 'axios';
 
 const getRoleHelpText = (role: string) => {
   const normalizedRole = (role || '').toUpperCase();
   
-  if (normalizedRole === 'STAFF' || normalizedRole === 'HOD' || normalizedRole === 'SCHOOL_ADMIN') {
+  if (normalizedRole === 'SCHOOL_ADMIN' || normalizedRole === 'SUPER_ADMIN') {
+    return `OmniAI Executive Console is active.
+
+📊 **Operations & Analytics:**
+• **School statistics:** \`show school statistics\` or \`school stats\`
+• **Performance predictions:** \`generate performance insights\` or \`analyze school academic data\`
+• **Whistleblower reports:** \`view recent whistleblower reports\`
+• **Audit logs:** \`show recent audit logs\`
+
+💰 **Finance & HR:**
+• **Daily collections:** \`show daily collections report\`
+• **Staff leave requests:** \`show pending staff leave requests\`
+• **Draft announcement:** \`draft a circular notice about upcoming school activities\`
+
+🎓 **Admissions & Recruitment:**
+• **Student admissions:** \`show pending student applications\`
+• **Recruitment candidates:** \`list recruitment candidates\``;
+  }
+
+  if (normalizedRole === 'STAFF' || normalizedRole === 'HOD') {
     return `OmniAI Teacher Assistant is active.
 
 📚 **Assignments:**
@@ -116,6 +136,16 @@ const detectLocalAssistantAction = (prompt: string) => {
     normalized.startsWith('get student') ||
     normalized.startsWith('student ')
   ) return 'getStudentInfo';
+
+  // Admin and Operational Local Intent Detections
+  if (normalized.includes('school statistics') || normalized.includes('school stats')) return 'getSchoolStats';
+  if (normalized.includes('whistleblower reports') || normalized.includes('whistleblower')) return 'getWhistleblowerReports';
+  if (normalized.includes('audit logs')) return 'getAuditLogs';
+  if (normalized.includes('daily collections') || normalized.includes('collections report')) return 'getDailyCollections';
+  if (normalized.includes('leave requests') || normalized.includes('staff leave')) return 'getLeaveRequests';
+  if (normalized.includes('student applications') || normalized.includes('student admissions') || normalized.includes('pending admissions') || normalized.includes('pending student applications')) return 'getAdmissions';
+  if (normalized.includes('recruitment candidates') || normalized.includes('candidates')) return 'getRecruitment';
+  if (normalized.includes('circular notice') || normalized.includes('draft circular') || normalized.includes('draft announcement')) return 'draftCircular';
   
   return 'unknown';
 };
@@ -158,6 +188,56 @@ const getGeminiResponse = async (prompt: string, orgId: string, systemPrompt?: s
   const result = await pool.query('SELECT api_key FROM gemini_api_keys WHERE org_id = $1 LIMIT 1', [orgId]);
   const apiKey = result.rows[0]?.api_key;
   if (!apiKey) return null;
+
+  if (apiKey.startsWith('gsk_')) {
+    try {
+      console.log('Detected Groq API Key, calling Groq completions API...');
+      const response = await axios.post(
+        'https://api.groq.com/openai/v1/chat/completions',
+        {
+          model: 'llama-3.3-70b-versatile',
+          messages: [
+            { role: 'system', content: systemPrompt || "You are OmniAI, a helpful assistant for SchoolHub school management system." },
+            { role: 'user', content: prompt }
+          ],
+          temperature: 0.7
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${apiKey}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      return response.data.choices[0]?.message?.content || null;
+    } catch (err: any) {
+      console.error('Groq API Error:', err?.response?.data || err);
+      // Fallback to llama-3.1-8b-instant if 70b fails
+      try {
+        const response = await axios.post(
+          'https://api.groq.com/openai/v1/chat/completions',
+          {
+            model: 'llama-3.1-8b-instant',
+            messages: [
+              { role: 'system', content: systemPrompt || "You are OmniAI, a helpful assistant for SchoolHub school management system." },
+              { role: 'user', content: prompt }
+            ],
+            temperature: 0.7
+          },
+          {
+            headers: {
+              'Authorization': `Bearer ${apiKey}`,
+              'Content-Type': 'application/json'
+            }
+          }
+        );
+        return response.data.choices[0]?.message?.content || null;
+      } catch (retryErr: any) {
+        console.error('Groq Fallback API Error:', retryErr?.response?.data || retryErr);
+        return null;
+      }
+    }
+  }
 
   try {
     const ai = new GoogleGenAI({ apiKey });
@@ -704,6 +784,165 @@ const handleLocalAttendance = async (req: AuthRequest) => {
     result.rows.map((row: any) => `• **${formatDate(row.date)}** — Status: **${row.status}**${row.clock_in ? ` (In: ${row.clock_in.slice(0,5)})` : ''}${row.clock_out ? ` (Out: ${row.clock_out.slice(0,5)})` : ''}`).join('\n');
 };
 
+const handleLocalSchoolStats = async (req: AuthRequest) => {
+  const orgId = req.user.org_id;
+
+  const classCount = await pool.query('SELECT COUNT(*) as count FROM classes WHERE org_id = $1', [orgId]);
+  const studentCount = await pool.query('SELECT COUNT(*) as count FROM students WHERE org_id = $1', [orgId]);
+  const staffCount = await pool.query('SELECT COUNT(*) as count FROM staff WHERE org_id = $1', [orgId]);
+  const deptCount = await pool.query('SELECT COUNT(*) as count FROM departments WHERE org_id = $1', [orgId]);
+  const subjectCount = await pool.query('SELECT COUNT(*) as count FROM subjects WHERE org_id = $1', [orgId]);
+
+  return `📊 **Real-time School Statistics:**
+
+• **Total Students:** ${studentCount.rows[0]?.count || 0}
+• **Total Staff Members:** ${staffCount.rows[0]?.count || 0}
+• **Total Classes:** ${classCount.rows[0]?.count || 0}
+• **Total Subjects:** ${subjectCount.rows[0]?.count || 0}
+• **Total Departments:** ${deptCount.rows[0]?.count || 0}`;
+};
+
+const handleLocalWhistleblowerReports = async (req: AuthRequest) => {
+  const orgId = req.user.org_id;
+  const result = await pool.query(
+    `SELECT title, category, urgency, status, created_at 
+     FROM whistleblower_reports 
+     WHERE org_id = $1 
+     ORDER BY created_at DESC LIMIT 5`,
+    [orgId]
+  );
+
+  if (result.rows.length === 0) {
+    return `📋 **Whistleblower Reports:**\nNo whistleblower reports have been filed.`;
+  }
+
+  return `📋 **Recent Whistleblower Reports:**\n\n` +
+    result.rows.map((r: any) => `• **${r.title}**\n  *Category:* ${r.category} | *Urgency:* ${r.urgency} | *Status:* ${r.status}\n  *Date:* ${formatDate(r.created_at)}`).join('\n\n');
+};
+
+const handleLocalAuditLogs = async (req: AuthRequest) => {
+  const orgId = req.user.org_id;
+  const result = await pool.query(
+    `SELECT a.action, a.details, a.created_at, u.name as user_name 
+     FROM audit_logs a 
+     LEFT JOIN users u ON a.user_id = u.id 
+     WHERE a.org_id = $1 
+     ORDER BY a.created_at DESC LIMIT 5`,
+    [orgId]
+  );
+
+  if (result.rows.length === 0) {
+    return `🪵 **Audit Logs:**\nNo audit logs found.`;
+  }
+
+  return `🪵 **Recent System Audit Logs:**\n\n` +
+    result.rows.map((r: any) => `• **${r.action}** by **${r.user_name || 'System'}**\n  *Details:* ${r.details}\n  *Time:* ${new Date(r.created_at).toLocaleString()}`).join('\n\n');
+};
+
+const handleLocalDailyCollections = async (req: AuthRequest) => {
+  const orgId = req.user.org_id;
+  const result = await pool.query(
+    `SELECT amount, payment_method, status, created_at 
+     FROM payments 
+     WHERE org_id = $1 AND DATE(created_at) = CURRENT_DATE 
+     ORDER BY created_at DESC`,
+    [orgId]
+  );
+
+  const totalToday = result.rows.reduce((sum: number, r: any) => sum + parseFloat(r.amount || 0), 0);
+
+  if (result.rows.length === 0) {
+    return `💰 **Daily Collections Report:**\nNo payments have been received today.`;
+  }
+
+  return `💰 **Daily Collections Report (Today):**\n\n` +
+    `• **Total Collected Today:** **₦${totalToday.toLocaleString(undefined, { minimumFractionDigits: 2 })}**\n` +
+    `• **Transaction Count:** ${result.rows.length}\n\n` +
+    `**Recent Transactions Today:**\n` +
+    result.rows.slice(0, 5).map((r: any) => `• ₦${parseFloat(r.amount).toLocaleString()} (${r.payment_method || 'Unknown'}) — Status: *${r.status}* at ${new Date(r.created_at).toLocaleTimeString()}`).join('\n');
+};
+
+const handleLocalLeaveRequests = async (req: AuthRequest) => {
+  const orgId = req.user.org_id;
+  const result = await pool.query(
+    `SELECT u.name as staff_name, l.leave_type, l.start_date, l.end_date, l.status, l.leave_days 
+     FROM leave_requests l 
+     JOIN users u ON l.user_id = u.id 
+     WHERE u.org_id = $1 AND l.status = 'Pending' 
+     ORDER BY l.created_at DESC LIMIT 5`,
+    [orgId]
+  );
+
+  if (result.rows.length === 0) {
+    return `🚪 **Staff Leave Requests:**\nThere are no pending staff leave requests at the moment.`;
+  }
+
+  return `🚪 **Pending Staff Leave Requests:**\n\n` +
+    result.rows.map((r: any) => `• **${r.staff_name}** — ${r.leave_type} (${r.leave_days || 0} days)\n  *Duration:* ${formatDate(r.start_date)} to ${formatDate(r.end_date)}`).join('\n\n');
+};
+
+const handleLocalAdmissions = async (req: AuthRequest) => {
+  const orgId = req.user.org_id;
+  const result = await pool.query(
+    `SELECT name, grade, entrance_exam_score, status 
+     FROM applications 
+     WHERE org_id = $1 AND status = 'Pending Review' 
+     ORDER BY date DESC LIMIT 5`,
+    [orgId]
+  );
+
+  if (result.rows.length === 0) {
+    return `🎓 **Pending Admissions:**\nNo new student applications are pending review.`;
+  }
+
+  return `🎓 **Pending Student Admissions (Applications):**\n\n` +
+    result.rows.map((r: any) => `• **${r.name}** for **${r.grade}**\n  *Entrance Score:* ${r.entrance_exam_score || 'N/A'}% | *Status:* ${r.status}`).join('\n\n');
+};
+
+const handleLocalRecruitment = async (req: AuthRequest) => {
+  const orgId = req.user.org_id;
+  const result = await pool.query(
+    `SELECT applicant_name, position, status, created_at 
+     FROM recruitment 
+     WHERE org_id = $1 
+     ORDER BY created_at DESC LIMIT 5`,
+    [orgId]
+  );
+
+  if (result.rows.length === 0) {
+    return `💼 **Recruitment Candidates:**\nNo recruitment candidates have applied yet.`;
+  }
+
+  return `💼 **Recent Recruitment Candidates:**\n\n` +
+    result.rows.map((r: any) => `• **${r.applicant_name}** applying for **${r.position}**\n  *Status:* ${r.status} | *Applied:* ${formatDate(r.created_at)}`).join('\n\n');
+};
+
+const handleLocalDraftCircular = async (prompt: string, req: AuthRequest) => {
+  const userName = req.user.name || 'Administrator';
+  
+  return `📢 **Draft Circular Notice:**
+
+**Subject:** Upcoming School Activities and Calendar Updates
+**Date:** ${new Date().toLocaleDateString(undefined, { dateStyle: 'long' })}
+**To:** All Parents, Teachers, and Students
+
+Dear School Community,
+
+We would like to formally announce our upcoming school activities and key calendar dates. Please take note of the following scheduled events:
+
+1. **Mid-Term Assessment Review:** Scheduled class-wide reviews will be completed by the end of next week.
+2. **Open Day & Parent-Teacher Consultations:** General parent-teacher review consultations will be held next Friday. All parents are highly encouraged to attend.
+3. **Sports Week Prep:** Sports activities will commence in the coming week. Student participation details will be shared by physical education staff.
+
+We appreciate your continued partnership in ensuring the academic excellence and holistic development of our students.
+
+Warm regards,
+
+**${userName}**
+*Office of the Administrator*
+SchoolHub Management Console`;
+};
+
 const buildSchoolContext = async (req: AuthRequest) => {
   const orgId = req.user.org_id;
   const userId = req.user.id;
@@ -922,6 +1161,22 @@ const executeLocalAssistant = async (prompt: string, req: AuthRequest) => {
       return await handleLocalListStudents(req);
     case 'getStudentInfo':
       return await handleLocalStudentInfo(prompt, req);
+    case 'getSchoolStats':
+      return await handleLocalSchoolStats(req);
+    case 'getWhistleblowerReports':
+      return await handleLocalWhistleblowerReports(req);
+    case 'getAuditLogs':
+      return await handleLocalAuditLogs(req);
+    case 'getDailyCollections':
+      return await handleLocalDailyCollections(req);
+    case 'getLeaveRequests':
+      return await handleLocalLeaveRequests(req);
+    case 'getAdmissions':
+      return await handleLocalAdmissions(req);
+    case 'getRecruitment':
+      return await handleLocalRecruitment(req);
+    case 'draftCircular':
+      return await handleLocalDraftCircular(prompt, req);
     default:
       return null; // Signal that we need freeform handling
   }
