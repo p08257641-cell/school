@@ -4163,18 +4163,65 @@ export const ELearningModules = {
     const handleCreateClass = async (e: React.FormEvent) => {
       e.preventDefault();
       try {
+        // Validate required fields
+        if (!formData.title?.trim()) {
+          (window as any).showToast?.('Please enter a class title', 'error');
+          return;
+        }
+        if (!formData.start_time) {
+          (window as any).showToast?.('Please select a start time', 'error');
+          return;
+        }
+        if (!formData.end_time) {
+          (window as any).showToast?.('Please select an end time', 'error');
+          return;
+        }
+        
+        const classIds = formData.class_ids.length > 0 ? formData.class_ids : (formData.class_id ? [formData.class_id] : []);
+        if (classIds.length === 0) {
+          (window as any).showToast?.('Please select at least one class', 'error');
+          return;
+        }
+
+        // Convert datetime-local to ISO 8601 format
+        const startDateTime = new Date(formData.start_time);
+        const endDateTime = new Date(formData.end_time);
+
+        if (isNaN(startDateTime.getTime()) || isNaN(endDateTime.getTime())) {
+          (window as any).showToast?.('Invalid date/time format', 'error');
+          return;
+        }
+
+        if (endDateTime <= startDateTime) {
+          (window as any).showToast?.('End time must be after start time', 'error');
+          return;
+        }
+
+        // Generate unique channel name for Jitsi
+        const channelName = `class-${formData.title.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}`;
+
         const payload = {
-          ...formData,
-          class_ids: formData.class_ids.length > 0 ? formData.class_ids : (formData.class_id ? [formData.class_id] : [])
+          title: formData.title,
+          description: formData.description || '',
+          subject_id: formData.subject_id || null,
+          class_ids: classIds,
+          start_time: startDateTime.toISOString(),
+          end_time: endDateTime.toISOString(),
+          teacher_id: instructorId,
+          created_by: instructorId,
+          channel: channelName,
+          status: 'Scheduled'
         };
+
         const res = await api.post('/elearning/online-classes', payload);
         setShowCreateModal(false);
-          setFormData({ title: '', description: '', class_id: '', class_ids: [], subject_id: '', start_time: '', end_time: '' });
-          fetchOnlineClasses();
-          (window as any).showToast?.('Class scheduled successfully!', 'success');
-      } catch (err) {
+        setFormData({ title: '', description: '', class_id: '', class_ids: [], subject_id: '', start_time: '', end_time: '' });
+        fetchOnlineClasses();
+        (window as any).showToast?.('Class scheduled successfully!', 'success');
+      } catch (err: any) {
         console.error(err);
-        (window as any).showToast?.('Unable to connect to the server. Please check your internet connection.', 'error');
+        const errorMsg = err?.response?.data?.message || err?.message || 'Failed to schedule class. Please check your internet connection.';
+        (window as any).showToast?.(errorMsg, 'error');
       }
     };
 
@@ -4310,7 +4357,7 @@ export const ELearningModules = {
         <Modal isOpen={showCreateModal} onClose={() => setShowCreateModal(false)} title="Schedule Online Class">
           <form onSubmit={handleCreateClass} className="space-y-4">
             <div className="space-y-1">
-              <label className="text-xs font-bold uppercase text-zinc-500">Class Title</label>
+              <label className="text-xs font-bold uppercase text-zinc-500">Class Title <span className="text-red-500">*</span></label>
               <input 
                 required
                 value={formData.title}
@@ -4325,14 +4372,14 @@ export const ELearningModules = {
                 <label className="text-xs font-bold uppercase text-zinc-500">Subject</label>
                 <SearchableSelect 
                   name="subject_id"
-                  placeholder="Select Subject"
+                  placeholder="Select Subject (optional)"
                   options={subjects.map(s => ({ value: s.id, label: s.name || s.title }))}
                   defaultValue={formData.subject_id}
                   onValueChange={(val) => setFormData({ ...formData, subject_id: val as string })}
                 />
               </div>
               <div className="space-y-1">
-                <label className="text-xs font-bold uppercase text-zinc-500">Classes</label>
+                <label className="text-xs font-bold uppercase text-zinc-500">Classes <span className="text-red-500">*</span></label>
                 <SearchableSelect 
                   name="class_ids"
                   multiple
@@ -4346,7 +4393,7 @@ export const ELearningModules = {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1">
-                <label className="text-xs font-bold uppercase text-zinc-500">Start Time</label>
+                <label className="text-xs font-bold uppercase text-zinc-500">Start Time <span className="text-red-500">*</span></label>
                 <input 
                   type="datetime-local"
                   required
@@ -4356,7 +4403,7 @@ export const ELearningModules = {
                 />
               </div>
               <div className="space-y-1">
-                <label className="text-xs font-bold uppercase text-zinc-500">End Time</label>
+                <label className="text-xs font-bold uppercase text-zinc-500">End Time <span className="text-red-500">*</span></label>
                 <input 
                   type="datetime-local"
                   required
