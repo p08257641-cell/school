@@ -369,6 +369,7 @@ router.delete('/elearning/study-materials/:id', checkRole(['STAFF', 'SCHOOL_ADMI
 router.get('/elearning/online-classes', ELearningController.getOnlineClasses);
 router.post('/elearning/online-classes', checkRole(['STAFF', 'SCHOOL_ADMIN']), ELearningController.createOnlineClass);
 router.delete('/elearning/online-classes/:id', checkRole(['STAFF', 'SCHOOL_ADMIN']), ELearningController.deleteOnlineClass);
+router.patch('/elearning/online-classes/:id/end', checkRole(['STAFF', 'SCHOOL_ADMIN']), ELearningController.endOnlineClass);
 router.post('/elearning/online-classes/auto-update-status', ELearningController.autoUpdateOnlineClassStatuses);
 
 // CBT Exams

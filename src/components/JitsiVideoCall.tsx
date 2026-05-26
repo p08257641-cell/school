@@ -4,7 +4,9 @@ import { PhoneOff, Users } from 'lucide-react';
 interface JitsiVideoCallProps {
   channel: string;
   userName?: string;
+  canEnd?: boolean;
   onClose: () => void;
+  onForceEnd?: () => void;
 }
 
 declare global {
@@ -13,7 +15,7 @@ declare global {
   }
 }
 
-export const JitsiVideoCall: React.FC<JitsiVideoCallProps> = ({ channel, userName = 'User', onClose }) => {
+export const JitsiVideoCall: React.FC<JitsiVideoCallProps> = ({ channel, userName = 'User', canEnd = false, onClose, onForceEnd }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const jitsiApiRef = useRef<any>(null);
   const [participantCount, setParticipantCount] = useState(1);
@@ -131,13 +133,22 @@ export const JitsiVideoCall: React.FC<JitsiVideoCallProps> = ({ channel, userNam
       {/* Jitsi Container */}
       <div ref={containerRef} className="flex-1 min-h-[60vh] md:min-h-[70vh]" />
 
-      {/* Leave Button */}
-      <div className="p-6 bg-zinc-900/80 backdrop-blur-xl border-t border-white/10 flex items-center justify-center">
+      {/* Leave / End Buttons */}
+      <div className="p-6 bg-zinc-900/80 backdrop-blur-xl border-t border-white/10 flex flex-col gap-3 sm:flex-row items-center justify-center">
+        {canEnd && onForceEnd && (
+          <button
+            onClick={onForceEnd}
+            className="w-full sm:w-auto px-5 py-3 bg-rose-600 hover:bg-rose-700 text-white rounded-2xl font-bold transition-all shadow-lg shadow-rose-600/20"
+          >
+            End Meeting for Everyone
+          </button>
+        )}
         <button 
           onClick={handleLeave}
-          className="w-16 h-12 bg-red-600 hover:bg-red-700 text-white rounded-2xl flex items-center justify-center transition-all shadow-lg shadow-red-600/20"
+          className="w-full sm:w-auto px-5 py-3 bg-red-600 hover:bg-red-700 text-white rounded-2xl flex items-center justify-center transition-all shadow-lg shadow-red-600/20"
         >
           <PhoneOff className="w-6 h-6" />
+          <span className="ml-2 hidden sm:inline">Leave Meeting</span>
         </button>
       </div>
     </div>

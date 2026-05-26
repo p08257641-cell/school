@@ -596,7 +596,7 @@ export const getOnlineClasses = async (req: AuthRequest, res: Response) => {
 };
 
 export const createOnlineClass = async (req: AuthRequest, res: Response) => {
-  const { title, description, class_id, class_ids, subject_id, start_time, end_time, teacher_id } = req.body;
+  const { title, description, class_id, class_ids, subject_id, start_time, end_time, teacher_id, channel } = req.body;
   try {
     const orgId = req.user.org_id;
     // Determine teacher ID: prefer explicit teacher_id, else staff record, else null
@@ -605,9 +605,10 @@ export const createOnlineClass = async (req: AuthRequest, res: Response) => {
       const staffId = await getStaffId(req);
       teacherId = staffId;
     }
+    const staffId = await getStaffId(req);
     const result = await pool.query(
-      'INSERT INTO online_classes (org_id, teacher_id, class_id, class_ids, subject_id, title, description, start_time, end_time, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *',
-      [orgId, teacherId, class_id, JSON.stringify(class_ids || []), subject_id, title, description, start_time, end_time, 'Upcoming']
+      'INSERT INTO online_classes (org_id, teacher_id, created_by, class_id, class_ids, subject_id, title, description, start_time, end_time, status, channel) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *',
+      [orgId, teacherId, staffId || null, class_id, JSON.stringify(class_ids || []), subject_id, title, description, start_time, end_time, 'Upcoming', channel || null]
     );
     await recordAuditLog(req.user.id, 'CREATE_ONLINE_CLASS', `Created online class: ${title}`, orgId, req.ip || '');
     res.status(201).json(result.rows[0]);
@@ -624,6 +625,22 @@ export const deleteOnlineClass = async (req: AuthRequest, res: Response) => {
     if (result.rows.length === 0) return res.status(404).json({ error: 'Online class not found' });
     await recordAuditLog(req.user.id, 'DELETE_ONLINE_CLASS', `Deleted online class ID: ${id}`, orgId, req.ip || '');
     res.json({ message: 'Online class deleted successfully' });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+export const endOnlineClass = async (req: AuthRequest, res: Response) => {
+  const { id } = req.params;
+  try {
+    const orgId = req.user.org_id;
+    const result = await pool.query(
+      "UPDATE online_classes SET status = 'Ended' WHERE id = $1 AND org_id = $2 RETURNING *",
+      [id, orgId]
+    );
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Online class not found' });
+    await recordAuditLog(req.user.id, 'END_ONLINE_CLASS', `Ended online class ID: ${id}`, orgId, req.ip || '');
+    res.json(result.rows[0]);
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }

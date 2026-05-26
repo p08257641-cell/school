@@ -4127,7 +4127,7 @@ export const ELearningModules = {
   },
 
   OnlineClasses: ({ subjects, classes, role, instructorId, currentUserName }: { subjects: any[], classes: any[], role?: string, instructorId?: string, currentUserName?: string }) => {
-    const [activeCall, setActiveCall] = useState<{ channel: string } | null>(null);
+    const [activeCall, setActiveCall] = useState<{ channel: string; id: string; canEnd: boolean } | null>(null);
     const [onlineClasses, setOnlineClasses] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [showCreateModal, setShowCreateModal] = useState(false);
@@ -4236,6 +4236,18 @@ export const ELearningModules = {
       }
     };
 
+    const handleEndClass = async (id: string) => {
+      try {
+        await api.patch(`/elearning/online-classes/${id}/end`);
+        fetchOnlineClasses();
+        setActiveCall(null);
+        (window as any).showToast?.('Class ended for everyone.', 'success');
+      } catch (err: any) {
+        console.error(err);
+        (window as any).showToast?.('Unable to end the class. Please try again.', 'error');
+      }
+    };
+
     useEffect(() => {
       fetchOnlineClasses();
       const interval = setInterval(async () => {
@@ -4257,7 +4269,9 @@ export const ELearningModules = {
         <JitsiVideoCall 
           channel={activeCall.channel}
           userName={currentUserName || 'Teacher'}
+          canEnd={activeCall.canEnd}
           onClose={() => setActiveCall(null)}
+          onForceEnd={() => handleEndClass(activeCall.id)}
         />
       );
     }
@@ -4330,7 +4344,7 @@ export const ELearningModules = {
                         (window as any).showToast?.('Unable to join: missing room identifier', 'error');
                         return;
                       }
-                      setActiveCall({ channel: roomName });
+                      setActiveCall({ channel: roomName, id: c.id, canEnd: !isStudent });
                     }
                   }}
                   disabled={c.status !== 'Live'}
