@@ -29,7 +29,7 @@ export const getAssignments = async (req: AuthRequest, res: Response) => {
     let whereClause = ` WHERE a.org_id = $1`;
     const params: any[] = [org_id];
 
-    if (role === 'STAFF') {
+    if (role === 'STAFF' || role === 'HOD') {
       const staffId = await getStaffId(req);
       if (staffId) {
         whereClause += ` AND a.teacher_id = $${params.length + 1}`;
@@ -64,7 +64,7 @@ export const createAssignment = async (req: AuthRequest, res: Response) => {
       const orgId = req.user.org_id;
       const staffId = await getStaffId(req);
   
-      if (!staffId && req.user.role === 'STAFF') {
+      if (!staffId && (req.user.role === 'STAFF' || req.user.role === 'HOD')) {
          return res.status(403).json({ error: 'Staff record not found for this user.' });
       }
   
@@ -246,7 +246,7 @@ export const getStudyMaterials = async (req: AuthRequest, res: Response) => {
     `;
     const params: any[] = [org_id];
 
-    if (role === 'STAFF') {
+    if (role === 'STAFF' || role === 'HOD') {
       const staffId = await getStaffId(req);
       if (staffId) {
         query += ` AND sm.teacher_id = $${params.length + 1}`;
@@ -274,7 +274,7 @@ export const createStudyMaterial = async (req: AuthRequest, res: Response) => {
     const orgId = req.user.org_id;
     const staffId = await getStaffId(req);
 
-    if (!staffId && req.user.role === 'STAFF') {
+    if (!staffId && (req.user.role === 'STAFF' || req.user.role === 'HOD')) {
        return res.status(403).json({ error: 'Staff record not found for this user.' });
     }
 
@@ -323,7 +323,7 @@ export const getCBTExams = async (req: AuthRequest, res: Response) => {
     let whereClause = ` WHERE e.org_id = $1`;
     const params: any[] = [org_id];
 
-    if (role === 'STAFF') {
+    if (role === 'STAFF' || role === 'HOD') {
       const staffId = await getStaffId(req);
       if (staffId) {
         whereClause += ` AND e.teacher_id = $${params.length + 1}`;
@@ -371,7 +371,7 @@ export const createCBTExam = async (req: AuthRequest, res: Response) => {
     const orgId = req.user.org_id;
     const staffId = await getStaffId(req);
 
-    if (!staffId && req.user.role === 'STAFF') {
+    if (!staffId && (req.user.role === 'STAFF' || req.user.role === 'HOD')) {
        return res.status(403).json({ error: 'Staff record not found for this user.' });
     }
 
@@ -622,7 +622,7 @@ export const getOnlineClasses = async (req: AuthRequest, res: Response) => {
     `;
     const params: any[] = [org_id];
 
-    if (role === 'STAFF') {
+    if (role === 'STAFF' || role === 'HOD') {
       const staffId = await getStaffId(req);
       if (staffId) {
         query += ` AND oc.teacher_id = $${params.length + 1}`;

@@ -3180,7 +3180,7 @@ export const ELearningModules = {
         const res = await api.get('/elearning/cbt-exams');
         const data = res.data;
         let examsList = Array.isArray(data) ? data : [];
-        if (role === 'STAFF' && instructorId) {
+        if ((role === 'STAFF' || role === 'HOD') && instructorId) {
           examsList = examsList.filter((e: any) => String(e.created_by) === String(instructorId) || String(e.teacher_id) === String(instructorId));
         }
         setExams(examsList);
@@ -4149,7 +4149,7 @@ export const ELearningModules = {
         const res = await api.get('/elearning/online-classes');
         const data = res.data;
         let classesList = Array.isArray(data) ? data : [];
-        if (role === 'STAFF' && instructorId) {
+        if ((role === 'STAFF' || role === 'HOD') && instructorId) {
           classesList = classesList.filter((c: any) => String(c.created_by) === String(instructorId) || String(c.teacher_id) === String(instructorId));
         }
         setOnlineClasses(classesList);
@@ -4485,7 +4485,7 @@ export const ELearningModules = {
         const res = await api.get('/elearning/assignments');
         const data = res.data;
         let assignmentsList = Array.isArray(data) ? data : [];
-        if (role === 'STAFF' && instructorId) {
+        if ((role === 'STAFF' || role === 'HOD') && instructorId) {
           assignmentsList = assignmentsList.filter((a: any) => String(a.created_by) === String(instructorId) || String(a.teacher_id) === String(instructorId));
         }
         setAssignments(assignmentsList);

@@ -319,7 +319,7 @@ export function FloatingAIChat({ organization, currentUser, currentRole }: { org
             </div>
 
             {/* Suggestions */}
-            {config.suggestions.length > 0 && messages.length <= 2 && (
+            {config.suggestions.length > 0 && (
               <div className="px-4 py-2 bg-zinc-100/70 dark:bg-zinc-900 border-t border-zinc-200 dark:border-zinc-800 flex flex-wrap gap-2 justify-center max-h-[140px] overflow-y-auto">
                 {config.suggestions.map((sug, i) => (
                   <button
