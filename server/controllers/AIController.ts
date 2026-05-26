@@ -3,22 +3,56 @@ import { AuthRequest } from '../middleware/auth.ts';
 import pool from '../db.ts';
 import { GoogleGenAI } from '@google/genai';
 
-const localAssistantHelpText = `Here is a list of commands I can help you with:
+const getRoleHelpText = (role: string) => {
+  const normalizedRole = (role || '').toUpperCase();
+  
+  if (normalizedRole === 'STAFF' || normalizedRole === 'HOD' || normalizedRole === 'SCHOOL_ADMIN') {
+    return `OmniAI Teacher Assistant is active.
 
 📚 **Assignments:**
-• **List/Show assignments:** \`list assignments\` or \`show my assignments\`
+• **List assignments:** \`list assignments\` or \`show my assignments\`
 • **Create assignment:** \`create assignment title:"..." class:"..." subject:"..." due:<YYYY-MM-DD> marks:<number> description:"..."\`
   *Example:* \`create assignment title:"Math Homework" class:"JSS 1" subject:"Algebra" due:2026-06-20 marks:50 description:"Chapter 5 exercises"\`
 
-📖 **Lesson Notes (for Staff):**
+📖 **Lesson Notes:**
 • **List lesson notes:** \`list lesson notes\` or \`my lesson notes\`
 • **Create lesson note:** \`create lesson note subject:"..." topic:"..." class:"..." content:"..."\`
   *Example:* \`create lesson note subject:"Mathematics" topic:"Fractions" class:"JSS 1" content:"In this lesson, students will understand fractions."\`
 
-🏫 **School Info:**
+🏫 **Class Scheduling & School Info:**
+• **Next class:** \`next class\` or \`when is my next class\`
 • **List classes:** \`list classes\`
 • **List students:** \`list students\`
 • **Get student details:** \`get student info name:"<student name>"\``;
+  }
+
+  if (normalizedRole === 'STUDENT') {
+    return `OmniAI Student Assistant is active.
+
+📚 **Academic Activities:**
+• **My schedule:** \`next class\` or \`when is my next class\` or \`my schedule\` or \`show timetable\`
+• **List assignments:** \`list assignments\` or \`show my assignments\`
+• **My grades:** \`my grades\` or \`show my results\`
+• **My attendance:** \`my attendance\` or \`check attendance\``;
+  }
+
+  if (normalizedRole === 'PARENT') {
+    return `OmniAI Parent Assistant is active.
+
+👶 **Ward Tracking:**
+• **Ward schedule:** \`next class\` or \`ward next class\` or \`ward timetable\`
+• **List assignments:** \`list assignments\` or \`show child assignments\`
+• **Ward grades:** \`ward grades\` or \`show child results\`
+• **Ward attendance:** \`ward attendance\` or \`check child attendance\``;
+  }
+
+  // Default fallback for general users
+  return `OmniAI Assistant is active.
+
+🏫 **General Info:**
+• **List classes:** \`list classes\`
+• **List students:** \`list students\``;
+};
 
 const parseKeyValuePairs = (text: string) => {
   const params: Record<string, string> = {};
@@ -51,12 +85,30 @@ const normalizeText = (text: string) => text.trim().toLowerCase();
 const detectLocalAssistantAction = (prompt: string) => {
   const normalized = normalizeText(prompt);
   if (normalized.includes('create assignment')) return 'createAssignment';
-  if (normalized.includes('list assignments') || normalized.includes('show assignments') || normalized.includes('my assignments')) return 'listAssignments';
+  if (normalized.includes('list assignments') || normalized.includes('show assignments') || normalized.includes('my assignments') || normalized.includes('child assignments')) return 'listAssignments';
   if (normalized.includes('create lesson note')) return 'createLessonNote';
   if (normalized.includes('list lesson notes') || normalized.includes('my lesson notes') || normalized.includes('show lesson notes')) return 'listLessonNotes';
   if (normalized.includes('list classes') || normalized.includes('show classes')) return 'listClasses';
   if (normalized.includes('list students') || normalized.includes('show students')) return 'listStudents';
   if (normalized.includes('performance predictions') || normalized.includes('analyze this school\'s academic data') || normalized.includes('student performance predictions')) return 'generatePerformancePredictions';
+  
+  if (
+    normalized.includes('next class') || 
+    normalized.includes('when is my class') || 
+    normalized.includes('my schedule') || 
+    normalized.includes('timetable') || 
+    normalized.includes('ward schedule') ||
+    normalized.includes('child schedule')
+  ) return 'getNextClass';
+
+  if (
+    normalized.includes('grades') || 
+    normalized.includes('results') || 
+    normalized.includes('marks')
+  ) return 'getGrades';
+
+  if (normalized.includes('attendance')) return 'getAttendance';
+
   if (
     normalized.includes('student info') || 
     normalized.includes('student details') || 
@@ -64,6 +116,7 @@ const detectLocalAssistantAction = (prompt: string) => {
     normalized.startsWith('get student') ||
     normalized.startsWith('student ')
   ) return 'getStudentInfo';
+  
   return 'unknown';
 };
 
@@ -218,7 +271,7 @@ const handleLocalCreateAssignment = async (prompt: string, req: AuthRequest) => 
   const description = params.description || '';
 
   if (!title || !className || !subjectName || !dueDate) {
-    return `I need title, class, subject, and due date to create an assignment.\n${localAssistantHelpText}`;
+    return `I need title, class, subject, and due date to create an assignment.\n\n${getRoleHelpText(req.user.role)}`;
   }
 
   const classId = await getClassIdByName(orgId, className);
@@ -245,23 +298,67 @@ const handleLocalListAssignments = async (req: AuthRequest) => {
   const orgId = req.user.org_id;
   const userRole = req.user.role;
   const userId = req.user.id;
-  let query = `SELECT a.title, a.due_date, a.status, c.name AS class_name, s.name AS subject_name
-               FROM assignments a
-               LEFT JOIN classes c ON a.class_id = c.id
-               LEFT JOIN subjects s ON a.subject_id = s.id
-               WHERE a.org_id = $1`;
-  const params: any[] = [orgId];
+  
+  let query = "";
+  let params: any[] = [];
+  let nameLabel = "your account";
 
-  if (userRole === 'STAFF') {
-    query += ' AND a.teacher_id = $2';
-    params.push(userId);
+  if (userRole === 'STAFF' || userRole === 'HOD') {
+    query = `SELECT a.title, a.due_date, a.status, c.name AS class_name, s.name AS subject_name
+             FROM assignments a
+             LEFT JOIN classes c ON a.class_id = c.id
+             LEFT JOIN subjects s ON a.subject_id = s.id
+             WHERE a.org_id = $1 AND a.teacher_id = $2
+             ORDER BY a.due_date ASC LIMIT 25`;
+    params = [orgId, userId];
+  } else if (userRole === 'STUDENT') {
+    const studentQuery = await pool.query(
+      `SELECT class_id, name FROM students WHERE org_id = $1 AND email = (SELECT email FROM users WHERE id = $2)`,
+      [orgId, userId]
+    );
+    const classId = studentQuery.rows[0]?.class_id;
+    if (!classId) return "You are currently not assigned to any class to view assignments.";
+    
+    query = `SELECT a.title, a.due_date, a.status, c.name AS class_name, s.name AS subject_name
+             FROM assignments a
+             LEFT JOIN classes c ON a.class_id = c.id
+             LEFT JOIN subjects s ON a.subject_id = s.id
+             WHERE a.org_id = $1 AND a.class_id = $2
+             ORDER BY a.due_date ASC LIMIT 25`;
+    params = [orgId, classId];
+    nameLabel = studentQuery.rows[0]?.name;
+  } else if (userRole === 'PARENT') {
+    const childQuery = await pool.query(
+      `SELECT id, name, class_id FROM students 
+       WHERE org_id = $1 AND LOWER(parent_email) = LOWER((SELECT email FROM users WHERE id = $2))
+       LIMIT 1`,
+      [orgId, userId]
+    );
+    if (childQuery.rows.length === 0) return "We could not find any children registered under your email.";
+    
+    const ward = childQuery.rows[0];
+    query = `SELECT a.title, a.due_date, a.status, c.name AS class_name, s.name AS subject_name
+             FROM assignments a
+             LEFT JOIN classes c ON a.class_id = c.id
+             LEFT JOIN subjects s ON a.subject_id = s.id
+             WHERE a.org_id = $1 AND a.class_id = $2
+             ORDER BY a.due_date ASC LIMIT 25`;
+    params = [orgId, ward.class_id];
+    nameLabel = ward.name;
+  } else {
+    // Fallback for admins/others
+    query = `SELECT a.title, a.due_date, a.status, c.name AS class_name, s.name AS subject_name
+             FROM assignments a
+             LEFT JOIN classes c ON a.class_id = c.id
+             LEFT JOIN subjects s ON a.subject_id = s.id
+             WHERE a.org_id = $1
+             ORDER BY a.due_date ASC LIMIT 25`;
+    params = [orgId];
   }
-
-  query += ' ORDER BY a.due_date ASC LIMIT 25';
 
   const result = await pool.query(query, params);
   if (result.rows.length === 0) {
-    return 'No assignments found for your account.';
+    return `No assignments found for ${nameLabel}.`;
   }
 
   return result.rows.map((row: any) => `• ${row.title} — ${row.class_name}/${row.subject_name} due ${formatDate(row.due_date)} (${row.status})`).join('\n');
@@ -364,6 +461,249 @@ const handleLocalStudentInfo = async (prompt: string, req: AuthRequest) => {
   return result.rows.map((row: any) => `• ${row.name}${row.admission_no ? ` (Admission No: ${row.admission_no})` : ''}${row.email ? ` — ${row.email}` : ''}${row.phone ? ` — ${row.phone}` : ''}`).join('\n');
 };
 
+const handleLocalNextClass = async (req: AuthRequest) => {
+  const orgId = req.user.org_id;
+  const userId = req.user.id;
+  const role = req.user.role;
+
+  const daysOrder = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const todayIndex = new Date().getDay();
+  const nowTime = new Date().toTimeString().split(' ')[0];
+
+  let timetableRows: any[] = [];
+  let userIdentifier = "";
+
+  if (role === 'STAFF' || role === 'HOD') {
+    const teacherId = await getTeacherIdByUserId(orgId, userId);
+    if (!teacherId) return "We could not locate your teacher record in the staff table.";
+    
+    const result = await pool.query(
+      `SELECT t.day_of_week, t.start_time, t.end_time, t.room, t.type, c.name as class_name, s.name as subject_name
+       FROM timetables t
+       JOIN classes c ON t.class_id = c.id
+       LEFT JOIN subjects s ON t.subject_id = s.id
+       WHERE t.org_id = $1 AND t.teacher_id = $2`,
+      [orgId, teacherId]
+    );
+    timetableRows = result.rows;
+    userIdentifier = "Teacher";
+  } else if (role === 'STUDENT') {
+    const studentQuery = await pool.query(
+      `SELECT id, class_id, name FROM students WHERE org_id = $1 AND email = (SELECT email FROM users WHERE id = $2)`,
+      [orgId, userId]
+    );
+    if (studentQuery.rows.length === 0) return "We could not find your student record.";
+    const classId = studentQuery.rows[0]?.class_id;
+    if (!classId) return "You are currently not assigned to any class. Please contact your administrator.";
+    
+    const result = await pool.query(
+      `SELECT t.day_of_week, t.start_time, t.end_time, t.room, t.type, s.name as subject_name, st.name as teacher_name
+       FROM timetables t
+       LEFT JOIN subjects s ON t.subject_id = s.id
+       LEFT JOIN staff st ON t.teacher_id = st.id
+       WHERE t.org_id = $1 AND t.class_id = $2`,
+      [orgId, classId]
+    );
+    timetableRows = result.rows;
+    userIdentifier = studentQuery.rows[0]?.name;
+  } else if (role === 'PARENT') {
+    const childQuery = await pool.query(
+      `SELECT id, name, class_id FROM students 
+       WHERE org_id = $1 AND LOWER(parent_email) = LOWER((SELECT email FROM users WHERE id = $2))
+       LIMIT 1`,
+      [orgId, userId]
+    );
+    if (childQuery.rows.length === 0) return "We could not find any children registered under your email.";
+    
+    const ward = childQuery.rows[0];
+    const result = await pool.query(
+      `SELECT t.day_of_week, t.start_time, t.end_time, t.room, t.type, s.name as subject_name, st.name as teacher_name
+       FROM timetables t
+       LEFT JOIN subjects s ON t.subject_id = s.id
+       LEFT JOIN staff st ON t.teacher_id = st.id
+       WHERE t.org_id = $1 AND t.class_id = $2`,
+      [orgId, ward.class_id]
+    );
+    timetableRows = result.rows;
+    userIdentifier = `your child (${ward.name})`;
+  } else {
+    return "This command is only available to Staff, Students, or Parents.";
+  }
+
+  if (timetableRows.length === 0) {
+    return `No timetable scheduled classes were found for ${userIdentifier}.`;
+  }
+
+  const parsedTimetable = timetableRows.map(row => {
+    const dayIndex = daysOrder.indexOf(row.day_of_week);
+    return {
+      ...row,
+      dayIndex
+    };
+  });
+
+  parsedTimetable.sort((a, b) => {
+    let daysDiffA = a.dayIndex - todayIndex;
+    if (daysDiffA < 0) daysDiffA += 7;
+    
+    let daysDiffB = b.dayIndex - todayIndex;
+    if (daysDiffB < 0) daysDiffB += 7;
+
+    if (daysDiffA !== daysDiffB) {
+      return daysDiffA - daysDiffB;
+    }
+    return a.start_time.localeCompare(b.start_time);
+  });
+
+  const upcomingClasses = parsedTimetable.filter(c => {
+    if (c.dayIndex === todayIndex) {
+      return c.start_time >= nowTime;
+    }
+    return true;
+  });
+
+  const nextClass = upcomingClasses[0] || parsedTimetable[0];
+  
+  if (!nextClass) {
+    return `There is no scheduled next class for ${userIdentifier}.`;
+  }
+
+  const isToday = nextClass.dayIndex === todayIndex;
+  const dayStr = isToday ? "today" : `on ${nextClass.day_of_week}`;
+  const startStr = nextClass.start_time.slice(0, 5);
+  const endStr = nextClass.end_time.slice(0, 5);
+  
+  if (role === 'STAFF' || role === 'HOD') {
+    return `🗓️ **Next Scheduled Class:**
+👉 **${nextClass.subject_name || nextClass.type}**
+• **Class:** ${nextClass.class_name}
+• **Time:** ${startStr} - ${endStr} (${dayStr})
+• **Room:** ${nextClass.room || 'N/A'}`;
+  } else {
+    return `🗓️ **Next Scheduled Class for ${userIdentifier}:**
+👉 **${nextClass.subject_name || nextClass.type}**
+• **Teacher:** ${nextClass.teacher_name || 'N/A'}
+• **Time:** ${startStr} - ${endStr} (${dayStr})
+• **Room:** ${nextClass.room || 'N/A'}`;
+  }
+};
+
+const handleLocalGrades = async (req: AuthRequest) => {
+  const orgId = req.user.org_id;
+  const userId = req.user.id;
+  const role = req.user.role;
+
+  let query = "";
+  let params: any[] = [];
+  let identifier = "";
+
+  if (role === 'STUDENT') {
+    const studentQuery = await pool.query(
+      `SELECT id, name FROM students WHERE org_id = $1 AND email = (SELECT email FROM users WHERE id = $2)`,
+      [orgId, userId]
+    );
+    if (studentQuery.rows.length === 0) return "We could not find your student record.";
+    const student = studentQuery.rows[0];
+    
+    query = `
+      SELECT r.score, r.remarks, e.title as exam_title, s.name as subject_name
+      FROM results r
+      JOIN exams e ON r.exam_id = e.id
+      LEFT JOIN subjects s ON e.subject_id = s.id
+      WHERE r.org_id = $1 AND r.student_id = $2
+      ORDER BY r.created_at DESC LIMIT 10
+    `;
+    params = [orgId, student.id];
+    identifier = "your";
+  } else if (role === 'PARENT') {
+    const childQuery = await pool.query(
+      `SELECT id, name FROM students 
+       WHERE org_id = $1 AND LOWER(parent_email) = LOWER((SELECT email FROM users WHERE id = $2))
+       LIMIT 1`,
+      [orgId, userId]
+    );
+    if (childQuery.rows.length === 0) return "We could not find any children registered under your parent account.";
+    const ward = childQuery.rows[0];
+    
+    query = `
+      SELECT r.score, r.remarks, e.title as exam_title, s.name as subject_name
+      FROM results r
+      JOIN exams e ON r.exam_id = e.id
+      LEFT JOIN subjects s ON e.subject_id = s.id
+      WHERE r.org_id = $1 AND r.student_id = $2
+      ORDER BY r.created_at DESC LIMIT 10
+    `;
+    params = [orgId, ward.id];
+    identifier = `${ward.name}'s`;
+  } else {
+    return "This command is only available to Students or Parents.";
+  }
+
+  const result = await pool.query(query, params);
+  if (result.rows.length === 0) {
+    return `No academic grades or exam results were found for ${identifier} account.`;
+  }
+
+  return `📊 **Academic Grades & Results:**\n\n` + 
+    result.rows.map((row: any) => `• **${row.subject_name || 'Exam'}** — Score: **${row.score}%** (${row.exam_title})${row.remarks ? ` — *"${row.remarks}"*` : ''}`).join('\n');
+};
+
+const handleLocalAttendance = async (req: AuthRequest) => {
+  const orgId = req.user.org_id;
+  const userId = req.user.id;
+  const role = req.user.role;
+
+  let query = "";
+  let params: any[] = [];
+  let identifier = "";
+
+  if (role === 'STUDENT') {
+    const studentQuery = await pool.query(
+      `SELECT id, name FROM students WHERE org_id = $1 AND email = (SELECT email FROM users WHERE id = $2)`,
+      [orgId, userId]
+    );
+    if (studentQuery.rows.length === 0) return "We could not find your student record.";
+    const student = studentQuery.rows[0];
+    
+    query = `
+      SELECT status, clock_in, clock_out, date
+      FROM student_attendance
+      WHERE org_id = $1 AND student_id = $2
+      ORDER BY date DESC LIMIT 10
+    `;
+    params = [orgId, student.id];
+    identifier = "your";
+  } else if (role === 'PARENT') {
+    const childQuery = await pool.query(
+      `SELECT id, name FROM students 
+       WHERE org_id = $1 AND LOWER(parent_email) = LOWER((SELECT email FROM users WHERE id = $2))
+       LIMIT 1`,
+      [orgId, userId]
+    );
+    if (childQuery.rows.length === 0) return "We could not find any children registered under your parent account.";
+    const ward = childQuery.rows[0];
+    
+    query = `
+      SELECT status, clock_in, clock_out, date
+      FROM student_attendance
+      WHERE org_id = $1 AND student_id = $2
+      ORDER BY date DESC LIMIT 10
+    `;
+    params = [orgId, ward.id];
+    identifier = `${ward.name}'s`;
+  } else {
+    return "This command is only available to Students or Parents.";
+  }
+
+  const result = await pool.query(query, params);
+  if (result.rows.length === 0) {
+    return `No attendance records were found for ${identifier} account.`;
+  }
+
+  return `📅 **Recent Attendance Record:**\n\n` + 
+    result.rows.map((row: any) => `• **${formatDate(row.date)}** — Status: **${row.status}**${row.clock_in ? ` (In: ${row.clock_in.slice(0,5)})` : ''}${row.clock_out ? ` (Out: ${row.clock_out.slice(0,5)})` : ''}`).join('\n');
+};
+
 const executeLocalAssistant = async (prompt: string, req: AuthRequest) => {
   const action = detectLocalAssistantAction(prompt);
   switch (action) {
@@ -377,6 +717,12 @@ const executeLocalAssistant = async (prompt: string, req: AuthRequest) => {
       return await handleLocalListLessonNotes(req);
     case 'generatePerformancePredictions':
       return await handleLocalPerformancePredictions(req);
+    case 'getNextClass':
+      return await handleLocalNextClass(req);
+    case 'getGrades':
+      return await handleLocalGrades(req);
+    case 'getAttendance':
+      return await handleLocalAttendance(req);
     case 'listClasses':
       return await handleLocalListClasses(req);
     case 'listStudents':
@@ -384,7 +730,7 @@ const executeLocalAssistant = async (prompt: string, req: AuthRequest) => {
     case 'getStudentInfo':
       return await handleLocalStudentInfo(prompt, req);
     default:
-      return `OmniAI Local Assistant is active.\n\n${localAssistantHelpText}`;
+      return `${getRoleHelpText(req.user.role)}`;
   }
 };
 
