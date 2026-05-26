@@ -4322,7 +4322,7 @@ export const ELearningModules = {
                 </div>
 
                 <button 
-                  onClick={() => c.status === 'Live' && setActiveCall({ channel: c.title })}
+                  onClick={() => c.status === 'Live' && setActiveCall({ channel: c.channel })}
                   disabled={c.status !== 'Live'}
                   className={cn(
                     "w-full mt-6 py-4 rounded-2xl font-bold text-sm transition-all flex items-center justify-center gap-2",
