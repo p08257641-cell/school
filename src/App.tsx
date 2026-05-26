@@ -3613,6 +3613,7 @@ export default function App() {
           }
           role={currentRole}
           instructorId={staffData?.profile?.[0]?.id}
+          currentUserName={currentUser?.name}
         />
       ),
 

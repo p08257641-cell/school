@@ -111,13 +111,13 @@ export const JitsiVideoCall: React.FC<JitsiVideoCallProps> = ({ channel, userNam
   return (
     <div className="fixed inset-0 bg-black z-[100] flex flex-col">
       {/* Header */}
-      <div className="p-4 flex items-center justify-between bg-zinc-900/50 backdrop-blur-md border-b border-white/10">
-        <div className="flex items-center gap-3">
+      <div className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between bg-zinc-900/50 backdrop-blur-md border-b border-white/10 gap-3">
+        <div className="flex items-center gap-3 w-full sm:w-auto">
           <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white font-bold">
             <Users className="w-6 h-6" />
           </div>
-          <div>
-            <h2 className="text-white font-bold">{channel}</h2>
+          <div className="truncate">
+            <h2 className="text-white font-bold truncate">{channel}</h2>
             <p className="text-zinc-400 text-xs">{participantCount} Participants</p>
           </div>
         </div>
@@ -129,7 +129,7 @@ export const JitsiVideoCall: React.FC<JitsiVideoCallProps> = ({ channel, userNam
       </div>
 
       {/* Jitsi Container */}
-      <div ref={containerRef} className="flex-1" />
+      <div ref={containerRef} className="flex-1 min-h-[60vh] md:min-h-[70vh]" />
 
       {/* Leave Button */}
       <div className="p-6 bg-zinc-900/80 backdrop-blur-xl border-t border-white/10 flex items-center justify-center">

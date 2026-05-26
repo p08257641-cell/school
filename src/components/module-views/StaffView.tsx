@@ -4126,7 +4126,7 @@ export const ELearningModules = {
     );
   },
 
-  OnlineClasses: ({ subjects, classes, role, instructorId }: { subjects: any[], classes: any[], role?: string, instructorId?: string }) => {
+  OnlineClasses: ({ subjects, classes, role, instructorId, currentUserName }: { subjects: any[], classes: any[], role?: string, instructorId?: string, currentUserName?: string }) => {
     const [activeCall, setActiveCall] = useState<{ channel: string } | null>(null);
     const [onlineClasses, setOnlineClasses] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -4256,7 +4256,7 @@ export const ELearningModules = {
       return (
         <JitsiVideoCall 
           channel={activeCall.channel}
-          userName="Teacher"
+          userName={currentUserName || 'Teacher'}
           onClose={() => setActiveCall(null)}
         />
       );
@@ -4283,8 +4283,8 @@ export const ELearningModules = {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {onlineClasses.map((c) => (
             <div key={c.id} className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl overflow-hidden group hover:shadow-2xl hover:shadow-indigo-600/5 transition-all duration-500">
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-4">
+              <div className="p-4 md:p-6">
+                <div className="flex items-center justify-between mb-4 gap-3">
                   <div className={cn(
                     "px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider",
                     c.status === 'Live' ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 animate-pulse" : 
@@ -4303,10 +4303,10 @@ export const ELearningModules = {
                   )}
                 </div>
                 
-                <h3 className="text-xl font-bold text-zinc-900 dark:text-white group-hover:text-indigo-600 transition-colors uppercase">{c.title}</h3>
-                <p className="text-zinc-500 text-sm mt-1">{c.subject_name} • {c.teacher_name}</p>
-                
-                <div className="mt-6 flex flex-col gap-2">
+                <h3 className="text-lg md:text-xl font-bold text-zinc-900 dark:text-white group-hover:text-indigo-600 transition-colors uppercase truncate">{c.title}</h3>
+                <p className="text-zinc-500 text-sm mt-1 truncate">{c.subject_name} • {c.teacher_name}</p>
+
+                <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <div className="flex items-center gap-3 p-3 bg-zinc-50 dark:bg-zinc-800/50 rounded-2xl border border-zinc-100 dark:border-zinc-800">
                     <Clock className="w-4 h-4 text-indigo-600" />
                     <span className="text-xs font-semibold text-zinc-600 dark:text-zinc-300">
@@ -4315,7 +4315,7 @@ export const ELearningModules = {
                   </div>
                   <div className="flex items-center gap-3 p-3 bg-zinc-50 dark:bg-zinc-800/50 rounded-2xl border border-zinc-100 dark:border-zinc-800">
                     <Calendar className="w-4 h-4 text-indigo-600" />
-                    <span className="text-xs font-semibold text-zinc-600 dark:text-zinc-300">
+                    <span className="text-xs font-semibold text-zinc-600 dark:text-zinc-300 truncate">
                       {new Date(c.start_time).toLocaleDateString()}
                     </span>
                   </div>
