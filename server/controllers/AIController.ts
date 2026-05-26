@@ -704,6 +704,199 @@ const handleLocalAttendance = async (req: AuthRequest) => {
     result.rows.map((row: any) => `• **${formatDate(row.date)}** — Status: **${row.status}**${row.clock_in ? ` (In: ${row.clock_in.slice(0,5)})` : ''}${row.clock_out ? ` (Out: ${row.clock_out.slice(0,5)})` : ''}`).join('\n');
 };
 
+const buildSchoolContext = async (req: AuthRequest) => {
+  const orgId = req.user.org_id;
+  const userId = req.user.id;
+  const role = req.user.role;
+  const userName = req.user.name || 'User';
+  const parts: string[] = [];
+
+  parts.push(`User: ${userName}, Role: ${role}`);
+
+  try {
+    // Organization info
+    const orgResult = await pool.query('SELECT name FROM organizations WHERE id = $1', [orgId]);
+    if (orgResult.rows[0]) parts.push(`School: ${orgResult.rows[0].name}`);
+  } catch {}
+
+  try {
+    // Class count
+    const classResult = await pool.query('SELECT COUNT(*) as count FROM classes WHERE org_id = $1', [orgId]);
+    parts.push(`Total classes in school: ${classResult.rows[0]?.count || 0}`);
+  } catch {}
+
+  try {
+    // Student count
+    const studentResult = await pool.query('SELECT COUNT(*) as count FROM students WHERE org_id = $1', [orgId]);
+    parts.push(`Total students in school: ${studentResult.rows[0]?.count || 0}`);
+  } catch {}
+
+  if (role === 'STAFF' || role === 'HOD') {
+    try {
+      const teacherId = await getTeacherIdByUserId(orgId, userId);
+      if (teacherId) {
+        // Classes this teacher teaches
+        const teachingResult = await pool.query(
+          `SELECT DISTINCT c.name, c.section FROM timetables t
+           JOIN classes c ON t.class_id = c.id
+           WHERE t.org_id = $1 AND t.teacher_id = $2 AND t.type = 'Lesson'`,
+          [orgId, teacherId]
+        );
+        parts.push(`Classes this teacher teaches: ${teachingResult.rows.length}`);
+        if (teachingResult.rows.length > 0) {
+          parts.push(`Class list: ${teachingResult.rows.map((r: any) => `${r.name}${r.section ? ' ' + r.section : ''}`).join(', ')}`);
+        }
+
+        // Subjects this teacher teaches
+        const subjectsResult = await pool.query(
+          `SELECT DISTINCT s.name FROM timetables t
+           JOIN subjects s ON t.subject_id = s.id
+           WHERE t.org_id = $1 AND t.teacher_id = $2`,
+          [orgId, teacherId]
+        );
+        if (subjectsResult.rows.length > 0) {
+          parts.push(`Subjects: ${subjectsResult.rows.map((r: any) => r.name).join(', ')}`);
+        }
+
+        // Timetable slots per week
+        const slotsResult = await pool.query(
+          `SELECT COUNT(*) as count FROM timetables WHERE org_id = $1 AND teacher_id = $2 AND type = 'Lesson'`,
+          [orgId, teacherId]
+        );
+        parts.push(`Total teaching periods per week: ${slotsResult.rows[0]?.count || 0}`);
+
+        // Assignment count
+        const assignResult = await pool.query(
+          `SELECT COUNT(*) as count FROM assignments WHERE org_id = $1 AND teacher_id = $2`,
+          [orgId, userId]
+        );
+        parts.push(`Assignments created by teacher: ${assignResult.rows[0]?.count || 0}`);
+
+        // Lesson notes
+        const notesResult = await pool.query(
+          `SELECT COUNT(*) as total, 
+                  COUNT(*) FILTER (WHERE status = 'Draft') as draft,
+                  COUNT(*) FILTER (WHERE status = 'Approved') as approved
+           FROM lesson_notes WHERE org_id = $1 AND teacher_id = $2`,
+          [orgId, teacherId]
+        );
+        const n = notesResult.rows[0];
+        parts.push(`Lesson notes: ${n?.total || 0} total (${n?.draft || 0} draft, ${n?.approved || 0} approved)`);
+      }
+    } catch {}
+  } else if (role === 'STUDENT') {
+    try {
+      const studentQuery = await pool.query(
+        `SELECT id, name, class_id, gpa, admission_no FROM students WHERE org_id = $1 AND email = (SELECT email FROM users WHERE id = $2)`,
+        [orgId, userId]
+      );
+      const student = studentQuery.rows[0];
+      if (student) {
+        parts.push(`Student name: ${student.name}, Admission No: ${student.admission_no || 'N/A'}, GPA: ${student.gpa || '0.0'}`);
+        if (student.class_id) {
+          const classInfo = await pool.query('SELECT name, section FROM classes WHERE id = $1', [student.class_id]);
+          if (classInfo.rows[0]) parts.push(`Enrolled class: ${classInfo.rows[0].name} ${classInfo.rows[0].section || ''}`);
+        }
+      }
+    } catch {}
+  } else if (role === 'PARENT') {
+    try {
+      const children = await pool.query(
+        `SELECT name, class_id, gpa, admission_no FROM students
+         WHERE org_id = $1 AND LOWER(parent_email) = LOWER((SELECT email FROM users WHERE id = $2))`,
+        [orgId, userId]
+      );
+      if (children.rows.length > 0) {
+        parts.push(`Children: ${children.rows.map((c: any) => `${c.name} (GPA: ${c.gpa || '0.0'})`).join(', ')}`);
+      }
+    } catch {}
+  } else if (role === 'SCHOOL_ADMIN' || role === 'SUPER_ADMIN') {
+    try {
+      const staffResult = await pool.query('SELECT COUNT(*) as count FROM staff WHERE org_id = $1', [orgId]);
+      parts.push(`Total staff: ${staffResult.rows[0]?.count || 0}`);
+      const deptResult = await pool.query('SELECT COUNT(*) as count FROM departments WHERE org_id = $1', [orgId]);
+      parts.push(`Total departments: ${deptResult.rows[0]?.count || 0}`);
+      const subjectResult = await pool.query('SELECT COUNT(*) as count FROM subjects WHERE org_id = $1', [orgId]);
+      parts.push(`Total subjects: ${subjectResult.rows[0]?.count || 0}`);
+    } catch {}
+  }
+
+  return parts.join('\n');
+};
+
+const handleFreeformLocally = async (prompt: string, req: AuthRequest) => {
+  const orgId = req.user.org_id;
+  const userId = req.user.id;
+  const role = req.user.role;
+  const normalized = normalizeText(prompt);
+
+  // How many classes do I teach?
+  if ((role === 'STAFF' || role === 'HOD') && (normalized.includes('how many class') || normalized.includes('classes do i teach') || normalized.includes('classes i teach'))) {
+    const teacherId = await getTeacherIdByUserId(orgId, userId);
+    if (!teacherId) return "We could not locate your teacher profile in the staff records.";
+    const result = await pool.query(
+      `SELECT DISTINCT c.name, c.section FROM timetables t
+       JOIN classes c ON t.class_id = c.id
+       WHERE t.org_id = $1 AND t.teacher_id = $2 AND t.type = 'Lesson'`,
+      [orgId, teacherId]
+    );
+    if (result.rows.length === 0) return "You currently have no classes assigned to you on the timetable.";
+    const classList = result.rows.map((r: any) => `• ${r.name}${r.section ? ` (${r.section})` : ''}`).join('\n');
+    return `You teach **${result.rows.length}** class(es):\n\n${classList}`;
+  }
+
+  // How many subjects do I teach?
+  if ((role === 'STAFF' || role === 'HOD') && (normalized.includes('how many subject') || normalized.includes('subjects do i teach') || normalized.includes('subjects i teach') || normalized.includes('what subject'))) {
+    const teacherId = await getTeacherIdByUserId(orgId, userId);
+    if (!teacherId) return "We could not locate your teacher profile in the staff records.";
+    const result = await pool.query(
+      `SELECT DISTINCT s.name FROM timetables t
+       JOIN subjects s ON t.subject_id = s.id
+       WHERE t.org_id = $1 AND t.teacher_id = $2`,
+      [orgId, teacherId]
+    );
+    if (result.rows.length === 0) return "You currently have no subjects assigned to you.";
+    const subList = result.rows.map((r: any) => `• ${r.name}`).join('\n');
+    return `You teach **${result.rows.length}** subject(s):\n\n${subList}`;
+  }
+
+  // How many students (school-wide or in my class)?
+  if (normalized.includes('how many student')) {
+    if (role === 'STUDENT') {
+      const studentQuery = await pool.query(
+        `SELECT class_id FROM students WHERE org_id = $1 AND email = (SELECT email FROM users WHERE id = $2)`,
+        [orgId, userId]
+      );
+      const classId = studentQuery.rows[0]?.class_id;
+      if (classId) {
+        const result = await pool.query('SELECT COUNT(*) as count FROM students WHERE org_id = $1 AND class_id = $2', [orgId, classId]);
+        return `There are **${result.rows[0]?.count || 0}** students in your class.`;
+      }
+    }
+    const result = await pool.query('SELECT COUNT(*) as count FROM students WHERE org_id = $1', [orgId]);
+    return `There are **${result.rows[0]?.count || 0}** students in the school.`;
+  }
+
+  // How many staff / teachers?
+  if (normalized.includes('how many staff') || normalized.includes('how many teacher')) {
+    const result = await pool.query('SELECT COUNT(*) as count FROM staff WHERE org_id = $1', [orgId]);
+    return `There are **${result.rows[0]?.count || 0}** staff members in the school.`;
+  }
+
+  // What's my GPA / academic standing?
+  if (role === 'STUDENT' && (normalized.includes('my gpa') || normalized.includes('academic standing'))) {
+    const result = await pool.query(
+      `SELECT name, gpa FROM students WHERE org_id = $1 AND email = (SELECT email FROM users WHERE id = $2)`,
+      [orgId, userId]
+    );
+    const student = result.rows[0];
+    if (!student) return "We could not find your student record.";
+    return `Your current GPA is **${student.gpa || '0.0'}**.`;
+  }
+
+  return null; // Not handled locally
+};
+
 const executeLocalAssistant = async (prompt: string, req: AuthRequest) => {
   const action = detectLocalAssistantAction(prompt);
   switch (action) {
@@ -730,7 +923,7 @@ const executeLocalAssistant = async (prompt: string, req: AuthRequest) => {
     case 'getStudentInfo':
       return await handleLocalStudentInfo(prompt, req);
     default:
-      return `${getRoleHelpText(req.user.role)}`;
+      return null; // Signal that we need freeform handling
   }
 };
 
@@ -744,17 +937,38 @@ export const generateResponse = async (req: AuthRequest, res: Response) => {
 
   try {
     const orgId = req.user.org_id;
-    const action = detectLocalAssistantAction(prompt);
 
-    if (action === 'unknown') {
-      const geminiText = await getGeminiResponse(prompt, orgId, systemPrompt);
-      if (geminiText) {
-        return res.json({ text: geminiText });
-      }
+    // 1. Try known local commands first
+    const localText = await executeLocalAssistant(prompt, req);
+    if (localText) {
+      return res.json({ text: localText });
     }
 
-    const localText = await executeLocalAssistant(prompt, req);
-    return res.json({ text: localText });
+    // 2. Try local freeform handler for common DB-answerable questions
+    const freeformAnswer = await handleFreeformLocally(prompt, req);
+    if (freeformAnswer) {
+      return res.json({ text: freeformAnswer });
+    }
+
+    // 3. Try Gemini with rich school context for truly open-ended questions
+    const schoolContext = await buildSchoolContext(req);
+    const enrichedSystemPrompt = `You are OmniAI, an intelligent school management assistant for SchoolHub.
+You have access to the following real-time school data about the current user and their school:
+
+${schoolContext}
+
+Answer the user's question based on this data. Be concise, friendly, and helpful. Use emoji where appropriate.
+If the data doesn't contain enough info to answer, say so honestly and suggest what command they could try.
+Do NOT make up data that isn't provided above.
+${systemPrompt ? `\nAdditional context: ${systemPrompt}` : ''}`;
+
+    const geminiText = await getGeminiResponse(prompt, orgId, enrichedSystemPrompt);
+    if (geminiText) {
+      return res.json({ text: geminiText });
+    }
+
+    // 4. Final fallback: role-aware help text
+    return res.json({ text: getRoleHelpText(req.user.role) });
   } catch (err: any) {
     console.error('AI Assistant Error:', err);
     return res.status(500).json({ error: 'AI processing failed', message: err.message || 'An internal error occurred while processing the AI response.' });
