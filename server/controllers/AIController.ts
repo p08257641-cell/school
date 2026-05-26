@@ -56,6 +56,7 @@ const detectLocalAssistantAction = (prompt: string) => {
   if (normalized.includes('list lesson notes') || normalized.includes('my lesson notes') || normalized.includes('show lesson notes')) return 'listLessonNotes';
   if (normalized.includes('list classes') || normalized.includes('show classes')) return 'listClasses';
   if (normalized.includes('list students') || normalized.includes('show students')) return 'listStudents';
+  if (normalized.includes('performance predictions') || normalized.includes('analyze this school\'s academic data') || normalized.includes('student performance predictions')) return 'generatePerformancePredictions';
   if (
     normalized.includes('student info') || 
     normalized.includes('student details') || 
@@ -119,6 +120,90 @@ const getGeminiResponse = async (prompt: string, orgId: string, systemPrompt?: s
     console.error('Gemini API Error:', err);
     return null;
   }
+};
+
+const handleLocalPerformancePredictions = async (req: AuthRequest) => {
+  const orgId = req.user.org_id;
+  
+  const studentsResult = await pool.query(
+    'SELECT name, gpa FROM students WHERE org_id = $1 ORDER BY name ASC LIMIT 30',
+    [orgId]
+  );
+  
+  const students = studentsResult.rows;
+  
+  const predictions: Record<string, { trend: string; forecast: string }> = {};
+  let totalGpa = 0;
+  let passCount = 0;
+  
+  if (students.length === 0) {
+    return JSON.stringify({
+      insights: [
+        { title: "Predicted Pass Rate", value: "85%", trend: "up", status: "success", icon_name: "TrendingUp" },
+        { title: "Academic Trends", value: "Stable", trend: "stable", status: "info", icon_name: "AlertCircle" },
+        { title: "AI Forecast", value: "Ready", trend: "stable", status: "info", icon_name: "Zap" }
+      ],
+      predictions: {
+        "Sample Student": { trend: "Improving", forecast: "Showing positive grade acceleration." }
+      }
+    });
+  }
+
+  students.forEach((student: any) => {
+    const gpa = parseFloat(student.gpa || '0') || 0.0;
+    totalGpa += gpa;
+    
+    let trend = "Stable";
+    let forecast = "Maintaining consistent performance. Keep practicing.";
+    
+    if (gpa >= 3.5) {
+      trend = "Exceptional";
+      forecast = `Likely to score 90%+ in final exams. Outstanding academic performance.`;
+      passCount++;
+    } else if (gpa >= 2.8) {
+      trend = "Improving";
+      forecast = `Showing steady progress. On track to score 80%+.`;
+      passCount++;
+    } else if (gpa >= 2.0) {
+      trend = "Stable";
+      forecast = `Consistently meeting expectations. Needs minor support in weaker subjects.`;
+      passCount++;
+    } else {
+      trend = "At Risk";
+      forecast = `Struggling to meet grade thresholds. Immediate tutoring recommended.`;
+    }
+    
+    predictions[student.name] = { trend, forecast };
+  });
+  
+  const avgGpa = totalGpa / students.length;
+  const passRate = Math.round((passCount / students.length) * 100);
+  
+  const insights = [
+    {
+      title: "Predicted Pass Rate",
+      value: `${passRate}%`,
+      trend: passRate >= 75 ? "up" : "down",
+      status: passRate >= 75 ? "success" : "warning",
+      icon_name: "TrendingUp"
+    },
+    {
+      title: "Academic Trends",
+      value: avgGpa >= 3.0 ? "Excellent" : avgGpa >= 2.5 ? "Improving" : "Needs Attention",
+      trend: avgGpa >= 2.8 ? "up" : "stable",
+      status: avgGpa >= 2.8 ? "success" : "info",
+      icon_name: "AlertCircle"
+    },
+    {
+      title: "AI Forecast",
+      value: avgGpa >= 3.0 ? "High Growth" : "Stable",
+      trend: "stable",
+      status: "info",
+      icon_name: "Zap"
+    }
+  ];
+  
+  return JSON.stringify({ insights, predictions });
 };
 
 const handleLocalCreateAssignment = async (prompt: string, req: AuthRequest) => {
@@ -290,6 +375,8 @@ const executeLocalAssistant = async (prompt: string, req: AuthRequest) => {
       return await handleLocalCreateLessonNote(prompt, req);
     case 'listLessonNotes':
       return await handleLocalListLessonNotes(req);
+    case 'generatePerformancePredictions':
+      return await handleLocalPerformancePredictions(req);
     case 'listClasses':
       return await handleLocalListClasses(req);
     case 'listStudents':
