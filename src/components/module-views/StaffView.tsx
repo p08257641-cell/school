@@ -4469,7 +4469,7 @@ export const ELearningModules = {
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const [formData, setFormData] = useState({
-      title: '', description: '', class_id: '', subject_id: '', due_date: '', total_marks: 100
+      title: '', description: '', class_id: '', subject_id: '', due_date: '', total_marks: 5
     });
 
     const isStudent = role === 'STUDENT' || role === 'PARENT';
@@ -4513,7 +4513,7 @@ export const ELearningModules = {
         const res = await api.post('/elearning/assignments', payload);
         if (res.status === 200 || res.status === 201) {
           setShowCreateModal(false);
-          setFormData({ title: '', description: '', class_id: '', subject_id: '', due_date: '', total_marks: 100 });
+          setFormData({ title: '', description: '', class_id: '', subject_id: '', due_date: '', total_marks: 5 });
           fetchData();
           (window as any).showToast?.('Assignment created successfully!', 'success');
         }
