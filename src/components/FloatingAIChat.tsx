@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Bot, X, Send, Minus, Maximize2, MessageSquare, Sparkles, User } from 'lucide-react';
-import { GoogleGenAI } from "@google/genai";
 import { cn } from '../lib/utils';
 import { safeAiFetch } from '../lib/aiUtils';
 import { generateAIResponse } from '../lib/api';
@@ -187,7 +186,7 @@ export function FloatingAIChat({ organization, currentUser, currentRole }: { org
                 </button>
               </div>
               <p className="text-[10px] text-center text-zinc-500 mt-2 flex items-center justify-center gap-1">
-                <Sparkles className="w-3 h-3" /> Powered by Groq AI
+                <Sparkles className="w-3 h-3" /> Powered by AI Assistant
               </p>
             </div>
           </motion.div>
