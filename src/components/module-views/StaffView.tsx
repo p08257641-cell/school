@@ -4505,14 +4505,22 @@ export const ELearningModules = {
     const handleCreateAssignment = async (e: React.FormEvent) => {
       e.preventDefault();
       try {
-        const res = await api.post('/elearning/assignments', formData);
+        const payload = {
+          ...formData,
+          class_id: formData.class_id || null,
+          subject_id: formData.subject_id || null,
+        };
+        const res = await api.post('/elearning/assignments', payload);
         if (res.status === 200 || res.status === 201) {
           setShowCreateModal(false);
+          setFormData({ title: '', description: '', class_id: '', subject_id: '', due_date: '', total_marks: 100 });
           fetchData();
           (window as any).showToast?.('Assignment created successfully!', 'success');
         }
-      } catch (err) {
+      } catch (err: any) {
         console.error(err);
+        const errorMsg = err?.response?.data?.error || err?.response?.data?.message || err?.message || 'Failed to create assignment';
+        (window as any).showToast?.(errorMsg, 'error');
       }
     };
 
@@ -4811,14 +4819,22 @@ export const ELearningModules = {
     const handleUpload = async (e: React.FormEvent) => {
       e.preventDefault();
       try {
-        const res = await api.post('/elearning/study-materials', formData);
+        const payload = {
+          ...formData,
+          class_id: formData.class_id || null,
+          subject_id: formData.subject_id || null,
+        };
+        const res = await api.post('/elearning/study-materials', payload);
         if (res.status === 200 || res.status === 201) {
           setShowUploadModal(false);
+          setFormData({ title: '', description: '', class_id: '', subject_id: '', file_url: '', file_type: 'PDF' });
           fetchData();
           (window as any).showToast?.('Study Material uploaded successfully!', 'success');
         }
-      } catch (err) {
+      } catch (err: any) {
         console.error(err);
+        const errorMsg = err?.response?.data?.error || err?.response?.data?.message || err?.message || 'Failed to upload material';
+        (window as any).showToast?.(errorMsg, 'error');
       }
     };
 
