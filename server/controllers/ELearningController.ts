@@ -111,6 +111,56 @@ export const deleteAssignment = async (req: AuthRequest, res: Response) => {
   }
 };
 
+// ASSIGNMENT QUESTIONS
+export const getAssignmentQuestions = async (req: AuthRequest, res: Response) => {
+  const { assignment_id } = req.params;
+  try {
+    const result = await pool.query('SELECT * FROM assignment_questions WHERE assignment_id = $1 ORDER BY created_at ASC', [assignment_id]);
+    res.json(result.rows);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+export const addAssignmentQuestion = async (req: AuthRequest, res: Response) => {
+  const { assignment_id, question_text, points } = req.body;
+  try {
+    const result = await pool.query(
+      'INSERT INTO assignment_questions (assignment_id, question_text, points) VALUES ($1, $2, $3) RETURNING *',
+      [assignment_id, question_text, points || 0]
+    );
+    res.status(201).json(result.rows[0]);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+export const updateAssignmentQuestion = async (req: AuthRequest, res: Response) => {
+  const { id } = req.params;
+  const { question_text, points } = req.body;
+  try {
+    const result = await pool.query(
+      'UPDATE assignment_questions SET question_text = COALESCE($1, question_text), points = COALESCE($2, points) WHERE id = $3 RETURNING *',
+      [question_text, points, id]
+    );
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Question not found' });
+    res.json(result.rows[0]);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+export const deleteAssignmentQuestion = async (req: AuthRequest, res: Response) => {
+  const { id } = req.params;
+  try {
+    const result = await pool.query('DELETE FROM assignment_questions WHERE id = $1 RETURNING *', [id]);
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Question not found' });
+    res.json({ message: 'Question deleted successfully' });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
 // SUBMISSIONS
 export const getSubmissions = async (req: AuthRequest, res: Response) => {
   const { assignment_id } = req.query;

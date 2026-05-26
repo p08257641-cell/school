@@ -356,6 +356,13 @@ router.get('/elearning/assignments', ELearningController.getAssignments);
 router.post('/elearning/assignments', checkRole(['STAFF', 'SCHOOL_ADMIN']), ELearningController.createAssignment);
 router.patch('/elearning/assignments/:id', checkRole(['STAFF', 'SCHOOL_ADMIN']), ELearningController.updateAssignment);
 router.delete('/elearning/assignments/:id', checkRole(['STAFF', 'SCHOOL_ADMIN']), ELearningController.deleteAssignment);
+
+// Assignment Questions
+router.get('/elearning/assignment-questions/:assignment_id', ELearningController.getAssignmentQuestions);
+router.post('/elearning/assignment-questions', checkRole(['STAFF', 'SCHOOL_ADMIN']), ELearningController.addAssignmentQuestion);
+router.patch('/elearning/assignment-questions/:id', checkRole(['STAFF', 'SCHOOL_ADMIN']), ELearningController.updateAssignmentQuestion);
+router.delete('/elearning/assignment-questions/:id', checkRole(['STAFF', 'SCHOOL_ADMIN']), ELearningController.deleteAssignmentQuestion);
+
 router.get('/elearning/submissions', ELearningController.getSubmissions);
 router.post('/elearning/assignments/:id/submit', ELearningController.submitAssignment);
 router.patch('/elearning/submissions/:id/grade', checkRole(['STAFF', 'SCHOOL_ADMIN']), ELearningController.gradeSubmission);
@@ -523,7 +530,7 @@ router.patch('/students/:id', checkRole(['SUPER_ADMIN', 'SCHOOL_ADMIN']), async 
     name, email, parent_email, parent_password, status, gpa, admission_no, class_id, parent_name, contact, entrance_exam_score,
     profile_pic, previous_school_profile_pic, fee_status, fee_amount,
     math_score, english_score, science_score, interview_score, previous_school, custom_scores, date_of_birth, gender, date_enrolled,
-    secondary_parent_name, secondary_parent_email, secondary_parent_contact, religion
+    secondary_parent_name, secondary_parent_email, secondary_parent_contact, religion, batch
   } = req.body;
   try {
     const orgId = req.user.org_id;
@@ -534,7 +541,7 @@ router.patch('/students/:id', checkRole(['SUPER_ADMIN', 'SCHOOL_ADMIN']), async 
     }
 
     const result = await pool.query(
-      'UPDATE students SET name = $1, email = $2, parent_email = $3, status = $4, gpa = $5, admission_no = $6, class_id = $7, parent_name = $8, contact = $9, entrance_exam_score = $10, profile_pic = $11, previous_school_profile_pic = $12, fee_status = $13, fee_amount = $14, math_score = $15, english_score = $16, science_score = $17, interview_score = $18, previous_school = $19, custom_scores = $20, date_of_birth = $21, gender = $22, date_enrolled = $23, parent_password = COALESCE($24, parent_password), secondary_parent_name = $27, secondary_parent_email = $28, secondary_parent_contact = $29, religion = $30 WHERE id = $25 AND org_id = $26 RETURNING *',
+      'UPDATE students SET name = $1, email = $2, parent_email = $3, status = $4, gpa = $5, admission_no = $6, class_id = $7, parent_name = $8, contact = $9, entrance_exam_score = $10, profile_pic = $11, previous_school_profile_pic = $12, fee_status = $13, fee_amount = $14, math_score = $15, english_score = $16, science_score = $17, interview_score = $18, previous_school = $19, custom_scores = $20, date_of_birth = $21, gender = $22, date_enrolled = $23, parent_password = COALESCE($24, parent_password), secondary_parent_name = $27, secondary_parent_email = $28, secondary_parent_contact = $29, religion = $30, batch = $31 WHERE id = $25 AND org_id = $26 RETURNING *',
       [
         name,
         email,
@@ -565,7 +572,8 @@ router.patch('/students/:id', checkRole(['SUPER_ADMIN', 'SCHOOL_ADMIN']), async 
         secondary_parent_name || null,
         secondary_parent_email || null,
         secondary_parent_contact || null,
-        religion || null
+        religion || null,
+        batch || null
       ]
     );
     if (result.rows.length === 0) return res.status(404).json({ error: 'Student not found' });

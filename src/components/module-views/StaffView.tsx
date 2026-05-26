@@ -4467,6 +4467,12 @@ export const ELearningModules = {
     const [submissions, setSubmissions] = useState<any[]>([]);
     const [submissionContent, setSubmissionContent] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
+    
+    // Assignment Questions State
+    const [showQuestionsModal, setShowQuestionsModal] = useState(false);
+    const [assignmentQuestions, setAssignmentQuestions] = useState<any[]>([]);
+    const [questionFormData, setQuestionFormData] = useState({ id: '', question_text: '', points: 0 });
+    const [editingQuestion, setEditingQuestion] = useState(false);
 
     const [formData, setFormData] = useState({
       title: '', description: '', class_id: '', subject_id: '', due_date: '', total_marks: 5
@@ -4554,6 +4560,45 @@ export const ELearningModules = {
           fetchData();
           (window as any).showToast?.('Assignment deleted successfully!', 'success');
         }
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    const fetchQuestions = async (assignmentId: string) => {
+      try {
+        const res = await api.get(`/elearning/assignment-questions/${assignmentId}`);
+        setAssignmentQuestions(Array.isArray(res.data) ? res.data : []);
+      } catch (err) {
+        console.error(err);
+        setAssignmentQuestions([]);
+      }
+    };
+
+    const handleSaveQuestion = async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!selectedAssignment) return;
+      try {
+        if (editingQuestion) {
+          await api.patch(`/elearning/assignment-questions/${questionFormData.id}`, questionFormData);
+          (window as any).showToast?.('Question updated!', 'success');
+        } else {
+          await api.post('/elearning/assignment-questions', { ...questionFormData, assignment_id: selectedAssignment.id });
+          (window as any).showToast?.('Question added!', 'success');
+        }
+        setQuestionFormData({ id: '', question_text: '', points: 0 });
+        setEditingQuestion(false);
+        fetchQuestions(selectedAssignment.id);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    const handleDeleteQuestion = async (id: string) => {
+      if (!confirm('Delete this question?')) return;
+      try {
+        await api.delete(`/elearning/assignment-questions/${id}`);
+        if (selectedAssignment) fetchQuestions(selectedAssignment.id);
       } catch (err) {
         console.error(err);
       }
@@ -4676,6 +4721,12 @@ export const ELearningModules = {
                   ) : (
                     <>
                       <button 
+                        onClick={() => { setSelectedAssignment(item); setShowQuestionsModal(true); fetchQuestions(item.id); }}
+                        className="text-xs font-bold text-indigo-600 hover:text-indigo-700"
+                      >
+                        Questions
+                      </button>
+                      <button 
                         onClick={() => { setSelectedAssignment(item); setViewSubmissions(true); fetchSubmissions(item.id); }}
                         className="text-xs font-bold text-indigo-600 hover:text-indigo-700"
                       >
@@ -4786,6 +4837,88 @@ export const ELearningModules = {
               {isSubmitting ? 'Submitting...' : 'Submit Assignment'}
             </button>
           </form>
+        </Modal>
+
+        {/* Questions Management Modal */}
+        <Modal isOpen={showQuestionsModal} onClose={() => setShowQuestionsModal(false)} title={`Questions: ${selectedAssignment?.title}`} maxWidth="max-w-3xl">
+          <div className="space-y-6">
+            <div className="bg-zinc-50 dark:bg-zinc-800/50 p-4 rounded-2xl border border-zinc-200 dark:border-zinc-700">
+              <form onSubmit={handleSaveQuestion} className="space-y-4">
+                <div className="space-y-1">
+                  <label className="text-xs font-bold uppercase text-zinc-500">Question Text</label>
+                  <textarea 
+                    required
+                    value={questionFormData.question_text}
+                    onChange={(e) => setQuestionFormData({ ...questionFormData, question_text: e.target.value })}
+                    className="w-full px-4 py-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500 min-h-[80px]" 
+                  />
+                </div>
+                <div className="flex gap-4 items-end">
+                  <div className="space-y-1 w-32">
+                    <label className="text-xs font-bold uppercase text-zinc-500">Points</label>
+                    <input 
+                      type="number"
+                      required
+                      value={questionFormData.points}
+                      onChange={(e) => setQuestionFormData({ ...questionFormData, points: parseInt(e.target.value) || 0 })}
+                      className="w-full px-4 py-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500" 
+                    />
+                  </div>
+                  <div className="flex-1 flex gap-2">
+                    <button type="submit" className="px-6 py-2 bg-indigo-600 text-white rounded-xl font-bold text-sm hover:bg-indigo-700 transition-colors">
+                      {editingQuestion ? 'Update Question' : 'Add Question'}
+                    </button>
+                    {editingQuestion && (
+                      <button 
+                        type="button" 
+                        onClick={() => { setEditingQuestion(false); setQuestionFormData({ id: '', question_text: '', points: 0 }); }}
+                        className="px-6 py-2 bg-zinc-200 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 rounded-xl font-bold text-sm hover:bg-zinc-300 transition-colors"
+                      >
+                        Cancel
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </form>
+            </div>
+
+            <div className="space-y-3">
+              <h4 className="font-bold text-sm">Added Questions ({assignmentQuestions.length})</h4>
+              {assignmentQuestions.length === 0 ? (
+                <div className="text-center py-8 text-zinc-500 text-sm bg-zinc-50 dark:bg-zinc-800/30 rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-700">
+                  No questions added yet.
+                </div>
+              ) : (
+                assignmentQuestions.map((q, idx) => (
+                  <div key={q.id} className="p-4 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-700 flex justify-between gap-4">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="w-6 h-6 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 flex items-center justify-center text-xs font-bold">
+                          {idx + 1}
+                        </span>
+                        <span className="text-xs font-bold text-zinc-500 uppercase">{q.points} Points</span>
+                      </div>
+                      <p className="text-sm font-medium">{q.question_text}</p>
+                    </div>
+                    <div className="flex gap-2">
+                      <button 
+                        onClick={() => { setEditingQuestion(true); setQuestionFormData({ id: q.id, question_text: q.question_text, points: q.points }); }}
+                        className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg text-blue-500 transition-colors"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                      <button 
+                        onClick={() => handleDeleteQuestion(q.id)}
+                        className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg text-red-500 transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
         </Modal>
       </div>
     );

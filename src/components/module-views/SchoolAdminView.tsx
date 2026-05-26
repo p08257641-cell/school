@@ -4163,6 +4163,30 @@ export const AcademicModules = {
     const [certRefNo, setCertRefNo] = useState('');
     const [showDesign, setShowDesign] = useState(false);
 
+    // Batch Grouping State
+    const [batchFilter, setBatchFilter] = useState('');
+    const [setBatchStudent, setSetBatchStudent] = useState<any>(null);
+    const [batchInput, setBatchInput] = useState('');
+
+    const filteredAlumni = useMemo(() => {
+      if (!batchFilter) return alumni;
+      return alumni.filter((a: any) => a.batch === batchFilter);
+    }, [alumni, batchFilter]);
+
+    const uniqueBatches = useMemo(() => {
+      return Array.from(new Set(alumni.map((a: any) => a.batch).filter(Boolean)));
+    }, [alumni]);
+
+    const handleSetBatch = () => {
+      if (!setBatchStudent) return;
+      if (onSaveStudent) {
+        onSaveStudent({ ...setBatchStudent, batch: batchInput });
+        setSetBatchStudent(null);
+        setBatchInput('');
+        if (onRefresh) setTimeout(onRefresh, 500);
+      }
+    };
+
     const defaultDesign = { borderColor: '#1e3a5f', accentColor: '#c9a94e', titleColor: '#1e3a5f', bodyColor: '#333333' };
     const savedDesign = organization?.cert_template || {};
     const [design, setDesign] = useState({ ...defaultDesign, ...savedDesign });
@@ -4243,7 +4267,17 @@ export const AcademicModules = {
 
     return (
       <div className="space-y-4">
-        <div className="flex justify-end">
+        <div className="flex justify-between items-center">
+          <div className="flex gap-4 items-center">
+            <select 
+              value={batchFilter} 
+              onChange={e => setBatchFilter(e.target.value)}
+              className="px-4 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
+            >
+              <option value="">All Batches</option>
+              {(uniqueBatches as string[]).map(b => <option key={b} value={b}>{b}</option>)}
+            </select>
+          </div>
           <button
             onClick={() => onRefresh?.()}
             className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-all font-bold text-sm shadow-lg shadow-indigo-100 dark:shadow-none"
@@ -4253,11 +4287,12 @@ export const AcademicModules = {
           </button>
         </div>
         <DataTable<Student>
-          title="Alumni Management"
-          data={alumni}
+          title={batchFilter ? `Alumni Management (${batchFilter})` : "Alumni Management"}
+          data={filteredAlumni}
           columns={[
             { header: 'Name', accessor: 'name', className: 'font-bold text-zinc-900 dark:text-white' },
             { header: 'Admission No', accessor: 'admission_no', className: 'font-medium' },
+            { header: 'Batch', accessor: (item: any) => item.batch || 'Unassigned', className: 'font-bold text-indigo-600' },
             { header: 'Last Class', accessor: (item) => item.class || 'N/A' },
             { header: 'Email', accessor: 'email', className: 'text-zinc-500' },
             {
@@ -4271,15 +4306,45 @@ export const AcademicModules = {
           ]}
           onView={() => { }}
           extraActions={(item) => (
-            <button
-              onClick={() => openCertificate(item)}
-              className="flex items-center w-full gap-3 px-3 py-2 text-sm text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/10 rounded-lg transition-colors"
-            >
-              <Award className="w-4 h-4" />
-              Generate Certificate
-            </button>
+            <>
+              <button
+                onClick={() => { setSetBatchStudent(item); setBatchInput((item as any).batch || ''); }}
+                className="flex items-center w-full gap-3 px-3 py-2 text-sm text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/10 rounded-lg transition-colors"
+              >
+                <Users className="w-4 h-4" />
+                Set Batch Group
+              </button>
+              <button
+                onClick={() => openCertificate(item)}
+                className="flex items-center w-full gap-3 px-3 py-2 text-sm text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/10 rounded-lg transition-colors"
+              >
+                <Award className="w-4 h-4" />
+                Generate Certificate
+              </button>
+            </>
           )}
         />
+
+        {/* Set Batch Modal */}
+        <Modal isOpen={!!setBatchStudent} onClose={() => setSetBatchStudent(null)} title="Set Alumni Batch Group" maxWidth="max-w-md">
+          <div className="space-y-4">
+            <p className="text-sm text-zinc-500">Group <strong>{setBatchStudent?.name}</strong> into a specific graduation batch or year group (e.g. "Batch 2024", "Class of 2023").</p>
+            <div className="space-y-1">
+              <label className="text-xs font-bold uppercase text-zinc-500">Batch Name</label>
+              <input 
+                type="text"
+                value={batchInput}
+                onChange={(e) => setBatchInput(e.target.value)}
+                placeholder="e.g. Batch 2024"
+                className="w-full px-4 py-3 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+            </div>
+            <div className="flex gap-3 pt-2">
+              <button onClick={() => setSetBatchStudent(null)} className="flex-1 px-4 py-2 bg-zinc-100 text-zinc-600 rounded-xl font-bold text-sm">Cancel</button>
+              <button onClick={handleSetBatch} className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-xl font-bold text-sm">Save Batch</button>
+            </div>
+          </div>
+        </Modal>
 
         {/* Certificate Editor & Preview Modal */}
         <Modal
