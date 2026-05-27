@@ -793,13 +793,25 @@ const handleLocalSchoolStats = async (req: AuthRequest) => {
   const deptCount = await pool.query('SELECT COUNT(*) as count FROM departments WHERE org_id = $1', [orgId]);
   const subjectCount = await pool.query('SELECT COUNT(*) as count FROM subjects WHERE org_id = $1', [orgId]);
 
+  const totalInvoicedRes = await pool.query('SELECT COALESCE(SUM(amount), 0) as total FROM invoices WHERE org_id = $1', [orgId]);
+  const totalPaidRes = await pool.query("SELECT COALESCE(SUM(amount), 0) as total FROM payments WHERE org_id = $1 AND status != 'Failed'", [orgId]);
+
+  const totalInvoiced = parseFloat(totalInvoicedRes.rows[0]?.total || 0);
+  const totalPaid = parseFloat(totalPaidRes.rows[0]?.total || 0);
+  const outstanding = Math.max(0, totalInvoiced - totalPaid);
+
   return `📊 **Real-time School Statistics:**
 
 • **Total Students:** ${studentCount.rows[0]?.count || 0}
 • **Total Staff Members:** ${staffCount.rows[0]?.count || 0}
 • **Total Classes:** ${classCount.rows[0]?.count || 0}
 • **Total Subjects:** ${subjectCount.rows[0]?.count || 0}
-• **Total Departments:** ${deptCount.rows[0]?.count || 0}`;
+• **Total Departments:** ${deptCount.rows[0]?.count || 0}
+
+💰 **Fees Collection Statistics:**
+• **Total Invoiced Fees:** ₦${totalInvoiced.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+• **Total Fees Collected:** ₦${totalPaid.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+• **Outstanding Fees:** ₦${outstanding.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
 };
 
 const handleLocalWhistleblowerReports = async (req: AuthRequest) => {
@@ -842,7 +854,7 @@ const handleLocalAuditLogs = async (req: AuthRequest) => {
 const handleLocalDailyCollections = async (req: AuthRequest) => {
   const orgId = req.user.org_id;
   const result = await pool.query(
-    `SELECT amount, payment_method, status, created_at 
+    `SELECT amount, method as payment_method, status, created_at 
      FROM payments 
      WHERE org_id = $1 AND DATE(created_at) = CURRENT_DATE 
      ORDER BY created_at DESC`,
