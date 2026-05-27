@@ -210,10 +210,17 @@ export const processBulkPromotion = async (req: AuthRequest, res: Response) => {
       }
 
       // Update student
-      await client.query(
-        'UPDATE students SET class_id = $1, status = $2 WHERE id = $3',
-        [newClassId, newStatus, row.student_id]
-      );
+      if (newStatus === 'Alumni') {
+        await client.query(
+          'UPDATE students SET class_id = $1, status = $2, batch = $3 WHERE id = $4',
+          [newClassId, newStatus, academic_year, row.student_id]
+        );
+      } else {
+        await client.query(
+          'UPDATE students SET class_id = $1, status = $2 WHERE id = $3',
+          [newClassId, newStatus, row.student_id]
+        );
+      }
 
       // Log promotion record
       await client.query(
@@ -313,10 +320,17 @@ export const processManualPromotion = async (req: AuthRequest, res: Response) =>
     }
 
     // 2. Update Student
-    await client.query(
-      'UPDATE students SET class_id = $1, status = $2 WHERE id = $3',
-      [targetClassId, newStatus, student_id]
-    );
+    if (newStatus === 'Alumni') {
+      await client.query(
+        'UPDATE students SET class_id = $1, status = $2, batch = $3 WHERE id = $4',
+        [targetClassId, newStatus, academic_year, student_id]
+      );
+    } else {
+      await client.query(
+        'UPDATE students SET class_id = $1, status = $2 WHERE id = $3',
+        [targetClassId, newStatus, student_id]
+      );
+    }
 
     // 3. Log Record
     await client.query(
