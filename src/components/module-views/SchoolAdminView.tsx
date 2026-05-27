@@ -4167,11 +4167,43 @@ export const AcademicModules = {
     const [batchFilter, setBatchFilter] = useState('');
     const [setBatchStudent, setSetBatchStudent] = useState<any>(null);
     const [batchInput, setBatchInput] = useState('');
+    const [searchQuery, setSearchQuery] = useState('');
+
+    const batchCounts = useMemo(() => {
+      const counts: Record<string, number> = {};
+      alumni.forEach((a: any) => {
+        const b = a.batch || 'Unassigned';
+        counts[b] = (counts[b] || 0) + 1;
+      });
+      return counts;
+    }, [alumni]);
+
+    const allUniqueBatches = useMemo(() => {
+      const batches = Array.from(new Set(alumni.map((a: any) => a.batch).filter(Boolean)));
+      if (alumni.some((a: any) => !a.batch)) {
+        batches.push('Unassigned');
+      }
+      return batches.sort();
+    }, [alumni]);
 
     const filteredAlumni = useMemo(() => {
-      if (!batchFilter) return alumni;
-      return alumni.filter((a: any) => a.batch === batchFilter);
-    }, [alumni, batchFilter]);
+      let list = alumni;
+      if (batchFilter && batchFilter !== 'All Graduates') {
+        if (batchFilter === 'Unassigned') {
+          list = alumni.filter((a: any) => !a.batch);
+        } else {
+          list = alumni.filter((a: any) => a.batch === batchFilter);
+        }
+      }
+      if (searchQuery.trim()) {
+        const query = searchQuery.toLowerCase();
+        list = list.filter((a: any) => 
+          a.name?.toLowerCase().includes(query) || 
+          a.admission_no?.toLowerCase().includes(query)
+        );
+      }
+      return list;
+    }, [alumni, batchFilter, searchQuery]);
 
     const uniqueBatches = useMemo(() => {
       return Array.from(new Set(alumni.map((a: any) => a.batch).filter(Boolean)));
@@ -4266,64 +4298,180 @@ export const AcademicModules = {
     };
 
     return (
-      <div className="space-y-4">
-        <div className="flex justify-between items-center">
-          <div className="flex gap-4 items-center">
-            <select 
-              value={batchFilter} 
-              onChange={e => setBatchFilter(e.target.value)}
-              className="px-4 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
-            >
-              <option value="">All Batches</option>
-              {(uniqueBatches as string[]).map(b => <option key={b} value={b}>{b}</option>)}
-            </select>
+      <div className="space-y-6">
+        {/* Top bar with stats and controls */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 bg-zinc-50 dark:bg-zinc-800/40 rounded-2xl border border-zinc-200 dark:border-zinc-800/80">
+          <div className="flex flex-col gap-1">
+            <h2 className="text-xl font-black text-zinc-900 dark:text-white uppercase tracking-tight flex items-center gap-2">
+              <GraduationCap className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
+              Alumni Directory
+            </h2>
+            <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest">
+              Total Alumni: {alumni.length} | Unique Batches: {allUniqueBatches.length}
+            </p>
           </div>
-          <button
-            onClick={() => onRefresh?.()}
-            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-all font-bold text-sm shadow-lg shadow-indigo-100 dark:shadow-none"
-          >
-            <RefreshCw className="w-4 h-4" />
-            Refresh List
-          </button>
+
+          <div className="flex flex-wrap items-center gap-3">
+            {/* Search Bar */}
+            <div className="relative">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+              <input
+                type="text"
+                placeholder="Search alumni..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                className="pl-10 pr-4 py-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500 w-full sm:w-64 font-medium transition-all"
+              />
+              {searchQuery && (
+                <button 
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+
+            {/* Batch Direct Selector when inside a batch list */}
+            {batchFilter && (
+              <select 
+                value={batchFilter} 
+                onChange={e => setBatchFilter(e.target.value)}
+                className="px-4 py-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer text-zinc-700 dark:text-zinc-300"
+              >
+                <option value="All Graduates">All Graduates</option>
+                {(uniqueBatches as string[]).map(b => <option key={b} value={b}>{b}</option>)}
+                {alumni.some((a: any) => !a.batch) && <option value="Unassigned">Unassigned</option>}
+              </select>
+            )}
+
+            <button
+              onClick={() => onRefresh?.()}
+              className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 rounded-xl hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all font-bold text-sm"
+            >
+              <RefreshCw className="w-4 h-4" />
+              Refresh
+            </button>
+          </div>
         </div>
-        <DataTable<Student>
-          title={batchFilter ? `Alumni Management (${batchFilter})` : "Alumni Management"}
-          data={filteredAlumni}
-          columns={[
-            { header: 'Name', accessor: 'name', className: 'font-bold text-zinc-900 dark:text-white' },
-            { header: 'Admission No', accessor: 'admission_no', className: 'font-medium' },
-            { header: 'Batch', accessor: (item: any) => item.batch || 'Unassigned', className: 'font-bold text-indigo-600' },
-            { header: 'Last Class', accessor: (item) => item.class || 'N/A' },
-            { header: 'Email', accessor: 'email', className: 'text-zinc-500' },
-            {
-              header: 'Status',
-              accessor: (item) => (
-                <span className="px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-widest bg-indigo-50 text-indigo-600 border border-indigo-100 dark:bg-indigo-900/30 dark:text-indigo-400 dark:border-indigo-800 italic shadow-sm">
-                  {item.status}
-                </span>
-              )
-            },
-          ]}
-          onView={() => { }}
-          extraActions={(item) => (
-            <>
-              <button
-                onClick={() => { setSetBatchStudent(item); setBatchInput((item as any).batch || ''); }}
-                className="flex items-center w-full gap-3 px-3 py-2 text-sm text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/10 rounded-lg transition-colors"
+
+        {/* Dynamic View rendering */}
+        {!batchFilter ? (
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {/* Card to view All Graduates at once */}
+              <div 
+                onClick={() => setBatchFilter('All Graduates')}
+                className="cursor-pointer bg-gradient-to-br from-indigo-500/10 via-transparent to-transparent dark:from-indigo-500/5 bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm hover:border-indigo-400 dark:hover:border-indigo-500 hover:shadow-md transition-all group relative overflow-hidden"
               >
-                <Users className="w-4 h-4" />
-                Set Batch Group
-              </button>
-              <button
-                onClick={() => openCertificate(item)}
-                className="flex items-center w-full gap-3 px-3 py-2 text-sm text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/10 rounded-lg transition-colors"
+                <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-50 dark:bg-indigo-950/20 rounded-bl-full flex items-center justify-center -mr-4 -mt-4 transition-transform group-hover:scale-110">
+                  <GraduationCap className="w-8 h-8 text-indigo-500/20 dark:text-indigo-400/20" />
+                </div>
+                <div className="w-12 h-12 rounded-2xl bg-indigo-600 text-white flex items-center justify-center mb-4 shadow-md shadow-indigo-100 dark:shadow-none">
+                  <Layers className="w-6 h-6" />
+                </div>
+                <h3 className="text-lg font-black text-zinc-900 dark:text-white mb-1 tracking-tight group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                  All Graduates
+                </h3>
+                <p className="text-sm font-bold text-zinc-400 uppercase tracking-widest">
+                  {alumni.length} {alumni.length === 1 ? 'Graduate' : 'Graduates'}
+                </p>
+                <div className="mt-6 flex items-center text-xs font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-wider gap-1.5 opacity-80 group-hover:opacity-100 transition-opacity">
+                  <span>View All</span>
+                  <ArrowRight className="w-3.5 h-3.5 transform group-hover:translate-x-1 transition-transform" />
+                </div>
+              </div>
+
+              {/* Individual Batch Cards */}
+              {allUniqueBatches.map(batchName => {
+                const count = batchCounts[batchName] || 0;
+                return (
+                  <div 
+                    key={batchName}
+                    onClick={() => setBatchFilter(batchName)}
+                    className="cursor-pointer bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm hover:border-indigo-400 dark:hover:border-indigo-500 hover:shadow-md transition-all group relative overflow-hidden"
+                  >
+                    <div className="absolute top-0 right-0 w-24 h-24 bg-zinc-50 dark:bg-zinc-800/50 rounded-bl-full flex items-center justify-center -mr-4 -mt-4 transition-transform group-hover:scale-110">
+                      <GraduationCap className="w-8 h-8 text-zinc-300/30 dark:text-zinc-600/30" />
+                    </div>
+                    <div className="w-12 h-12 rounded-2xl bg-zinc-50 dark:bg-zinc-800 flex items-center justify-center text-zinc-600 dark:text-zinc-300 mb-4 shadow-sm border border-zinc-100 dark:border-zinc-700">
+                      <Users className="w-5 h-5" />
+                    </div>
+                    <h3 className="text-lg font-black text-zinc-900 dark:text-white mb-1 tracking-tight group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                      {batchName === 'Unassigned' ? 'Unassigned' : batchName}
+                    </h3>
+                    <p className="text-sm font-bold text-zinc-400 uppercase tracking-widest">
+                      {count} {count === 1 ? 'Graduate' : 'Graduates'}
+                    </p>
+                    <div className="mt-6 flex items-center text-xs font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-wider gap-1.5 opacity-80 group-hover:opacity-100 transition-opacity">
+                      <span>View Graduates</span>
+                      <ArrowRight className="w-3.5 h-3.5 transform group-hover:translate-x-1 transition-transform" />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            
+            {alumni.length === 0 && (
+              <div className="text-center py-16 bg-zinc-50 dark:bg-zinc-900/30 rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-800">
+                <GraduationCap className="w-12 h-12 text-zinc-300 mx-auto mb-3" />
+                <h4 className="text-base font-bold text-zinc-700 dark:text-zinc-300">No Alumni Registered Yet</h4>
+                <p className="text-sm text-zinc-400 mt-1">Graduate eligible students in the Promotion & Graduation module.</p>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <button 
+                onClick={() => { setBatchFilter(''); setSearchQuery(''); }}
+                className="flex items-center gap-2 px-3 py-1.5 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 rounded-xl font-bold text-xs uppercase tracking-wider transition-all"
               >
-                <Award className="w-4 h-4" />
-                Generate Certificate
+                <ArrowLeft className="w-3.5 h-3.5" />
+                Back to Batches
               </button>
-            </>
-          )}
-        />
+            </div>
+            
+            <DataTable<Student>
+              title={batchFilter === 'All Graduates' ? 'All Graduates' : `${batchFilter}`}
+              data={filteredAlumni}
+              columns={[
+                { header: 'Name', accessor: 'name', className: 'font-bold text-zinc-900 dark:text-white' },
+                { header: 'Admission No', accessor: 'admission_no', className: 'font-medium' },
+                { header: 'Batch', accessor: (item: any) => item.batch || 'Unassigned', className: 'font-bold text-indigo-600' },
+                { header: 'Last Class', accessor: (item) => item.class || 'N/A' },
+                { header: 'Email', accessor: 'email', className: 'text-zinc-500' },
+                {
+                  header: 'Status',
+                  accessor: (item) => (
+                    <span className="px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-widest bg-indigo-50 text-indigo-600 border border-indigo-100 dark:bg-indigo-900/30 dark:text-indigo-400 dark:border-indigo-800 italic shadow-sm">
+                      {item.status}
+                    </span>
+                  )
+                },
+              ]}
+              onView={() => { }}
+              extraActions={(item) => (
+                <>
+                  <button
+                    onClick={() => { setSetBatchStudent(item); setBatchInput((item as any).batch || ''); }}
+                    className="flex items-center w-full gap-3 px-3 py-2 text-sm text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/10 rounded-lg transition-colors"
+                  >
+                    <Users className="w-4 h-4" />
+                    Set Batch Group
+                  </button>
+                  <button
+                    onClick={() => openCertificate(item)}
+                    className="flex items-center w-full gap-3 px-3 py-2 text-sm text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/10 rounded-lg transition-colors"
+                  >
+                    <Award className="w-4 h-4" />
+                    Generate Certificate
+                  </button>
+                </>
+              )}
+            />
+          </div>
+        )}
 
         {/* Set Batch Modal */}
         <Modal isOpen={!!setBatchStudent} onClose={() => setSetBatchStudent(null)} title="Set Alumni Batch Group" maxWidth="max-w-md">
