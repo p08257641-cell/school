@@ -809,9 +809,9 @@ const handleLocalSchoolStats = async (req: AuthRequest) => {
 • **Total Departments:** ${deptCount.rows[0]?.count || 0}
 
 💰 **Fees Collection Statistics:**
-• **Total Invoiced Fees:** ₦${totalInvoiced.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-• **Total Fees Collected:** ₦${totalPaid.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-• **Outstanding Fees:** ₦${outstanding.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
+• **Total Invoiced Fees:** ${totalInvoiced.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+• **Total Fees Collected:** ${totalPaid.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+• **Outstanding Fees:** ${outstanding.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
 };
 
 const handleLocalWhistleblowerReports = async (req: AuthRequest) => {
@@ -868,10 +868,10 @@ const handleLocalDailyCollections = async (req: AuthRequest) => {
   }
 
   return `💰 **Daily Collections Report (Today):**\n\n` +
-    `• **Total Collected Today:** **₦${totalToday.toLocaleString(undefined, { minimumFractionDigits: 2 })}**\n` +
+    `• **Total Collected Today:** **${totalToday.toLocaleString(undefined, { minimumFractionDigits: 2 })}**\n` +
     `• **Transaction Count:** ${result.rows.length}\n\n` +
     `**Recent Transactions Today:**\n` +
-    result.rows.slice(0, 5).map((r: any) => `• ₦${parseFloat(r.amount).toLocaleString()} (${r.payment_method || 'Unknown'}) — Status: *${r.status}* at ${new Date(r.created_at).toLocaleTimeString()}`).join('\n');
+    result.rows.slice(0, 5).map((r: any) => `• ${parseFloat(r.amount).toLocaleString()} (${r.payment_method || 'Unknown'}) — Status: *${r.status}* at ${new Date(r.created_at).toLocaleTimeString()}`).join('\n');
 };
 
 const handleLocalLeaveRequests = async (req: AuthRequest) => {

@@ -270,14 +270,17 @@ export default function Layout({
             >
               <Menu className="w-5 h-5" />
             </button>
-            <div className="relative hidden sm:block">
+            <form onSubmit={(e) => e.preventDefault()} action="#" className="relative hidden sm:block" role="search">
               <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
               <input 
-                type="text" 
+                id="header-search-input"
+                name="header-search"
+                type="search" 
+                autoComplete="off"
                 placeholder={t('search')} 
                 className="pl-10 pr-4 py-2 bg-zinc-100 dark:bg-zinc-800 border-none rounded-full text-sm w-64 focus:ring-2 focus:ring-indigo-500 transition-all"
               />
-            </div>
+            </form>
 
             {/* Role Switcher in Nav - Only shown if user has multiple roles */}
             {currentUser?.roles?.length > 1 && (
