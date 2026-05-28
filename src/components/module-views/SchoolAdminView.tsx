@@ -4170,6 +4170,7 @@ export const AcademicModules = {
   WithdrawnStudents: ({ students = [], onRefresh, onSaveStudent }: { students?: Student[], onRefresh?: () => void, onSaveStudent?: (data: any) => void }) => {
     const withdrawn = useMemo(() => students.filter(s => s.status === 'Withdrawn'), [students]);
     const [reinstateStudent, setReinstateStudent] = useState<Student | null>(null);
+    const [viewingStudent, setViewingStudent] = useState<Student | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
 
     const filteredWithdrawn = useMemo(() => {
@@ -4274,13 +4275,22 @@ export const AcademicModules = {
                         </span>
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <button
-                          onClick={() => setReinstateStudent(student)}
-                          className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 rounded-xl hover:bg-emerald-100 dark:hover:bg-emerald-900/30 hover:scale-105 active:scale-95 transition-all font-black text-[10px] uppercase tracking-widest border border-emerald-100 dark:border-emerald-800 shadow-sm"
-                        >
-                          <UserCheck className="w-3.5 h-3.5" />
-                          Reinstate
-                        </button>
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => setViewingStudent(student)}
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-zinc-50 dark:bg-zinc-800/50 text-zinc-600 dark:text-zinc-400 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800/80 hover:scale-105 active:scale-95 transition-all font-black text-[10px] uppercase tracking-widest border border-zinc-200 dark:border-zinc-700 shadow-sm"
+                          >
+                            <Eye className="w-3.5 h-3.5" />
+                            View Profile
+                          </button>
+                          <button
+                            onClick={() => setReinstateStudent(student)}
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 rounded-xl hover:bg-emerald-100 dark:hover:bg-emerald-900/30 hover:scale-105 active:scale-95 transition-all font-black text-[10px] uppercase tracking-widest border border-emerald-100 dark:border-emerald-800 shadow-sm"
+                          >
+                            <UserCheck className="w-3.5 h-3.5" />
+                            Reinstate
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -4296,6 +4306,158 @@ export const AcademicModules = {
             </div>
           </div>
         )}
+
+        {/* Profile Details Modal */}
+        <Modal
+          isOpen={!!viewingStudent}
+          onClose={() => setViewingStudent(null)}
+          title="Withdrawn Student Profile"
+          maxWidth="max-w-4xl"
+        >
+          {viewingStudent && (
+            <div className="space-y-8 animate-in fade-in zoom-in-95 duration-500">
+              {/* Header Profile Section */}
+              <div className="relative p-8 rounded-[2.5rem] overflow-hidden group border border-zinc-200/50 dark:border-zinc-800/50 bg-white/40 dark:bg-zinc-900/40 backdrop-blur-xl">
+                <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 via-orange-500/5 to-transparent dark:from-amber-500/10 dark:via-orange-500/10" />
+                <div className="absolute -right-20 -top-20 w-64 h-64 bg-amber-500/10 blur-3xl rounded-full pointer-events-none" />
+
+                <div className="relative flex flex-col md:flex-row items-center md:items-start gap-8 z-10">
+                  <div className="w-32 h-32 rounded-[2rem] bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center text-amber-700 dark:text-amber-400 text-5xl font-black shadow-2xl overflow-hidden border-4 border-white dark:border-zinc-800 shrink-0">
+                    {viewingStudent.profile_pic ? (
+                      <img
+                        src={viewingStudent.profile_pic}
+                        alt={viewingStudent.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      viewingStudent.name?.charAt(0) || '?'
+                    )}
+                  </div>
+
+                  <div className="space-y-4 flex-1 text-center md:text-left w-full">
+                    <div>
+                      <h3 className="text-4xl font-black text-zinc-900 dark:text-white uppercase tracking-tight">{viewingStudent.name}</h3>
+                      <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mt-1">Admission No: {viewingStudent.admission_no || 'N/A'}</p>
+                    </div>
+
+                    <div className="flex flex-wrap items-center justify-center md:justify-start gap-3">
+                      <div className="px-4 py-2 rounded-xl bg-white/80 dark:bg-zinc-800/80 backdrop-blur-sm text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] shadow-sm flex items-center gap-2 border border-zinc-200/50 dark:border-zinc-700/50">
+                        <Fingerprint className="w-3 h-3 text-amber-500" />
+                        ID: {viewingStudent.id.slice(0, 8)}
+                      </div>
+
+                      <div className="px-4 py-2 rounded-xl bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 text-[10px] font-black uppercase tracking-[0.2em] border border-amber-200/50 dark:border-amber-800/50 backdrop-blur-sm shadow-sm flex items-center gap-2">
+                        <GraduationCap className="w-3 h-3" />
+                        Class: {viewingStudent.class || 'N/A'}
+                      </div>
+
+                      <div className="px-4 py-2 rounded-xl bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-[10px] font-black uppercase tracking-[0.2em] border border-red-200/50 dark:border-red-800/50 backdrop-blur-sm shadow-sm flex items-center gap-2">
+                        <LogOut className="w-3 h-3" />
+                        Status: Withdrawn
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Profile Details Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* Personal Profile Details Card */}
+                <div className="p-8 rounded-[2.5rem] bg-white dark:bg-zinc-900 border border-zinc-200/50 dark:border-zinc-800/50 space-y-6">
+                  <h4 className="text-[10px] font-black text-amber-500 uppercase tracking-[0.3em] flex items-center gap-2 mb-4">
+                    <User className="w-4 h-4" /> Personal Profile
+                  </h4>
+
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center py-3 border-b border-zinc-100 dark:border-zinc-800/50">
+                      <span className="text-xs text-zinc-400 font-bold uppercase tracking-wider">Date of Birth</span>
+                      <span className="text-sm text-zinc-900 dark:text-white font-black">
+                        {viewingStudent.date_of_birth ? new Date(viewingStudent.date_of_birth).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : 'Not Specified'}
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between items-center py-3 border-b border-zinc-100 dark:border-zinc-800/50">
+                      <span className="text-xs text-zinc-400 font-bold uppercase tracking-wider">Gender</span>
+                      <span className="text-sm text-zinc-900 dark:text-white font-black capitalize">
+                        {viewingStudent.gender || 'Not Specified'}
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between items-center py-3 border-b border-zinc-100 dark:border-zinc-800/50">
+                      <span className="text-xs text-zinc-400 font-bold uppercase tracking-wider">Religion</span>
+                      <span className="text-sm text-zinc-900 dark:text-white font-black capitalize">
+                        {viewingStudent.religion || 'Not Specified'}
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between items-center py-3">
+                      <span className="text-xs text-zinc-400 font-bold uppercase tracking-wider">Enrolled On</span>
+                      <span className="text-sm text-zinc-900 dark:text-white font-black">
+                        {viewingStudent.date_enrolled ? new Date(viewingStudent.date_enrolled).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : 'N/A'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Primary Parent / Contact Details Card */}
+                <div className="p-8 rounded-[2.5rem] bg-white dark:bg-zinc-900 border border-zinc-200/50 dark:border-zinc-800/50 space-y-6">
+                  <h4 className="text-[10px] font-black text-amber-500 uppercase tracking-[0.3em] flex items-center gap-2 mb-4">
+                    <Users className="w-4 h-4" /> Parent & Contact Details
+                  </h4>
+
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center py-3 border-b border-zinc-100 dark:border-zinc-800/50">
+                      <span className="text-xs text-zinc-400 font-bold uppercase tracking-wider">Primary Parent</span>
+                      <span className="text-sm text-zinc-900 dark:text-white font-black">
+                        {viewingStudent.parent_name || 'N/A'}
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between items-center py-3 border-b border-zinc-100 dark:border-zinc-800/50">
+                      <span className="text-xs text-zinc-400 font-bold uppercase tracking-wider">Contact Number</span>
+                      <span className="text-sm text-zinc-900 dark:text-white font-black">
+                        {viewingStudent.contact || 'N/A'}
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between items-center py-3 border-b border-zinc-100 dark:border-zinc-800/50">
+                      <span className="text-xs text-zinc-400 font-bold uppercase tracking-wider">Parent Email</span>
+                      <span className="text-sm text-zinc-900 dark:text-white font-black">
+                        {viewingStudent.parent_email || (viewingStudent as any).parentEmail || 'N/A'}
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between items-center py-3">
+                      <span className="text-xs text-zinc-400 font-bold uppercase tracking-wider">Secondary Contact</span>
+                      <span className="text-sm text-zinc-900 dark:text-white font-black">
+                        {viewingStudent.secondary_parent_name || 'N/A'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Footer */}
+              <div className="flex justify-end gap-3 pt-4 border-t border-zinc-100 dark:border-zinc-800">
+                <button
+                  onClick={() => setViewingStudent(null)}
+                  className="px-6 py-3 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-300 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:scale-105 active:scale-95 transition-all"
+                >
+                  Close
+                </button>
+                <button
+                  onClick={() => {
+                    setReinstateStudent(viewingStudent);
+                    setViewingStudent(null);
+                  }}
+                  className="px-6 py-3 bg-emerald-600 text-white rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-emerald-700 hover:scale-105 active:scale-95 transition-all shadow-lg shadow-emerald-100 dark:shadow-none"
+                >
+                  Reinstate Student
+                </button>
+              </div>
+            </div>
+          )}
+        </Modal>
 
         <ConfirmationModal
           isOpen={!!reinstateStudent}
