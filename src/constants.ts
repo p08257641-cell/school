@@ -109,6 +109,7 @@ export const NAVIGATION_CONFIG: NavItem[] = [
       { title: 'Academic Profile', href: 'Academic Information', roles: ['STUDENT'], icon: GraduationCap },
       { title: 'Promotion & Graduation', href: 'Promotion & Graduation', roles: ['SCHOOL_ADMIN'], icon: TrendingUp },
       { title: 'Alumni Management', href: 'Alumni Management', roles: ['SCHOOL_ADMIN'], icon: GraduationCap },
+      { title: 'Withdrawn Students', href: 'Withdrawn Students', roles: ['SCHOOL_ADMIN'], icon: LogOut },
       { title: 'Student ID Cards', href: 'Student ID Cards', roles: ['SCHOOL_ADMIN'], icon: CreditCard },
       { title: 'Gallery Upload', href: 'Gallery Upload', roles: ['STAFF', 'HOD', 'SCHOOL_ADMIN'], icon: Plus },
       { title: 'Gallery', href: 'Gallery', roles: ['STUDENT', 'PARENT', 'SCHOOL_ADMIN', 'STAFF'], icon: ImageIcon },

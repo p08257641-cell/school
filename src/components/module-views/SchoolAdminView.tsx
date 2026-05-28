@@ -73,7 +73,7 @@ import {
 import { cn } from '../../lib/utils';
 import { DataTable } from '../DataTable';
 import { Student, UserRole, Inquiry, Application, Acceptance, ReportCardTemplate, ReportCardSection } from '../../types';
-import { Modal } from '../UI';
+import { Modal, ConfirmationModal } from '../UI';
 import { API_BASE_URL } from '../../constants';
 import { useLanguage } from '../../lib/LanguageContext';
 import { downloadStudentTemplate, parseStudentExcel } from '../../lib/excel';
@@ -3441,6 +3441,7 @@ export const AcademicModules = {
     const { t } = useLanguage();
     const [viewItem, setViewItem] = useState<Student | null>(null);
     const [activeDetailTab, setActiveDetailTab] = useState<'overview' | 'academic' | 'attendance'>('overview');
+    const [withdrawConfirmStudent, setWithdrawConfirmStudent] = useState<Student | null>(null);
 
     const getGrade = (score: number, classId: string) => {
       // Find scale assigned to this class
@@ -3571,14 +3572,10 @@ export const AcademicModules = {
                   <div className="space-y-4 flex-1 text-center md:text-left w-full">
                     <div className="flex flex-col md:flex-row items-center justify-between gap-4">
                       <h3 className="text-4xl font-black text-zinc-900 dark:text-white uppercase tracking-tight">{item.name}</h3>
-                      {(role === 'SCHOOL_ADMIN' || role === 'SUPER_ADMIN') && item.status !== 'Alumni' && (
+                      {(role === 'SCHOOL_ADMIN' || role === 'SUPER_ADMIN') && item.status !== 'Alumni' && item.status !== 'Withdrawn' && (
                         <div className="flex items-center gap-2">
                           <button
-                            onClick={() => {
-                              if (window.confirm(`Are you sure you want to withdraw ${item.name}? This will remove them from active student lists.`)) {
-                                onSave?.({ ...item, status: 'Withdrawn' });
-                              }
-                            }}
+                            onClick={() => setWithdrawConfirmStudent(item)}
                             className="flex items-center gap-2 px-6 py-2.5 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-2xl hover:bg-red-100 hover:scale-105 active:scale-95 transition-all font-black text-xs shadow-sm uppercase tracking-widest shrink-0 border border-red-100 dark:border-red-800"
                           >
                             <LogOut className="w-4 h-4" /> Withdraw
@@ -4150,7 +4147,167 @@ export const AcademicModules = {
             </div>
           </div>
         </Modal>
+
+        <ConfirmationModal
+          isOpen={!!withdrawConfirmStudent}
+          onClose={() => setWithdrawConfirmStudent(null)}
+          onConfirm={() => {
+            if (withdrawConfirmStudent) {
+              onSave?.({ ...withdrawConfirmStudent, status: 'Withdrawn' });
+              setWithdrawConfirmStudent(null);
+            }
+          }}
+          title="Withdraw Student"
+          message={`Are you sure you want to withdraw ${withdrawConfirmStudent?.name}? This will remove them from active student lists.`}
+          confirmText="Withdraw"
+          cancelText="Cancel"
+          type="warning"
+        />
       </>
+    );
+  },
+
+  WithdrawnStudents: ({ students = [], onRefresh, onSaveStudent }: { students?: Student[], onRefresh?: () => void, onSaveStudent?: (data: any) => void }) => {
+    const withdrawn = useMemo(() => students.filter(s => s.status === 'Withdrawn'), [students]);
+    const [reinstateStudent, setReinstateStudent] = useState<Student | null>(null);
+    const [searchQuery, setSearchQuery] = useState('');
+
+    const filteredWithdrawn = useMemo(() => {
+      if (!searchQuery.trim()) return withdrawn;
+      const query = searchQuery.toLowerCase();
+      return withdrawn.filter((s: any) =>
+        s.name?.toLowerCase().includes(query) ||
+        s.admission_no?.toLowerCase().includes(query) ||
+        s.parent_name?.toLowerCase().includes(query)
+      );
+    }, [withdrawn, searchQuery]);
+
+    const handleReinstate = () => {
+      if (!reinstateStudent) return;
+      if (onSaveStudent) {
+        onSaveStudent({ ...reinstateStudent, status: 'Active' });
+        (window as any).showToast?.(`Successfully reinstated ${reinstateStudent.name}!`, 'success');
+        setReinstateStudent(null);
+        if (onRefresh) setTimeout(onRefresh, 500);
+      }
+    };
+
+    return (
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-amber-200 dark:shadow-none">
+              <LogOut className="w-6 h-6" />
+            </div>
+            <div>
+              <h2 className="text-xl font-black text-zinc-900 dark:text-white uppercase tracking-tight">Withdrawn Students</h2>
+              <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">{withdrawn.length} student{withdrawn.length !== 1 ? 's' : ''} withdrawn from the institution</p>
+            </div>
+          </div>
+        </div>
+
+        {withdrawn.length === 0 ? (
+          <div className="bg-white dark:bg-zinc-900 rounded-[2rem] md:rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800 shadow-sm p-12 text-center space-y-4">
+            <div className="w-20 h-20 mx-auto bg-emerald-50 dark:bg-emerald-900/20 rounded-[2rem] flex items-center justify-center">
+              <CheckCircle2 className="w-10 h-10 text-emerald-500" />
+            </div>
+            <h3 className="text-lg font-black text-zinc-900 dark:text-white uppercase tracking-tight">No Withdrawn Students</h3>
+            <p className="text-sm text-zinc-500 font-medium max-w-md mx-auto">All students are currently active. Withdrawn students will appear here when a student is withdrawn from the school.</p>
+          </div>
+        ) : (
+          <div className="bg-white dark:bg-zinc-900 rounded-[2rem] md:rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden">
+            {/* Search bar */}
+            <div className="p-4 md:p-6 border-b border-zinc-100 dark:border-zinc-800">
+              <div className="relative max-w-md">
+                <Search className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" />
+                <input
+                  type="text"
+                  placeholder="Search withdrawn students..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-11 pr-4 py-3 bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm font-medium focus:ring-2 focus:ring-indigo-500 transition-all outline-none"
+                />
+              </div>
+            </div>
+
+            {/* Table */}
+            <div className="overflow-x-auto">
+              <table className="w-full text-left">
+                <thead className="bg-zinc-50/50 dark:bg-zinc-800/30">
+                  <tr>
+                    <th className="px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest">Student Name</th>
+                    <th className="px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest hidden sm:table-cell">Admission No.</th>
+                    <th className="px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest hidden md:table-cell">Class/Grade</th>
+                    <th className="px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest hidden lg:table-cell">Parent</th>
+                    <th className="px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest hidden lg:table-cell">Contact</th>
+                    <th className="px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest">Status</th>
+                    <th className="px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
+                  {filteredWithdrawn.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="px-6 py-12 text-center text-zinc-500 italic font-medium">No withdrawn students match your search.</td>
+                    </tr>
+                  ) : filteredWithdrawn.map((student) => (
+                    <tr key={student.id} className="hover:bg-zinc-50/50 dark:hover:bg-zinc-800/20 transition-colors">
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center text-amber-700 dark:text-amber-400 font-black text-sm shrink-0">
+                            {student.profile_pic ? (
+                              <img src={student.profile_pic} alt={student.name} className="w-full h-full object-cover rounded-xl" />
+                            ) : (
+                              student.name?.charAt(0) || '?'
+                            )}
+                          </div>
+                          <span className="font-bold text-sm text-zinc-900 dark:text-white">{student.name}</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-zinc-500 font-medium hidden sm:table-cell">{student.admission_no || '-'}</td>
+                      <td className="px-6 py-4 text-sm font-semibold text-zinc-700 dark:text-zinc-300 hidden md:table-cell">{student.class || 'N/A'}</td>
+                      <td className="px-6 py-4 text-sm text-zinc-500 font-medium hidden lg:table-cell">{student.parent_name || '-'}</td>
+                      <td className="px-6 py-4 text-sm text-zinc-500 font-medium hidden lg:table-cell">{student.contact || '-'}</td>
+                      <td className="px-6 py-4">
+                        <span className="px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest bg-red-50 text-red-600 border border-red-100 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800 shadow-sm">
+                          Withdrawn
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <button
+                          onClick={() => setReinstateStudent(student)}
+                          className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 rounded-xl hover:bg-emerald-100 dark:hover:bg-emerald-900/30 hover:scale-105 active:scale-95 transition-all font-black text-[10px] uppercase tracking-widest border border-emerald-100 dark:border-emerald-800 shadow-sm"
+                        >
+                          <UserCheck className="w-3.5 h-3.5" />
+                          Reinstate
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Footer count */}
+            <div className="p-4 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-between">
+              <p className="text-xs text-zinc-500 font-medium">
+                Showing {filteredWithdrawn.length} of {withdrawn.length} withdrawn student{withdrawn.length !== 1 ? 's' : ''}
+              </p>
+            </div>
+          </div>
+        )}
+
+        <ConfirmationModal
+          isOpen={!!reinstateStudent}
+          onClose={() => setReinstateStudent(null)}
+          onConfirm={handleReinstate}
+          title="Reinstate Student"
+          message={`Are you sure you want to reinstate ${reinstateStudent?.name}? This will change their status to Active and restore them to active student lists.`}
+          confirmText="Reinstate"
+          cancelText="Cancel"
+          type="info"
+        />
+      </div>
     );
   },
   AlumniManagement: ({ students = [], onRefresh, role, invoices = [], payments = [], onSaveStudent, onDelete, organization, onUpdateOrganization }: { students?: Student[], onRefresh?: () => void, role?: UserRole, invoices?: any[], payments?: any[], onSaveStudent?: (data: any) => void, onDelete?: (type: string, item: any) => void, organization?: any, onUpdateOrganization?: (data: any) => void }) => {

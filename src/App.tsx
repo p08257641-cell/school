@@ -1004,7 +1004,8 @@ export default function App() {
     const teacherStudents = studentList.filter(
       (s) =>
         assignedClassIds.has(String(s.class_id).toLowerCase()) &&
-        s.status !== "Alumni",
+        s.status !== "Alumni" &&
+        s.status !== "Withdrawn",
     );
     const studentIds = new Set(
       teacherStudents.map((s) => String(s.id).toLowerCase()),
@@ -2187,7 +2188,7 @@ export default function App() {
                 : studentList
             ).filter(
               (s: Student) =>
-                s.status !== "Alumni" && s.status !== "Pending Enrollment",
+                s.status !== "Alumni" && s.status !== "Pending Enrollment" && s.status !== "Withdrawn",
             )}
             role={currentRole}
             results={results}
@@ -2198,8 +2199,8 @@ export default function App() {
             onSave={(data) => handleEntitySave("student", data)}
             onDelete={(item) => handleEntityDelete("student", item)}
             onRefresh={loadData}
-            canEdit={(item) => item.status !== "Alumni"}
-            canDelete={(item) => item.status !== "Alumni"}
+            canEdit={(item) => item.status !== "Alumni" && item.status !== "Withdrawn"}
+            canDelete={(item) => item.status !== "Alumni" && item.status !== "Withdrawn"}
           />
         ),
 
@@ -2491,6 +2492,14 @@ export default function App() {
           organization={organization}
           onSaveStudent={(data: any) => handleEntitySave("student", data)}
           onUpdateOrganization={(data: any) => handleEntitySave("organization", { ...data, id: currentUser?.org_id })}
+        />
+      ),
+
+      "Withdrawn Students": (
+        <AcademicModules.WithdrawnStudents
+          students={studentList}
+          onRefresh={() => loadData()}
+          onSaveStudent={(data: any) => handleEntitySave("student", data)}
         />
       ),
 
