@@ -93,9 +93,48 @@ export const getOrganizations = async (req: AuthRequest, res: Response) => {
   }
 };
 
+export const getOrganizationByDomain = async (req: Request, res: Response) => {
+  const { domain } = req.query;
+  if (!domain || typeof domain !== 'string') {
+    return res.status(400).json({ error: 'Domain parameter is required.' });
+  }
+
+  try {
+    const result = await pool.query(
+      `SELECT id, name, logo, logo_url, plan, custom_domain, status, timezone, language 
+       FROM organizations 
+       WHERE LOWER(custom_domain) = LOWER($1) LIMIT 1`,
+      [domain.trim()]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Organization not found for this subdomain.' });
+    }
+
+    res.json(result.rows[0]);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
 export const createOrganization = async (req: AuthRequest, res: Response) => {
   const { name, type, email, contact_number, address, plan, language, timezone, custom_domain, logo_url, logo, signature, default_leave_limit, default_leave_limit_unit } = req.body;
   try {
+    if (custom_domain) {
+      const domainRegex = /^[a-z0-9-]+$/;
+      if (!domainRegex.test(custom_domain)) {
+        return res.status(400).json({ error: 'Custom domain must contain only lowercase letters, numbers, and hyphens.' });
+      }
+
+      const checkResult = await pool.query(
+        'SELECT id FROM organizations WHERE LOWER(custom_domain) = LOWER($1)',
+        [custom_domain.trim()]
+      );
+      if (checkResult.rows.length > 0) {
+        return res.status(400).json({ error: 'Subdomain is already in use by another school. Please choose a different subdomain.' });
+      }
+    }
+
     const result = await pool.query(
       'INSERT INTO organizations (name, type, email, contact_number, address, plan, language, timezone, custom_domain, logo_url, logo, signature, default_leave_limit, default_leave_limit_unit) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) RETURNING *',
       [name, type, email, contact_number, address, plan, language, timezone, custom_domain, logo_url, logo, signature, default_leave_limit || 20, default_leave_limit_unit || 'Days']
@@ -109,6 +148,27 @@ export const createOrganization = async (req: AuthRequest, res: Response) => {
 
 export const updateOrganization = async (req: AuthRequest, res: Response) => {
   const { id } = req.params;
+  const { custom_domain } = req.body;
+
+  if (custom_domain !== undefined && custom_domain !== null && custom_domain !== '') {
+    const domainRegex = /^[a-z0-9-]+$/;
+    if (!domainRegex.test(custom_domain)) {
+      return res.status(400).json({ error: 'Custom domain must contain only lowercase letters, numbers, and hyphens.' });
+    }
+
+    try {
+      const checkResult = await pool.query(
+        'SELECT id FROM organizations WHERE LOWER(custom_domain) = LOWER($1) AND id <> $2',
+        [custom_domain.trim(), id]
+      );
+      if (checkResult.rows.length > 0) {
+        return res.status(400).json({ error: 'Subdomain is already in use by another school. Please choose a different subdomain.' });
+      }
+    } catch (err: any) {
+      return res.status(500).json({ error: err.message });
+    }
+  }
+
   const updates: string[] = [];
   const values: any[] = [];
   let paramIndex = 1;

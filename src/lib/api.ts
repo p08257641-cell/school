@@ -1020,6 +1020,11 @@ export const fetchOrganization = async (id: string) => {
   return response.data;
 };
 
+export const fetchOrganizationByDomain = async (domain: string) => {
+  const response = await api.get('/public/organization-by-domain', { params: { domain } });
+  return response.data;
+};
+
 export const createOrganization = async (org: any) => {
   const response = await api.post('/organizations', org);
   return response.data;

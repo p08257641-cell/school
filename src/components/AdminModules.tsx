@@ -406,6 +406,17 @@ function OrganizationForm({ initialData, isEdit = false, onRefresh, onBack }: { 
     late_time: initialData?.late_time || '08:00:00'
   });
 
+  const [hasManuallyEditedSlug, setHasManuallyEditedSlug] = useState(false);
+
+  const generateSlug = (text: string) => {
+    return text
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-');
+  };
+
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, field: 'logo' | 'signature') => {
     const file = e.target.files?.[0];
     if (file) {
@@ -492,7 +503,16 @@ function OrganizationForm({ initialData, isEdit = false, onRefresh, onBack }: { 
               <input
                 type="text"
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={(e) => {
+                  const newName = e.target.value;
+                  setFormData(prev => {
+                    const updated = { ...prev, name: newName };
+                    if (!isEdit && !hasManuallyEditedSlug) {
+                      updated.custom_domain = generateSlug(newName);
+                    }
+                    return updated;
+                  });
+                }}
                 placeholder="e.g. St. Patrick's School"
                 className="w-full px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
                 required
@@ -531,12 +551,16 @@ function OrganizationForm({ initialData, isEdit = false, onRefresh, onBack }: { 
                 <input
                   type="text"
                   value={formData.custom_domain}
-                  onChange={(e) => setFormData({ ...formData, custom_domain: e.target.value })}
+                  onChange={(e) => {
+                    const cleanVal = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '');
+                    setHasManuallyEditedSlug(true);
+                    setFormData({ ...formData, custom_domain: cleanVal });
+                  }}
                   placeholder="school-name"
                   className="flex-1 px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-l-xl outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={isEdit}
                 />
-                <span className="px-4 py-2.5 bg-zinc-100 dark:bg-zinc-700 border border-l-0 border-zinc-200 dark:border-zinc-700 rounded-r-xl text-zinc-500 text-sm">.schoolhub.com</span>
+                <span className="px-4 py-2.5 bg-zinc-100 dark:bg-zinc-700 border border-l-0 border-zinc-200 dark:border-zinc-700 rounded-r-xl text-zinc-500 text-sm">.skoola.online</span>
               </div>
             </div>
             <div className="space-y-2">

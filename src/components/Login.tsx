@@ -8,9 +8,10 @@ import { useLanguage } from '../lib/LanguageContext';
 interface LoginProps {
   onLogin: (role: UserRole, user: any) => void;
   onBack: () => void;
+  organization?: any;
 }
 
-export default function Login({ onLogin, onBack }: LoginProps) {
+export default function Login({ onLogin, onBack, organization }: LoginProps) {
   const { t } = useLanguage();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -48,21 +49,24 @@ export default function Login({ onLogin, onBack }: LoginProps) {
         className="w-full max-w-md"
       >
         <div className="text-center mb-8 flex flex-col items-center gap-4">
-          <button 
-            onClick={onBack}
-            className="flex items-center gap-2 mx-auto mb-2 group transition-all border-none outline-none focus:outline-none focus:ring-0"
-          >
-
-          </button>
-          <h1 className="text-3xl font-black tracking-tight mb-2 text-zinc-900 dark:text-white">
-            {t('login_welcome')}
+          {organization?.logo ? (
+            <img src={organization.logo} alt={organization.name} className="h-16 w-auto object-contain mx-auto mb-2" />
+          ) : (
+            <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center text-white mx-auto mb-2 shadow-lg shadow-indigo-200">
+              <Zap className="w-6 h-6" />
+            </div>
+          )}
+          <h1 className="text-3xl font-black tracking-tight mb-2 text-zinc-900 dark:text-white uppercase">
+            {organization ? `Sign in to ${organization.name}` : t('login_welcome')}
           </h1>
           <p className="text-zinc-500 dark:text-zinc-400 text-sm mb-1">
-            {t('login_tagline')}
+            {organization ? 'Enter your credentials to access your portal' : t('login_tagline')}
           </p>
-          <p className="text-indigo-600 dark:text-indigo-400 text-xs font-bold">
-            {t('school_name_note')}
-          </p>
+          {!organization && (
+            <p className="text-indigo-600 dark:text-indigo-400 text-xs font-bold">
+              {t('school_name_note')}
+            </p>
+          )}
         </div>
 
         <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[2rem] p-8 shadow-2xl relative overflow-hidden">
@@ -136,9 +140,15 @@ export default function Login({ onLogin, onBack }: LoginProps) {
               <Shield className="w-3 h-3 text-emerald-600" />
               <span className="text-[9px] font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400">{t('secure_auth')}</span>
             </div>
-            <p className="text-xs text-zinc-500">
-              {t('no_account')} <button onClick={onBack} className="text-indigo-600 font-bold hover:underline">{t('contact_sales')}</button>
-            </p>
+            {organization ? (
+              <p className="text-xs text-zinc-500">
+                Need help? Contact your school administrator.
+              </p>
+            ) : (
+              <p className="text-xs text-zinc-500">
+                {t('no_account')} <button onClick={onBack} className="text-indigo-600 font-bold hover:underline">{t('contact_sales')}</button>
+              </p>
+            )}
           </div>
         </div>
       </motion.div>

@@ -275,6 +275,7 @@ import {
   fetchPartnerDashboard,
   fetchTransportAssignments,
   fetchHostelAssignments,
+  fetchOrganizationByDomain,
 } from "./lib/api";
 
 import { useLanguage } from "./lib/LanguageContext";
@@ -285,6 +286,8 @@ export default function App() {
   const [showLanding, setShowLanding] = useState(true);
   const [showLogin, setShowLogin] = useState(false);
   const [showPartnerLogin, setShowPartnerLogin] = useState(false);
+  const [subdomainOrg, setSubdomainOrg] = useState<any>(null);
+  const [isSubdomainLoading, setIsSubdomainLoading] = useState(true);
   const [selectedStaff, setSelectedStaff] = useState<any>(null);
   const [selectedApplicant, setSelectedApplicant] = useState<any>(null);
   const [currentRole, setCurrentRole] = useState<UserRole>("SUPER_ADMIN");
@@ -323,6 +326,36 @@ export default function App() {
   const view = params.get('view');
   const pubToken = params.get('token');
   const socketRef = useRef<any>(null);
+
+  useEffect(() => {
+    const detectSubdomain = async () => {
+      const hostname = window.location.hostname;
+      const parts = hostname.split('.');
+      
+      let subdomain = null;
+      if (parts.length > 2) {
+        const sub = parts[0].toLowerCase();
+        const ignored = ['www', 'api', 'admin', 'app'];
+        if (!ignored.includes(sub)) {
+          subdomain = sub;
+        }
+      }
+
+      if (subdomain) {
+        try {
+          const org = await fetchOrganizationByDomain(subdomain);
+          setSubdomainOrg(org);
+          setShowLanding(false);
+          setShowLogin(true);
+        } catch (err) {
+          console.error("Failed to fetch organization for subdomain:", subdomain, err);
+        }
+      }
+      setIsSubdomainLoading(false);
+    };
+
+    detectSubdomain();
+  }, []);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -4093,6 +4126,15 @@ export default function App() {
     );
   }
 
+  if (isSubdomainLoading) {
+    return (
+      <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex flex-col items-center justify-center">
+        <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mb-4" />
+        <p className="text-sm font-bold text-zinc-500 animate-pulse">Loading Skoola...</p>
+      </div>
+    );
+  }
+
   if (publicError) {
     return (
       <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex flex-col items-center justify-center p-8">
@@ -4134,9 +4176,14 @@ export default function App() {
     return (
       <Login
         onLogin={handleLogin}
+        organization={subdomainOrg}
         onBack={() => {
-          setShowLanding(true);
-          setShowLogin(false);
+          if (subdomainOrg) {
+            // Under subdomain context, back button doesn't switch to default landing
+          } else {
+            setShowLanding(true);
+            setShowLogin(false);
+          }
         }}
       />
     );
