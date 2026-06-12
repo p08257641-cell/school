@@ -39,7 +39,9 @@ import {
   Palette,
   RotateCw,
   RefreshCw,
-  Bot
+  Bot,
+  Save,
+  Loader2
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { DataTable } from './DataTable';
@@ -2634,6 +2636,24 @@ export function Settings({ role }: { role?: UserRole }) {
   const [groqKey, setGroqKey] = useState('');
   const [aiStatus, setAiStatus] = useState<'checking' | 'active' | 'outdated' | 'error'>('checking');
   const [isSyncingHolidays, setIsSyncingHolidays] = useState(false);
+  const [isSavingBgs, setIsSavingBgs] = useState(false);
+
+  const handleSaveBackgrounds = async () => {
+    if (!organization) return;
+    setIsSavingBgs(true);
+    try {
+      await updateOrganization(organization.id, {
+        ...organization,
+        background_images: branding.background_images
+      });
+      (window as any).showToast?.('Slideshow backgrounds saved successfully!', 'success');
+    } catch (err) {
+      console.error('Failed to update slideshow backgrounds:', err);
+      (window as any).showToast?.('Failed to save backgrounds. Please try again.', 'error');
+    } finally {
+      setIsSavingBgs(false);
+    }
+  };
 
   const handleSyncHolidays = async () => {
     setIsSyncingHolidays(true);
@@ -2910,19 +2930,39 @@ export function Settings({ role }: { role?: UserRole }) {
                       <p className="text-[10px] text-zinc-500 mb-3 uppercase font-bold tracking-tight">
                         Upload landscape images (1920x1080) to create a rotating slideshow background.
                       </p>
-                      <input
-                        type="file"
-                        id="bg-upload"
-                        className="hidden"
-                        accept="image/*"
-                        onChange={handleBgImageUpload}
-                      />
-                      <label
-                        htmlFor="bg-upload"
-                        className="px-4 py-2 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg text-xs font-bold text-indigo-600 cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors shadow-sm inline-block"
-                      >
-                        Upload Slide Image
-                      </label>
+                      <div className="flex flex-wrap items-center gap-3 justify-center sm:justify-start">
+                        <input
+                          type="file"
+                          id="bg-upload"
+                          className="hidden"
+                          accept="image/*"
+                          onChange={handleBgImageUpload}
+                        />
+                        <label
+                          htmlFor="bg-upload"
+                          className="px-4 py-2 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg text-xs font-bold text-indigo-600 cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors shadow-sm inline-block"
+                        >
+                          Upload Slide Image
+                        </label>
+                        <button
+                          type="button"
+                          disabled={isSavingBgs}
+                          onClick={handleSaveBackgrounds}
+                          className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold transition-colors shadow-sm flex items-center gap-1.5 disabled:opacity-75"
+                        >
+                          {isSavingBgs ? (
+                            <>
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              Saving...
+                            </>
+                          ) : (
+                            <>
+                              <Save className="w-3.5 h-3.5" />
+                              Save Slideshow
+                            </>
+                          )}
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
