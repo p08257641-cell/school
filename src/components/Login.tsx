@@ -43,7 +43,7 @@ export default function Login({ onLogin, onBack, organization }: LoginProps) {
       <div
         className="absolute inset-0 z-0 opacity-30"
         style={{
-          backgroundImage: 'url(/school_login_bg.png)',
+          backgroundImage: `url(${organization?.background_image || '/school_login_bg.png'})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',

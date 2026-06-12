@@ -35,6 +35,7 @@ export async function init() {
         custom_domain VARCHAR(255),
         logo_url TEXT,
         logo TEXT,
+        background_image TEXT,
         signature TEXT,
         language VARCHAR(50) DEFAULT 'en',
         timezone VARCHAR(100) DEFAULT 'GMT',
@@ -80,6 +81,9 @@ export async function init() {
       BEGIN
         IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'organizations' AND column_name = 'logo') THEN
           ALTER TABLE organizations ADD COLUMN logo TEXT;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'organizations' AND column_name = 'background_image') THEN
+          ALTER TABLE organizations ADD COLUMN background_image TEXT;
         END IF;
         IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'organizations' AND column_name = 'referred_by_partner_id') THEN
           ALTER TABLE organizations ADD COLUMN referred_by_partner_id UUID REFERENCES partners(id);

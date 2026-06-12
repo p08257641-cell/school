@@ -18,6 +18,7 @@ import {
   Medal,
   GraduationCap,
   Camera,
+  Image as ImageIcon,
   Brain,
   Zap,
   Search,
@@ -2626,7 +2627,8 @@ export function Settings({ role }: { role?: UserRole }) {
   const [isAiConfigured, setIsAiConfigured] = useState(false);
   const [branding, setBranding] = useState({
     logo: '',
-    signature: ''
+    signature: '',
+    background_image: ''
   });
   const [groqKey, setGroqKey] = useState('');
   const [aiStatus, setAiStatus] = useState<'checking' | 'active' | 'outdated' | 'error'>('checking');
@@ -2656,7 +2658,8 @@ export function Settings({ role }: { role?: UserRole }) {
             setOrganization(org);
             setBranding({
               logo: org.logo || '',
-              signature: org.signature || ''
+              signature: org.signature || '',
+              background_image: org.background_image || ''
             });
             // Diagnostics: Check if AI routes even exist using axios instance
             try {
@@ -2692,7 +2695,7 @@ export function Settings({ role }: { role?: UserRole }) {
     }
   }, [role]);
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, field: 'logo' | 'signature') => {
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, field: 'logo' | 'signature' | 'background_image') => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
@@ -2842,6 +2845,35 @@ export function Settings({ role }: { role?: UserRole }) {
                         className="px-4 py-2 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg text-xs font-bold text-indigo-600 cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors shadow-sm"
                       >
                         {branding.signature ? 'Change Signature' : 'Upload Signature'}
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4 md:col-span-2">
+                  <label className="text-sm font-bold text-zinc-700 dark:text-zinc-300">Login Page Background Image</label>
+                  <div className="flex flex-col sm:flex-row items-center gap-6 p-4 border border-dashed border-zinc-200 dark:border-zinc-800 rounded-2xl bg-zinc-50/50 dark:bg-zinc-800/20">
+                    <div className="w-full sm:w-48 h-28 bg-white dark:bg-zinc-800 rounded-xl flex items-center justify-center border border-zinc-100 dark:border-zinc-700 overflow-hidden shadow-sm shrink-0">
+                      {branding.background_image ? (
+                        <img src={branding.background_image} alt="Login Background" className="w-full h-full object-cover" />
+                      ) : (
+                        <ImageIcon className="w-8 h-8 text-zinc-300" />
+                      )}
+                    </div>
+                    <div className="flex-1 text-center sm:text-left">
+                      <p className="text-[10px] text-zinc-500 mb-3 uppercase font-bold tracking-tight">Best in 1920x1080 landscape PNG/JPG</p>
+                      <input
+                        type="file"
+                        id="bg-upload"
+                        className="hidden"
+                        accept="image/*"
+                        onChange={(e) => handleFileUpload(e, 'background_image')}
+                      />
+                      <label
+                        htmlFor="bg-upload"
+                        className="px-4 py-2 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg text-xs font-bold text-indigo-600 cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors shadow-sm inline-block"
+                      >
+                        {branding.background_image ? 'Change Background' : 'Upload Background'}
                       </label>
                     </div>
                   </div>
