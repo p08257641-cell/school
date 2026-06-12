@@ -56,7 +56,7 @@ export default function Login({ onLogin, onBack, organization }: LoginProps) {
               <Zap className="w-6 h-6" />
             </div>
           )}
-          <h1 className="text-3xl font-black tracking-tight mb-2 text-zinc-900 dark:text-white uppercase">
+          <h1 className="text-3xl font-black tracking-tight mb-2 text-zinc-900 dark:text-white">
             {organization ? `Sign in to ${organization.name}` : t('login_welcome')}
           </h1>
           <p className="text-zinc-500 dark:text-zinc-400 text-sm mb-1">
