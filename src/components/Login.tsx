@@ -67,9 +67,9 @@ export default function Login({ onLogin, onBack, organization }: LoginProps) {
       <div className="absolute inset-0 z-0 bg-white">
         {bgImages.map((img, idx) => (
           <motion.div
-            key={img}
+            key={idx}
             initial={{ opacity: 0 }}
-            animate={{ opacity: idx === bgIndex ? 0.3 : 0 }}
+            animate={{ opacity: idx === bgIndex ? (img.startsWith('/school_login_bg') ? 0.35 : 0.65) : 0 }}
             transition={{ duration: 1.5, ease: 'easeInOut' }}
             className="absolute inset-0"
             style={{
