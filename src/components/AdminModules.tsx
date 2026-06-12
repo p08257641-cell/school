@@ -84,6 +84,62 @@ import {
 } from '../lib/api';
 import { API_BASE_URL, PAYSTACK_PUBLIC_KEY } from '../constants';
 
+const compressImage = (
+  file: File,
+  maxWidth: number,
+  maxHeight: number,
+  quality: number = 0.75
+): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > maxWidth) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          }
+        } else {
+          if (height > maxHeight) {
+            width = Math.round((width * maxHeight) / height);
+            height = maxHeight;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          resolve(e.target?.result as string);
+          return;
+        }
+
+        ctx.drawImage(img, 0, 0, width, height);
+
+        const isPngOrWebp = file.type === 'image/png' || file.type === 'image/webp';
+        const format = isPngOrWebp ? file.type : 'image/jpeg';
+        
+        const dataUrl = canvas.toDataURL(format, format === 'image/jpeg' ? quality : undefined);
+        resolve(dataUrl);
+      };
+      img.onerror = () => {
+        reject(new Error('Failed to load image for compression'));
+      };
+      img.src = e.target?.result as string;
+    };
+    reader.onerror = (err) => {
+      reject(err);
+    };
+    reader.readAsDataURL(file);
+  });
+};
+
 export function UsersManagement({ data, onRefresh, organizations = [] }: { data?: any[], onRefresh?: () => void, organizations?: any[] }) {
   const { t } = useLanguage();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -2718,28 +2774,46 @@ export function Settings({ role }: { role?: UserRole }) {
     }
   }, [role]);
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, field: 'logo' | 'signature' | 'background_image') => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, field: 'logo' | 'signature' | 'background_image') => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setBranding(prev => ({ ...prev, [field]: reader.result as string }));
-      };
-      reader.readAsDataURL(file);
+      try {
+        const maxWidth = field === 'background_image' ? 1920 : 800;
+        const maxHeight = field === 'background_image' ? 1080 : 800;
+        const quality = field === 'background_image' ? 0.75 : 0.85;
+        const compressed = await compressImage(file, maxWidth, maxHeight, quality);
+        setBranding(prev => ({ ...prev, [field]: compressed }));
+      } catch (err) {
+        console.error('Failed to compress image:', err);
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setBranding(prev => ({ ...prev, [field]: reader.result as string }));
+        };
+        reader.readAsDataURL(file);
+      }
     }
   };
 
-  const handleBgImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleBgImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
+      try {
+        const compressed = await compressImage(file, 1920, 1080, 0.75);
         setBranding(prev => ({
           ...prev,
-          background_images: [...prev.background_images, reader.result as string]
+          background_images: [...prev.background_images, compressed]
         }));
-      };
-      reader.readAsDataURL(file);
+      } catch (err) {
+        console.error('Failed to compress slideshow image:', err);
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setBranding(prev => ({
+            ...prev,
+            background_images: [...prev.background_images, reader.result as string]
+          }));
+        };
+        reader.readAsDataURL(file);
+      }
     }
   };
 
