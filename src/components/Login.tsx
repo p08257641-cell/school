@@ -100,7 +100,7 @@ export default function Login({ onLogin, onBack, organization }: LoginProps) {
               transition={{ duration: 0.5 }}
               src={organization.logo}
               alt={organization.name}
-              className="h-20 w-auto object-contain mx-auto drop-shadow-md"
+              className="h-20 w-auto object-contain mx-auto drop-shadow-md mix-blend-multiply"
             />
           ) : (
             <motion.div
