@@ -32,7 +32,9 @@ export default function Login({ onLogin, onBack, organization }: LoginProps) {
         console.error('Failed to parse background images:', e);
       }
     }
-    return [organization?.background_image || '/school_login_bg.png'];
+    // Fall back to single background_image if set, otherwise no background
+    if (organization?.background_image) return [organization.background_image];
+    return [];
   }, [organization]);
 
   React.useEffect(() => {
@@ -69,7 +71,7 @@ export default function Login({ onLogin, onBack, organization }: LoginProps) {
           <motion.div
             key={idx}
             initial={{ opacity: 0 }}
-            animate={{ opacity: idx === bgIndex ? (img.startsWith('/school_login_bg') ? 0.35 : 0.65) : 0 }}
+            animate={{ opacity: idx === bgIndex ? 0.65 : 0 }}
             transition={{ duration: 1.5, ease: 'easeInOut' }}
             className="absolute inset-0"
             style={{
