@@ -2811,7 +2811,8 @@ export function Settings({ role }: { role?: UserRole }) {
         
         // 3. Upload to Supabase Storage
         const fileExt = file.name.split('.').pop() || 'jpg';
-        const fileName = `branding/${field}-${Date.now()}.${fileExt}`;
+        const orgId = organization?.id || 'unknown';
+        const fileName = `branding/${orgId}/${field}-${Date.now()}.${fileExt}`;
         
         if (!supabase) {
           throw new Error("Supabase storage is not configured.");
@@ -2859,7 +2860,8 @@ export function Settings({ role }: { role?: UserRole }) {
         
         // 3. Upload to Supabase Storage
         const fileExt = file.name.split('.').pop() || 'jpg';
-        const fileName = `branding/bg-slide-${Date.now()}.${fileExt}`;
+        const orgId = organization?.id || 'unknown';
+        const fileName = `branding/${orgId}/bg-slide-${Date.now()}.${fileExt}`;
         
         if (!supabase) {
           throw new Error("Supabase storage is not configured.");
