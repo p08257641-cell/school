@@ -83,6 +83,19 @@ import {
   generateAIResponse
 } from '../lib/api';
 import { API_BASE_URL, PAYSTACK_PUBLIC_KEY } from '../constants';
+import { supabase } from '../lib/supabase';
+
+const dataURLtoBlob = (dataurl: string): Blob => {
+  const arr = dataurl.split(',');
+  const mime = arr[0].match(/:(.*?);/)?.[1] || 'image/jpeg';
+  const bstr = atob(arr[1]);
+  let n = bstr.length;
+  const u8arr = new Uint8Array(n);
+  while (n--) {
+    u8arr[n] = bstr.charCodeAt(n);
+  }
+  return new Blob([u8arr], { type: mime });
+};
 
 const compressImage = (
   file: File,
@@ -2693,6 +2706,10 @@ export function Settings({ role }: { role?: UserRole }) {
   const [aiStatus, setAiStatus] = useState<'checking' | 'active' | 'outdated' | 'error'>('checking');
   const [isSyncingHolidays, setIsSyncingHolidays] = useState(false);
   const [isSavingBgs, setIsSavingBgs] = useState(false);
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+  const [isUploadingSig, setIsUploadingSig] = useState(false);
+  const [isUploadingBg, setIsUploadingBg] = useState(false);
+  const [isUploadingSlides, setIsUploadingSlides] = useState(false);
 
   const handleSaveBackgrounds = async () => {
     if (!organization) return;
@@ -2777,19 +2794,54 @@ export function Settings({ role }: { role?: UserRole }) {
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, field: 'logo' | 'signature' | 'background_image') => {
     const file = e.target.files?.[0];
     if (file) {
+      if (field === 'logo') setIsUploadingLogo(true);
+      else if (field === 'signature') setIsUploadingSig(true);
+      else if (field === 'background_image') setIsUploadingBg(true);
+
       try {
         const maxWidth = field === 'background_image' ? 1920 : 800;
         const maxHeight = field === 'background_image' ? 1080 : 800;
         const quality = field === 'background_image' ? 0.75 : 0.85;
-        const compressed = await compressImage(file, maxWidth, maxHeight, quality);
-        setBranding(prev => ({ ...prev, [field]: compressed }));
-      } catch (err) {
-        console.error('Failed to compress image:', err);
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          setBranding(prev => ({ ...prev, [field]: reader.result as string }));
-        };
-        reader.readAsDataURL(file);
+        
+        // 1. Compress image
+        const compressedBase64 = await compressImage(file, maxWidth, maxHeight, quality);
+        
+        // 2. Convert base64 dataurl to binary Blob
+        const blob = dataURLtoBlob(compressedBase64);
+        
+        // 3. Upload to Supabase Storage
+        const fileExt = file.name.split('.').pop() || 'jpg';
+        const fileName = `branding/${field}-${Date.now()}.${fileExt}`;
+        
+        if (!supabase) {
+          throw new Error("Supabase storage is not configured.");
+        }
+        
+        const { data, error } = await supabase.storage
+          .from('portfolio')
+          .upload(fileName, blob, {
+            cacheControl: '3600',
+            contentType: blob.type,
+            upsert: true
+          });
+
+        if (error) throw error;
+
+        // 4. Retrieve public CDN URL
+        const { data: { publicUrl } } = supabase.storage
+          .from('portfolio')
+          .getPublicUrl(fileName);
+
+        // 5. Update state
+        setBranding(prev => ({ ...prev, [field]: publicUrl }));
+        (window as any).showToast?.('Image uploaded to storage successfully!', 'success');
+      } catch (err: any) {
+        console.error('Failed to upload branding image:', err);
+        (window as any).showToast?.('Failed to upload image: ' + (err.message || err), 'error');
+      } finally {
+        if (field === 'logo') setIsUploadingLogo(false);
+        else if (field === 'signature') setIsUploadingSig(false);
+        else if (field === 'background_image') setIsUploadingBg(false);
       }
     }
   };
@@ -2797,22 +2849,48 @@ export function Settings({ role }: { role?: UserRole }) {
   const handleBgImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      setIsUploadingSlides(true);
       try {
-        const compressed = await compressImage(file, 1920, 1080, 0.75);
+        // 1. Compress image
+        const compressedBase64 = await compressImage(file, 1920, 1080, 0.75);
+        
+        // 2. Convert base64 dataurl to binary Blob
+        const blob = dataURLtoBlob(compressedBase64);
+        
+        // 3. Upload to Supabase Storage
+        const fileExt = file.name.split('.').pop() || 'jpg';
+        const fileName = `branding/bg-slide-${Date.now()}.${fileExt}`;
+        
+        if (!supabase) {
+          throw new Error("Supabase storage is not configured.");
+        }
+        
+        const { data, error } = await supabase.storage
+          .from('portfolio')
+          .upload(fileName, blob, {
+            cacheControl: '3600',
+            contentType: blob.type,
+            upsert: true
+          });
+
+        if (error) throw error;
+
+        // 4. Retrieve public CDN URL
+        const { data: { publicUrl } } = supabase.storage
+          .from('portfolio')
+          .getPublicUrl(fileName);
+
+        // 5. Add to state array
         setBranding(prev => ({
           ...prev,
-          background_images: [...prev.background_images, compressed]
+          background_images: [...prev.background_images, publicUrl]
         }));
-      } catch (err) {
-        console.error('Failed to compress slideshow image:', err);
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          setBranding(prev => ({
-            ...prev,
-            background_images: [...prev.background_images, reader.result as string]
-          }));
-        };
-        reader.readAsDataURL(file);
+        (window as any).showToast?.('Slideshow image uploaded to storage successfully!', 'success');
+      } catch (err: any) {
+        console.error('Failed to upload slideshow image:', err);
+        (window as any).showToast?.('Failed to upload slide: ' + (err.message || err), 'error');
+      } finally {
+        setIsUploadingSlides(false);
       }
     }
   };
@@ -2914,7 +2992,9 @@ export function Settings({ role }: { role?: UserRole }) {
                   <label className="text-sm font-bold text-zinc-700 dark:text-zinc-300">School Logo</label>
                   <div className="flex items-center gap-6 p-4 border border-dashed border-zinc-200 dark:border-zinc-800 rounded-2xl bg-zinc-50/50 dark:bg-zinc-800/20">
                     <div className="w-20 h-20 bg-white dark:bg-zinc-800 rounded-xl flex items-center justify-center border border-zinc-100 dark:border-zinc-700 overflow-hidden shadow-sm">
-                      {branding.logo ? (
+                      {isUploadingLogo ? (
+                        <Loader2 className="w-6 h-6 text-indigo-600 animate-spin" />
+                      ) : branding.logo ? (
                         <img src={branding.logo} alt="School Logo" className="w-full h-full object-cover" />
                       ) : (
                         <Camera className="w-8 h-8 text-zinc-300" />
@@ -2927,13 +3007,17 @@ export function Settings({ role }: { role?: UserRole }) {
                         id="logo-upload"
                         className="hidden"
                         accept="image/*"
+                        disabled={isUploadingLogo}
                         onChange={(e) => handleFileUpload(e, 'logo')}
                       />
                       <label
-                        htmlFor="logo-upload"
-                        className="px-4 py-2 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg text-xs font-bold text-indigo-600 cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors shadow-sm"
+                        htmlFor={isUploadingLogo ? undefined : "logo-upload"}
+                        className={cn(
+                          "px-4 py-2 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg text-xs font-bold text-indigo-600 transition-colors shadow-sm inline-block",
+                          isUploadingLogo ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-700"
+                        )}
                       >
-                        {branding.logo ? 'Change Logo' : 'Upload Logo'}
+                        {isUploadingLogo ? 'Uploading...' : branding.logo ? 'Change Logo' : 'Upload Logo'}
                       </label>
                     </div>
                   </div>
@@ -2943,7 +3027,9 @@ export function Settings({ role }: { role?: UserRole }) {
                   <label className="text-sm font-bold text-zinc-700 dark:text-zinc-300">Principal's Signature</label>
                   <div className="flex items-center gap-6 p-4 border border-dashed border-zinc-200 dark:border-zinc-800 rounded-2xl bg-zinc-50/50 dark:bg-zinc-800/20">
                     <div className="w-20 h-20 bg-white dark:bg-zinc-800 rounded-xl flex items-center justify-center border border-zinc-100 dark:border-zinc-700 overflow-hidden shadow-sm">
-                      {branding.signature ? (
+                      {isUploadingSig ? (
+                        <Loader2 className="w-6 h-6 text-indigo-600 animate-spin" />
+                      ) : branding.signature ? (
                         <img src={branding.signature} alt="Signature" className="w-full h-full object-contain" />
                       ) : (
                         <div className="text-zinc-300 font-mono text-xs italic">Sign</div>
@@ -2956,13 +3042,17 @@ export function Settings({ role }: { role?: UserRole }) {
                         id="sig-upload"
                         className="hidden"
                         accept="image/*"
+                        disabled={isUploadingSig}
                         onChange={(e) => handleFileUpload(e, 'signature')}
                       />
                       <label
-                        htmlFor="sig-upload"
-                        className="px-4 py-2 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg text-xs font-bold text-indigo-600 cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors shadow-sm"
+                        htmlFor={isUploadingSig ? undefined : "sig-upload"}
+                        className={cn(
+                          "px-4 py-2 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg text-xs font-bold text-indigo-600 transition-colors shadow-sm inline-block",
+                          isUploadingSig ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-700"
+                        )}
                       >
-                        {branding.signature ? 'Change Signature' : 'Upload Signature'}
+                        {isUploadingSig ? 'Uploading...' : branding.signature ? 'Change Signature' : 'Upload Signature'}
                       </label>
                     </div>
                   </div>
@@ -3010,13 +3100,22 @@ export function Settings({ role }: { role?: UserRole }) {
                           id="bg-upload"
                           className="hidden"
                           accept="image/*"
+                          disabled={isUploadingSlides}
                           onChange={handleBgImageUpload}
                         />
                         <label
-                          htmlFor="bg-upload"
-                          className="px-4 py-2 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg text-xs font-bold text-indigo-600 cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors shadow-sm inline-block"
+                          htmlFor={isUploadingSlides ? undefined : "bg-upload"}
+                          className={cn(
+                            "px-4 py-2 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg text-xs font-bold text-indigo-600 transition-colors shadow-sm inline-block",
+                            isUploadingSlides ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-700"
+                          )}
                         >
-                          Upload Slide Image
+                          {isUploadingSlides ? (
+                            <span className="flex items-center gap-1.5">
+                              <Loader2 className="w-3 h-3 animate-spin" />
+                              Uploading...
+                            </span>
+                          ) : 'Upload Slide Image'}
                         </label>
                         <button
                           type="button"
