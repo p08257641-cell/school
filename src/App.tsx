@@ -288,6 +288,7 @@ export default function App() {
   const [showPartnerLogin, setShowPartnerLogin] = useState(false);
   const [subdomainOrg, setSubdomainOrg] = useState<any>(null);
   const [isSubdomainLoading, setIsSubdomainLoading] = useState(true);
+  const [loadingMessage, setLoadingMessage] = useState('Connecting to school servers…');
   const [selectedStaff, setSelectedStaff] = useState<any>(null);
   const [selectedApplicant, setSelectedApplicant] = useState<any>(null);
   const [currentRole, setCurrentRole] = useState<UserRole>("SUPER_ADMIN");
@@ -361,6 +362,22 @@ export default function App() {
 
     detectSubdomain();
   }, []);
+
+  useEffect(() => {
+    if (!isSubdomainLoading) return;
+    const messages = [
+      'Connecting to school servers…',
+      'Syncing student databases…',
+      'Securing academic records…',
+      'Preparing your dashboard…'
+    ];
+    let idx = 0;
+    const interval = setInterval(() => {
+      idx = (idx + 1) % messages.length;
+      setLoadingMessage(messages[idx]);
+    }, 3400);
+    return () => clearInterval(interval);
+  }, [isSubdomainLoading]);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -4133,9 +4150,66 @@ export default function App() {
 
   if (isSubdomainLoading) {
     return (
-      <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex flex-col items-center justify-center">
-        <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mb-4" />
-        <p className="text-sm font-bold text-zinc-500 animate-pulse">Loading Skoola...</p>
+      <div className="min-h-screen bg-white dark:bg-zinc-950 flex flex-col items-center justify-center relative overflow-hidden select-none">
+        {/* Ambient glows */}
+        <div className="absolute -top-20 -right-10 w-56 h-56 rounded-full bg-[radial-gradient(circle,rgba(0,210,196,0.15)_0%,transparent_70%)] pointer-events-none" />
+        <div className="absolute bottom-32 -left-16 w-52 h-52 rounded-full bg-[radial-gradient(circle,rgba(139,92,246,0.12)_0%,transparent_70%)] pointer-events-none" />
+
+        {/* Brand Header */}
+        <div className="absolute top-8 left-8">
+          <span className="text-2xl font-black tracking-tight select-none">
+            <span className="text-[#8B5CF6]">Sko</span>
+            <span className="text-[#00D2C4]">ola</span>
+          </span>
+        </div>
+
+        {/* Ring Loader */}
+        <div className="relative w-14 h-14 flex items-center justify-center animate-pulse" style={{ animationDuration: '0.9s' }}>
+          <svg className="w-full h-full animate-spin" viewBox="0 0 52 52" style={{ animationDuration: '1.4s', animationTimingFunction: 'linear' }}>
+            {/* Track circle */}
+            <circle
+              cx="26"
+              cy="26"
+              r="22"
+              className="stroke-zinc-100 dark:stroke-zinc-800 fill-none"
+              strokeWidth="4"
+            />
+            {/* Mint arc (120 degrees = strokeDasharray 46.08) */}
+            <circle
+              cx="26"
+              cy="26"
+              r="22"
+              className="stroke-[#00D2C4] fill-none"
+              strokeWidth="4"
+              strokeDasharray="46.08 138.23"
+              strokeDashoffset="0"
+              strokeLinecap="round"
+            />
+            {/* Violet arc (70 degrees = strokeDasharray 26.88, offset by 137 degrees) */}
+            <circle
+              cx="26"
+              cy="26"
+              r="22"
+              className="stroke-[#8B5CF6] fill-none"
+              strokeWidth="4"
+              strokeDasharray="26.88 138.23"
+              strokeDashoffset="-57.5"
+              strokeLinecap="round"
+            />
+            {/* Center dot */}
+            <circle
+              cx="26"
+              cy="26"
+              r="3.5"
+              className="fill-[#00D2C4]"
+            />
+          </svg>
+        </div>
+
+        {/* Loading Message */}
+        <p className="mt-5 text-[11px] font-bold text-zinc-500 dark:text-zinc-400 tracking-wide select-none animate-pulse">
+          {loadingMessage}
+        </p>
       </div>
     );
   }
