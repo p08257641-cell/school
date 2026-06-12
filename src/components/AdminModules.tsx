@@ -2880,12 +2880,19 @@ export function Settings({ role }: { role?: UserRole }) {
           .from('portfolio')
           .getPublicUrl(fileName);
 
-        // 5. Add to state array
+        // 5. Add to state array and save to DB
+        const newImages = [...branding.background_images, publicUrl];
+        if (organization) {
+          await updateOrganization(organization.id, {
+            background_images: newImages
+          });
+          setOrganization(prev => prev ? ({ ...prev, background_images: newImages }) : null);
+        }
         setBranding(prev => ({
           ...prev,
-          background_images: [...prev.background_images, publicUrl]
+          background_images: newImages
         }));
-        (window as any).showToast?.('Slideshow image uploaded to storage successfully!', 'success');
+        (window as any).showToast?.('Slideshow image uploaded and saved successfully!', 'success');
       } catch (err: any) {
         console.error('Failed to upload slideshow image:', err);
         (window as any).showToast?.('Failed to upload slide: ' + (err.message || err), 'error');
@@ -2895,11 +2902,23 @@ export function Settings({ role }: { role?: UserRole }) {
     }
   };
 
-  const handleDeleteBgImage = (index: number) => {
-    setBranding(prev => ({
-      ...prev,
-      background_images: prev.background_images.filter((_, i) => i !== index)
-    }));
+  const handleDeleteBgImage = async (index: number) => {
+    if (!organization) return;
+    const newImages = branding.background_images.filter((_, i) => i !== index);
+    try {
+      await updateOrganization(organization.id, {
+        background_images: newImages
+      });
+      setOrganization(prev => prev ? ({ ...prev, background_images: newImages }) : null);
+      setBranding(prev => ({
+        ...prev,
+        background_images: newImages
+      }));
+      (window as any).showToast?.('Slide deleted and saved successfully!', 'success');
+    } catch (err: any) {
+      console.error('Failed to delete slide:', err);
+      (window as any).showToast?.('Failed to delete slide: ' + (err.message || err), 'error');
+    }
   };
 
 
@@ -3117,24 +3136,9 @@ export function Settings({ role }: { role?: UserRole }) {
                             </span>
                           ) : 'Upload Slide Image'}
                         </label>
-                        <button
-                          type="button"
-                          disabled={isSavingBgs}
-                          onClick={handleSaveBackgrounds}
-                          className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold transition-colors shadow-sm flex items-center gap-1.5 disabled:opacity-75"
-                        >
-                          {isSavingBgs ? (
-                            <>
-                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                              Saving...
-                            </>
-                          ) : (
-                            <>
-                              <Save className="w-3.5 h-3.5" />
-                              Save Slideshow
-                            </>
-                          )}
-                        </button>
+                        <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-1.5 rounded-lg border border-emerald-500/20 uppercase tracking-wider select-none">
+                          Auto-saved on change
+                        </span>
                       </div>
                     </div>
                   </div>
