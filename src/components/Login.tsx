@@ -38,55 +38,108 @@ export default function Login({ onLogin, onBack, organization }: LoginProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-zinc-900 dark:via-zinc-800 dark:to-zinc-700 flex flex-col items-center justify-center p-4 relative overflow-hidden">
-      {/* Background Decorations */}
-      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-500/5 blur-[120px] rounded-full" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-emerald-500/5 blur-[120px] rounded-full" />
-
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden">
+      {/* Background Image with fade-in */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 1.5, ease: 'easeOut' }}
+        className="absolute inset-0 z-0"
+        style={{
+          backgroundImage: 'url(/school_login_bg.png)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+        }}
+      />
+      {/* Dark overlay for readability */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 1.8, ease: 'easeOut' }}
+        className="absolute inset-0 z-0 bg-gradient-to-br from-black/60 via-black/40 to-indigo-900/50"
+      />
+
+      {/* Login Card */}
+      <motion.div
+        initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md"
+        transition={{ duration: 0.6, delay: 0.4, ease: 'easeOut' }}
+        className="w-full max-w-md z-10"
       >
-        <div className="text-center mb-8 flex flex-col items-center gap-4">
+        {/* Logo / Header */}
+        <div className="text-center mb-6 flex flex-col items-center gap-3">
           {organization?.logo ? (
-            <img src={organization.logo} alt={organization.name} className="h-16 w-auto object-contain mx-auto mb-2" />
+            <motion.img
+              initial={{ opacity: 0, scale: 0.85 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5, delay: 0.6 }}
+              src={organization.logo}
+              alt={organization.name}
+              className="h-20 w-auto object-contain mx-auto drop-shadow-xl"
+            />
           ) : (
-            <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center text-white mx-auto mb-2 shadow-lg shadow-indigo-200">
-              <Zap className="w-6 h-6" />
-            </div>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.85 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5, delay: 0.6 }}
+              className="w-14 h-14 bg-indigo-600 rounded-2xl flex items-center justify-center text-white mx-auto shadow-2xl shadow-indigo-900/60"
+            >
+              <Zap className="w-7 h-7" />
+            </motion.div>
           )}
-          <h1 className="text-3xl font-black tracking-tight mb-2 text-zinc-900 dark:text-white">
-            {organization ? `Sign in to ${organization.name}` : t('login_welcome')}
-          </h1>
-          <p className="text-zinc-500 dark:text-zinc-400 text-sm mb-1">
-            {organization ? 'Enter your credentials to access your portal' : t('login_tagline')}
-          </p>
+
+          {/* Only show heading for non-subdomain (generic) login */}
           {!organization && (
-            <p className="text-indigo-600 dark:text-indigo-400 text-xs font-bold">
-              {t('school_name_note')}
+            <motion.h1
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.7 }}
+              className="text-3xl font-black tracking-tight text-white drop-shadow-lg"
+            >
+              {t('login_welcome')}
+            </motion.h1>
+          )}
+
+          {organization && (
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5, delay: 0.75 }}
+              className="text-white/70 text-sm font-semibold tracking-wide"
+            >
+              {organization.name}
+            </motion.p>
+          )}
+
+          {!organization && (
+            <p className="text-white/60 text-sm">
+              {t('login_tagline')}
             </p>
           )}
         </div>
 
-        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[2rem] p-8 shadow-2xl relative overflow-hidden">
+        {/* Glassmorphism Card */}
+        <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-[2rem] p-8 shadow-2xl">
           {error && (
-            <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/30 rounded-2xl text-red-600 dark:text-red-400 text-sm font-medium">
+            <div className="mb-6 p-4 bg-red-500/20 border border-red-400/30 rounded-2xl text-red-200 text-sm font-medium">
               {error}
             </div>
           )}
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-4 mb-1 block">{t('email_or_phone')}</label>
+              <label className="text-[10px] font-black uppercase tracking-widest text-white/50 ml-4 mb-1 block">
+                {t('email_or_phone')}
+              </label>
               <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400" />
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
                 <input
                   type="text"
                   required
                   autoComplete="off"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-12 pr-6 py-4 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all text-sm"
+                  className="w-full pl-12 pr-6 py-4 bg-white/10 border border-white/20 rounded-2xl focus:ring-2 focus:ring-indigo-400 outline-none transition-all text-sm text-white placeholder-white/30 backdrop-blur"
                   placeholder={t('email_or_phone') + '...'}
                 />
               </div>
@@ -94,35 +147,43 @@ export default function Login({ onLogin, onBack, organization }: LoginProps) {
 
             <div className="space-y-2">
               <div className="flex items-center justify-between ml-4 mr-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-1 block">{t('password')}</label>
-                <button type="button" className="text-[10px] font-black uppercase tracking-widest text-indigo-600 hover:text-indigo-500">{t('forgot_password')}</button>
+                <label className="text-[10px] font-black uppercase tracking-widest text-white/50 mb-1 block">
+                  {t('password')}
+                </label>
+                <button type="button" className="text-[10px] font-black uppercase tracking-widest text-indigo-300 hover:text-indigo-200 transition-colors">
+                  {t('forgot_password')}
+                </button>
               </div>
               <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400" />
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
                 <input
                   type={showPassword ? 'text' : 'password'}
                   required
                   autoComplete="new-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-12 pr-12 py-4 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all text-sm"
+                  className="w-full pl-12 pr-12 py-4 bg-white/10 border border-white/20 rounded-2xl focus:ring-2 focus:ring-indigo-400 outline-none transition-all text-sm text-white placeholder-white/30 backdrop-blur"
                   placeholder="••••••••"
                 />
-                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors">
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/80 transition-colors"
+                >
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
             </div>
 
             <div className="flex items-center gap-2 ml-4">
-              <input type="checkbox" id="remember" className="rounded border-zinc-300 text-indigo-600 focus:ring-indigo-500" />
-              <label htmlFor="remember" className="text-xs text-zinc-500 font-medium">{t('remember_me')}</label>
+              <input type="checkbox" id="remember" className="rounded border-white/30 text-indigo-500 focus:ring-indigo-400 bg-white/10" />
+              <label htmlFor="remember" className="text-xs text-white/50 font-medium">{t('remember_me')}</label>
             </div>
 
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-bold text-sm hover:bg-indigo-700 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl shadow-indigo-200 dark:shadow-none flex items-center justify-center gap-2 disabled:opacity-70 disabled:hover:scale-100"
+              className="w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl font-bold text-sm hover:scale-[1.02] active:scale-[0.98] transition-all shadow-2xl shadow-indigo-900/50 flex items-center justify-center gap-2 disabled:opacity-70 disabled:hover:scale-100"
             >
               {isLoading ? (
                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -135,18 +196,21 @@ export default function Login({ onLogin, onBack, organization }: LoginProps) {
             </button>
           </form>
 
-          <div className="mt-8 pt-8 border-t border-zinc-100 dark:border-zinc-800 text-center">
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-50 dark:bg-emerald-900/20 rounded-full border border-emerald-100 dark:border-emerald-900/30 mb-4">
-              <Shield className="w-3 h-3 text-emerald-600" />
-              <span className="text-[9px] font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400">{t('secure_auth')}</span>
+          <div className="mt-7 pt-7 border-t border-white/10 text-center">
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-500/15 rounded-full border border-emerald-400/25 mb-4">
+              <Shield className="w-3 h-3 text-emerald-400" />
+              <span className="text-[9px] font-black uppercase tracking-widest text-emerald-400">{t('secure_auth')}</span>
             </div>
             {organization ? (
-              <p className="text-xs text-zinc-500">
+              <p className="text-xs text-white/40">
                 Need help? Contact your school administrator.
               </p>
             ) : (
-              <p className="text-xs text-zinc-500">
-                {t('no_account')} <button onClick={onBack} className="text-indigo-600 font-bold hover:underline">{t('contact_sales')}</button>
+              <p className="text-xs text-white/40">
+                {t('no_account')}{' '}
+                <button onClick={onBack} className="text-indigo-400 font-bold hover:underline">
+                  {t('contact_sales')}
+                </button>
               </p>
             )}
           </div>
