@@ -41,7 +41,7 @@ export default function Login({ onLogin, onBack, organization }: LoginProps) {
     <div className="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden bg-white">
       {/* Background Image - static (no fade-in animation on load) */}
       <div
-        className="absolute inset-0 z-0 opacity-40"
+        className="absolute inset-0 z-0 opacity-30"
         style={{
           backgroundImage: 'url(/school_login_bg.png)',
           backgroundSize: 'cover',
