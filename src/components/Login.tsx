@@ -19,6 +19,30 @@ export default function Login({ onLogin, onBack, organization }: LoginProps) {
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
 
+  const [bgIndex, setBgIndex] = useState(0);
+
+  const bgImages = React.useMemo(() => {
+    if (organization?.background_images) {
+      try {
+        const parsed = Array.isArray(organization.background_images)
+          ? organization.background_images
+          : JSON.parse(organization.background_images);
+        if (parsed.length > 0) return parsed;
+      } catch (e) {
+        console.error('Failed to parse background images:', e);
+      }
+    }
+    return [organization?.background_image || '/school_login_bg.png'];
+  }, [organization]);
+
+  React.useEffect(() => {
+    if (bgImages.length <= 1) return;
+    const interval = setInterval(() => {
+      setBgIndex((prev) => (prev + 1) % bgImages.length);
+    }, 6000); // Rotate every 6 seconds
+    return () => clearInterval(interval);
+  }, [bgImages]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -39,17 +63,25 @@ export default function Login({ onLogin, onBack, organization }: LoginProps) {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden bg-white">
-      {/* Background Image - static (no fade-in animation on load) */}
-      <div
-        className="absolute inset-0 z-0 opacity-30"
-        style={{
-          backgroundImage: `url(${organization?.background_image || '/school_login_bg.png'})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-        }}
-      />
-      {/* White gradient overlay to fade the image into the white background */}
+      {/* Fading Background Images slideshow */}
+      <div className="absolute inset-0 z-0 bg-white">
+        {bgImages.map((img, idx) => (
+          <motion.div
+            key={img}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: idx === bgIndex ? 0.3 : 0 }}
+            transition={{ duration: 1.5, ease: 'easeInOut' }}
+            className="absolute inset-0"
+            style={{
+              backgroundImage: `url(${img})`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              backgroundRepeat: 'no-repeat',
+            }}
+          />
+        ))}
+      </div>
+      {/* White gradient overlay to fade the active image into the white background */}
       <div className="absolute inset-0 z-0 bg-gradient-to-tr from-white via-white/50 to-white/10" />
 
       {/* Login Card Container */}

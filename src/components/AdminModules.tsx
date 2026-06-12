@@ -2628,7 +2628,8 @@ export function Settings({ role }: { role?: UserRole }) {
   const [branding, setBranding] = useState({
     logo: '',
     signature: '',
-    background_image: ''
+    background_image: '',
+    background_images: [] as string[]
   });
   const [groqKey, setGroqKey] = useState('');
   const [aiStatus, setAiStatus] = useState<'checking' | 'active' | 'outdated' | 'error'>('checking');
@@ -2659,7 +2660,9 @@ export function Settings({ role }: { role?: UserRole }) {
             setBranding({
               logo: org.logo || '',
               signature: org.signature || '',
-              background_image: org.background_image || ''
+              background_image: org.background_image || '',
+              background_images: Array.isArray(org.background_images) ? org.background_images : 
+                                 org.background_images ? JSON.parse(org.background_images) : []
             });
             // Diagnostics: Check if AI routes even exist using axios instance
             try {
@@ -2704,6 +2707,27 @@ export function Settings({ role }: { role?: UserRole }) {
       };
       reader.readAsDataURL(file);
     }
+  };
+
+  const handleBgImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setBranding(prev => ({
+          ...prev,
+          background_images: [...prev.background_images, reader.result as string]
+        }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleDeleteBgImage = (index: number) => {
+    setBranding(prev => ({
+      ...prev,
+      background_images: prev.background_images.filter((_, i) => i !== index)
+    }));
   };
 
 
@@ -2851,29 +2875,53 @@ export function Settings({ role }: { role?: UserRole }) {
                 </div>
 
                 <div className="space-y-4 md:col-span-2">
-                  <label className="text-sm font-bold text-zinc-700 dark:text-zinc-300">Login Page Background Image</label>
-                  <div className="flex flex-col sm:flex-row items-center gap-6 p-4 border border-dashed border-zinc-200 dark:border-zinc-800 rounded-2xl bg-zinc-50/50 dark:bg-zinc-800/20">
-                    <div className="w-full sm:w-48 h-28 bg-white dark:bg-zinc-800 rounded-xl flex items-center justify-center border border-zinc-100 dark:border-zinc-700 overflow-hidden shadow-sm shrink-0">
-                      {branding.background_image ? (
-                        <img src={branding.background_image} alt="Login Background" className="w-full h-full object-cover" />
-                      ) : (
-                        <ImageIcon className="w-8 h-8 text-zinc-300" />
-                      )}
+                  <div className="flex items-center justify-between">
+                    <label className="text-sm font-bold text-zinc-700 dark:text-zinc-300">Login Page Background Slideshow</label>
+                    <span className="text-[10px] text-zinc-400 uppercase font-black tracking-wider">
+                      {branding.background_images.length} Image(s)
+                    </span>
+                  </div>
+
+                  {branding.background_images.length > 0 && (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 p-4 border border-zinc-200 dark:border-zinc-800 rounded-2xl bg-zinc-50/50 dark:bg-zinc-800/20">
+                      {branding.background_images.map((img, idx) => (
+                        <div key={idx} className="relative group aspect-video rounded-xl overflow-hidden border border-zinc-200/50 dark:border-zinc-800 shadow-sm bg-white dark:bg-zinc-800">
+                          <img src={img} alt={`Slide ${idx + 1}`} className="w-full h-full object-cover" />
+                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteBgImage(idx)}
+                              className="p-1.5 bg-rose-600 hover:bg-rose-500 text-white rounded-lg transition-colors"
+                              title="Delete Slide"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                          <span className="absolute bottom-1.5 left-1.5 px-1.5 py-0.5 bg-black/60 text-white text-[8px] font-black uppercase tracking-wider rounded-md">
+                            Slide {idx + 1}
+                          </span>
+                        </div>
+                      ))}
                     </div>
+                  )}
+
+                  <div className="flex flex-col sm:flex-row items-center gap-6 p-4 border border-dashed border-zinc-200 dark:border-zinc-800 rounded-2xl bg-zinc-50/50 dark:bg-zinc-800/20">
                     <div className="flex-1 text-center sm:text-left">
-                      <p className="text-[10px] text-zinc-500 mb-3 uppercase font-bold tracking-tight">Best in 1920x1080 landscape PNG/JPG</p>
+                      <p className="text-[10px] text-zinc-500 mb-3 uppercase font-bold tracking-tight">
+                        Upload landscape images (1920x1080) to create a rotating slideshow background.
+                      </p>
                       <input
                         type="file"
                         id="bg-upload"
                         className="hidden"
                         accept="image/*"
-                        onChange={(e) => handleFileUpload(e, 'background_image')}
+                        onChange={handleBgImageUpload}
                       />
                       <label
                         htmlFor="bg-upload"
                         className="px-4 py-2 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg text-xs font-bold text-indigo-600 cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors shadow-sm inline-block"
                       >
-                        {branding.background_image ? 'Change Background' : 'Upload Background'}
+                        Upload Slide Image
                       </label>
                     </div>
                   </div>

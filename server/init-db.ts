@@ -36,6 +36,7 @@ export async function init() {
         logo_url TEXT,
         logo TEXT,
         background_image TEXT,
+        background_images JSONB DEFAULT '[]',
         signature TEXT,
         language VARCHAR(50) DEFAULT 'en',
         timezone VARCHAR(100) DEFAULT 'GMT',
@@ -84,6 +85,9 @@ export async function init() {
         END IF;
         IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'organizations' AND column_name = 'background_image') THEN
           ALTER TABLE organizations ADD COLUMN background_image TEXT;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'organizations' AND column_name = 'background_images') THEN
+          ALTER TABLE organizations ADD COLUMN background_images JSONB DEFAULT '[]';
         END IF;
         IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'organizations' AND column_name = 'referred_by_partner_id') THEN
           ALTER TABLE organizations ADD COLUMN referred_by_partner_id UUID REFERENCES partners(id);
