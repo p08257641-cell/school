@@ -41,7 +41,7 @@ export default function Login({ onLogin, onBack, organization }: LoginProps) {
     <div className="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden bg-white">
       {/* Background Image - static (no fade-in animation on load) */}
       <div
-        className="absolute inset-0 z-0 opacity-25"
+        className="absolute inset-0 z-0 opacity-40"
         style={{
           backgroundImage: 'url(/school_login_bg.png)',
           backgroundSize: 'cover',
@@ -50,7 +50,7 @@ export default function Login({ onLogin, onBack, organization }: LoginProps) {
         }}
       />
       {/* White gradient overlay to fade the image into the white background */}
-      <div className="absolute inset-0 z-0 bg-gradient-to-tr from-white via-white/80 to-white/40" />
+      <div className="absolute inset-0 z-0 bg-gradient-to-tr from-white via-white/50 to-white/10" />
 
       {/* Login Card Container */}
       <motion.div
