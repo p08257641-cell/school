@@ -349,6 +349,11 @@ export default function App() {
           setShowLogin(true);
         } catch (err) {
           console.error("Failed to fetch organization for subdomain:", subdomain, err);
+          // Redirect to the main domain (e.g., besoint.skoola.online -> skoola.online)
+          const parentDomain = parts.slice(1).join('.');
+          const port = window.location.port ? `:${window.location.port}` : '';
+          window.location.href = `${window.location.protocol}//${parentDomain}${port}`;
+          return;
         }
       }
       setIsSubdomainLoading(false);
