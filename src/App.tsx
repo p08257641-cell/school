@@ -79,6 +79,8 @@ import { GenericModuleView } from "./components/ModuleViews";
 import { InventoryAssetManagement } from "./components/module-views/InventoryAssetManagement";
 import LandingPage from "./components/LandingPage";
 import Login from "./components/Login";
+import loadingBg1 from "./image/ChatGPT Image Jun 13, 2026, 02_05_55 PM.png";
+import loadingBg2 from "./image/ChatGPT Image Jun 13, 2026, 02_06_55 PM.png";
 import PartnerLogin from "./components/PartnerLogin";
 import { API_BASE_URL } from "./constants";
 import PortfolioView from "./components/module-views/PortfolioView";
@@ -289,6 +291,7 @@ export default function App() {
   const [subdomainOrg, setSubdomainOrg] = useState<any>(null);
   const [isSubdomainLoading, setIsSubdomainLoading] = useState(true);
   const [loadingMessage, setLoadingMessage] = useState('Connecting to school servers…');
+  const [loadingBgIndex, setLoadingBgIndex] = useState(0);
   const [selectedStaff, setSelectedStaff] = useState<any>(null);
   const [selectedApplicant, setSelectedApplicant] = useState<any>(null);
   const [currentRole, setCurrentRole] = useState<UserRole>("SUPER_ADMIN");
@@ -348,8 +351,41 @@ export default function App() {
           setSubdomainOrg(org);
           setShowLanding(false);
           setShowLogin(true);
+
+          // Build list of image URLs to preload
+          const urlsToPreload: string[] = [loadingBg1, loadingBg2];
+          if (org?.logo) {
+            urlsToPreload.push(org.logo);
+          }
+          if (org?.background_images) {
+            try {
+              const parsed = Array.isArray(org.background_images)
+                ? org.background_images
+                : JSON.parse(org.background_images);
+              if (Array.isArray(parsed)) {
+                urlsToPreload.push(...parsed.filter(Boolean));
+              }
+            } catch (e) {
+              console.error("Failed to parse background images for preloading:", e);
+            }
+          }
+          if (org?.background_image && !urlsToPreload.includes(org.background_image)) {
+            urlsToPreload.push(org.background_image);
+          }
+
+          // Preload all assets in parallel before dismissing the loader
+          await Promise.all(
+            urlsToPreload.map((url) => {
+              return new Promise<void>((resolve) => {
+                const img = new Image();
+                img.src = url;
+                img.onload = () => resolve();
+                img.onerror = () => resolve();
+              });
+            })
+          );
         } catch (err) {
-          console.error("Failed to fetch organization for subdomain:", subdomain, err);
+          console.error("Failed to fetch organization or preload images for subdomain:", subdomain, err);
           // Redirect to the main domain (e.g., besoint.skoola.online -> skoola.online)
           const parentDomain = parts.slice(1).join('.');
           const port = window.location.port ? `:${window.location.port}` : '';
@@ -376,6 +412,14 @@ export default function App() {
       idx = (idx + 1) % messages.length;
       setLoadingMessage(messages[idx]);
     }, 3400);
+    return () => clearInterval(interval);
+  }, [isSubdomainLoading]);
+
+  useEffect(() => {
+    if (!isSubdomainLoading) return;
+    const interval = setInterval(() => {
+      setLoadingBgIndex((prev) => (prev + 1) % 2);
+    }, 4500);
     return () => clearInterval(interval);
   }, [isSubdomainLoading]);
 
@@ -4149,14 +4193,35 @@ export default function App() {
   }
 
   if (isSubdomainLoading) {
+    const loadingBgs = [loadingBg1, loadingBg2];
     return (
       <div className="min-h-screen bg-white dark:bg-zinc-950 flex flex-col items-center justify-center relative overflow-hidden select-none">
+        {/* Sliding Background Images */}
+        <div className="absolute inset-0 z-0 overflow-hidden">
+          {loadingBgs.map((img, idx) => (
+            <div
+              key={idx}
+              className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
+                idx === loadingBgIndex ? "opacity-25" : "opacity-0"
+              }`}
+              style={{
+                backgroundImage: `url(${img})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat',
+              }}
+            />
+          ))}
+          {/* Glassmorphic/Overlay layer to ensure maximum contrast and readability */}
+          <div className="absolute inset-0 bg-white/70 dark:bg-zinc-950/80 backdrop-blur-sm" />
+        </div>
+
         {/* Ambient glows */}
-        <div className="absolute -top-20 -right-10 w-56 h-56 rounded-full bg-[radial-gradient(circle,rgba(0,210,196,0.15)_0%,transparent_70%)] pointer-events-none" />
-        <div className="absolute bottom-32 -left-16 w-52 h-52 rounded-full bg-[radial-gradient(circle,rgba(139,92,246,0.12)_0%,transparent_70%)] pointer-events-none" />
+        <div className="absolute -top-20 -right-10 w-56 h-56 rounded-full bg-[radial-gradient(circle,rgba(0,210,196,0.15)_0%,transparent_70%)] pointer-events-none z-10" />
+        <div className="absolute bottom-32 -left-16 w-52 h-52 rounded-full bg-[radial-gradient(circle,rgba(139,92,246,0.12)_0%,transparent_70%)] pointer-events-none z-10" />
 
         {/* Brand Header */}
-        <div className="absolute top-8 left-8">
+        <div className="absolute top-8 left-8 z-10">
           <span className="text-2xl font-black tracking-tight select-none">
             <span className="text-[#8B5CF6]">Sko</span>
             <span className="text-[#00D2C4]">ola</span>
@@ -4164,7 +4229,7 @@ export default function App() {
         </div>
 
         {/* Ring Loader */}
-        <div className="relative w-14 h-14 flex items-center justify-center animate-pulse" style={{ animationDuration: '0.9s' }}>
+        <div className="relative w-14 h-14 flex items-center justify-center animate-pulse z-10" style={{ animationDuration: '0.9s' }}>
           <svg className="w-full h-full animate-spin" viewBox="0 0 52 52" style={{ animationDuration: '1.4s', animationTimingFunction: 'linear' }}>
             {/* Track circle */}
             <circle
@@ -4207,7 +4272,7 @@ export default function App() {
         </div>
 
         {/* Loading Message */}
-        <p className="mt-5 text-[11px] font-bold text-zinc-500 dark:text-zinc-400 tracking-wide select-none animate-pulse">
+        <p className="mt-5 text-[11px] font-bold text-zinc-500 dark:text-zinc-400 tracking-wide select-none animate-pulse z-10">
           {loadingMessage}
         </p>
       </div>
