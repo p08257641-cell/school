@@ -4100,7 +4100,7 @@ export default function App() {
             studentsCount={studentList.length}
             staffCount={staffList.length}
             departmentsCount={departments.length}
-            organization={organization}
+            organization={organizations.find((o) => o.id === currentUser?.org_id)}
           />
         ) : staffData?.profile?.length ? (
           <StaffHRModules.StaffProfile
@@ -4216,7 +4216,7 @@ export default function App() {
           </button>
           <ReportCardPreview
             template={template}
-            organization={organization}
+            organization={organizations.find((o) => o.id === currentUser?.org_id)}
             student={formattedStudent}
             onClose={() => { setPublicResultData(null); setShowLanding(true); }}
           />
@@ -4316,7 +4316,7 @@ export default function App() {
         }}
         allowedModules={allowedModules}
         currentUser={currentUser}
-        organization={organization}
+        organization={organizations.find((o) => o.id === currentUser?.org_id)}
         wards={wards}
         selectedWardId={selectedWardId}
         onWardSelect={setSelectedWardId}
