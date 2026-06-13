@@ -4193,88 +4193,101 @@ export default function App() {
   }
 
   if (isSubdomainLoading) {
-    const loadingBgs = [loadingBg1, loadingBg2];
+    const slides = [
+      { img: loadingBg1, title: 'Smart learning', subtitle: 'Digital classrooms powering every student' },
+      { img: loadingBg2, title: 'All in one place', subtitle: 'Grades, fees, attendance — one sharp platform' },
+    ];
     return (
-      <div className="min-h-screen bg-white dark:bg-zinc-950 flex flex-col items-center justify-center relative overflow-hidden select-none">
-        {/* Sliding Background Images */}
-        <div className="absolute inset-0 z-0 overflow-hidden">
-          {loadingBgs.map((img, idx) => (
-            <div
-              key={idx}
-              className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
-                idx === loadingBgIndex ? "opacity-65" : "opacity-0"
-              }`}
-              style={{
-                backgroundImage: `url(${img})`,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                backgroundRepeat: 'no-repeat',
-              }}
-            />
-          ))}
-          {/* Glassmorphic/Overlay layer to ensure maximum contrast and readability */}
-          <div className="absolute inset-0 bg-white/40 dark:bg-zinc-950/50 backdrop-blur-[3px]" />
-        </div>
-
+      <div className="min-h-screen bg-white dark:bg-zinc-950 flex flex-col relative overflow-hidden select-none">
         {/* Ambient glows */}
-        <div className="absolute -top-20 -right-10 w-56 h-56 rounded-full bg-[radial-gradient(circle,rgba(0,210,196,0.15)_0%,transparent_70%)] pointer-events-none z-10" />
-        <div className="absolute bottom-32 -left-16 w-52 h-52 rounded-full bg-[radial-gradient(circle,rgba(139,92,246,0.12)_0%,transparent_70%)] pointer-events-none z-10" />
+        <div className="absolute -top-20 -right-10 w-56 h-56 rounded-full bg-[radial-gradient(circle,rgba(0,210,196,0.15)_0%,transparent_70%)] pointer-events-none z-0" />
+        <div className="absolute bottom-32 -left-16 w-52 h-52 rounded-full bg-[radial-gradient(circle,rgba(139,92,246,0.12)_0%,transparent_70%)] pointer-events-none z-0" />
 
-        {/* Brand Header */}
-        <div className="absolute top-8 left-8 z-10">
-          <span className="text-2xl font-black tracking-tight select-none">
-            <span className="text-[#8B5CF6]">Sko</span>
-            <span className="text-[#00D2C4]">ola</span>
-          </span>
+        {/* Safe area content */}
+        <div className="flex flex-col flex-1 z-10 pt-[max(env(safe-area-inset-top),12px)]">
+          {/* Brand Header */}
+          <div className="px-6 pt-3 pb-2">
+            <span className="text-2xl font-black tracking-tight select-none">
+              <span className="text-[#8B5CF6]">Sko</span>
+              <span className="text-[#00D2C4]">ola</span>
+            </span>
+          </div>
+
+          {/* Image Carousel Card */}
+          <div className="flex-1 px-5 pt-2 pb-3 flex flex-col min-h-0">
+            <div className="flex-1 relative rounded-[28px] overflow-hidden border-[1.5px] border-[#8B5CF6]/30 dark:border-[#8B5CF6]/20 shadow-[0_12px_28px_-4px_rgba(139,92,246,0.25)]">
+              {slides.map((slide, idx) => (
+                <div
+                  key={idx}
+                  className={`absolute inset-0 transition-opacity duration-700 ease-out ${
+                    idx === loadingBgIndex ? "opacity-100" : "opacity-0"
+                  }`}
+                >
+                  <img
+                    src={slide.img}
+                    alt={slide.title}
+                    className="w-full h-full object-cover"
+                  />
+                  {/* Bottom gradient overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/70" style={{ backgroundPosition: 'bottom', backgroundSize: '100% 65%' }} />
+                </div>
+              ))}
+            </div>
+
+            {/* Caption Panel */}
+            <div className="mt-4 bg-zinc-50/90 dark:bg-zinc-900/90 border border-zinc-200/60 dark:border-zinc-800/60 rounded-[20px] px-[18px] py-[14px] shadow-[0_6px_16px_-2px_rgba(0,0,0,0.12)]">
+              <div className="inline-flex items-center px-[10px] py-1 rounded-full bg-[#8B5CF6]/10 mb-[10px]">
+                <span className="text-[9px] font-black tracking-[1.4px] text-[#8B5CF6] uppercase">SKOOLA</span>
+              </div>
+              {slides.map((slide, idx) => (
+                <div
+                  key={idx}
+                  className={`transition-opacity duration-500 ${idx === loadingBgIndex ? 'block' : 'hidden'}`}
+                >
+                  <h3 className="text-[22px] font-black leading-[1.1] text-zinc-900 dark:text-white tracking-tight -tracking-[0.5px]">
+                    {slide.title}
+                  </h3>
+                  <p className="mt-[6px] text-[13px] text-zinc-500 dark:text-zinc-400 font-medium">
+                    {slide.subtitle}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Page Dots */}
+          <div className="flex items-center justify-center gap-2 py-1">
+            {slides.map((_, idx) => (
+              <div
+                key={idx}
+                className={`h-2 rounded-full transition-all duration-350 ease-out ${
+                  idx === loadingBgIndex
+                    ? 'w-7 bg-[#00D2C4] shadow-[0_0_8px_rgba(0,210,196,0.45)]'
+                    : 'w-2 bg-white/20 dark:bg-white/15'
+                }`}
+              />
+            ))}
+          </div>
+
+          {/* Ring Loader */}
+          <div className="flex justify-center mt-5">
+            <div className="relative w-[52px] h-[52px] flex items-center justify-center animate-pulse" style={{ animationDuration: '0.9s' }}>
+              <svg className="w-full h-full animate-spin" viewBox="0 0 52 52" style={{ animationDuration: '1.4s', animationTimingFunction: 'linear' }}>
+                <circle cx="26" cy="26" r="22" className="stroke-zinc-100 dark:stroke-zinc-800 fill-none" strokeWidth="4" />
+                <circle cx="26" cy="26" r="22" className="stroke-[#00D2C4] fill-none" strokeWidth="4" strokeDasharray="46.08 138.23" strokeDashoffset="0" strokeLinecap="round" />
+                <circle cx="26" cy="26" r="22" className="stroke-[#8B5CF6] fill-none" strokeWidth="4" strokeDasharray="26.88 138.23" strokeDashoffset="-57.5" strokeLinecap="round" />
+                <circle cx="26" cy="26" r="3.5" className="fill-[#00D2C4]" />
+              </svg>
+            </div>
+          </div>
+
+          {/* Loading Message */}
+          <p className="mt-3 text-center text-[12px] font-semibold text-zinc-500/50 dark:text-zinc-400/50 tracking-wide select-none animate-pulse">
+            {loadingMessage}
+          </p>
+
+          <div className="h-4 pb-[max(env(safe-area-inset-bottom),16px)]" />
         </div>
-
-        {/* Ring Loader */}
-        <div className="relative w-14 h-14 flex items-center justify-center animate-pulse z-10" style={{ animationDuration: '0.9s' }}>
-          <svg className="w-full h-full animate-spin" viewBox="0 0 52 52" style={{ animationDuration: '1.4s', animationTimingFunction: 'linear' }}>
-            {/* Track circle */}
-            <circle
-              cx="26"
-              cy="26"
-              r="22"
-              className="stroke-zinc-100 dark:stroke-zinc-800 fill-none"
-              strokeWidth="4"
-            />
-            {/* Mint arc (120 degrees = strokeDasharray 46.08) */}
-            <circle
-              cx="26"
-              cy="26"
-              r="22"
-              className="stroke-[#00D2C4] fill-none"
-              strokeWidth="4"
-              strokeDasharray="46.08 138.23"
-              strokeDashoffset="0"
-              strokeLinecap="round"
-            />
-            {/* Violet arc (70 degrees = strokeDasharray 26.88, offset by 137 degrees) */}
-            <circle
-              cx="26"
-              cy="26"
-              r="22"
-              className="stroke-[#8B5CF6] fill-none"
-              strokeWidth="4"
-              strokeDasharray="26.88 138.23"
-              strokeDashoffset="-57.5"
-              strokeLinecap="round"
-            />
-            {/* Center dot */}
-            <circle
-              cx="26"
-              cy="26"
-              r="3.5"
-              className="fill-[#00D2C4]"
-            />
-          </svg>
-        </div>
-
-        {/* Loading Message */}
-        <p className="mt-5 text-[11px] font-bold text-zinc-500 dark:text-zinc-400 tracking-wide select-none animate-pulse z-10">
-          {loadingMessage}
-        </p>
       </div>
     );
   }
