@@ -4424,7 +4424,7 @@ export default function App() {
                         className="w-full h-full object-cover"
                       />
                       {/* Bottom gradient overlay */}
-                      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/70" style={{ backgroundPosition: 'bottom', backgroundSize: '100% 65%' }} />
+                      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/70" style={{ backgroundPosition: 'bottom', backgroundSize: '100% 65%', backgroundRepeat: 'no-repeat' }} />
                     </div>
                   ))}
                 </div>
@@ -4479,6 +4479,11 @@ export default function App() {
               {/* Loading Message */}
               <p className="mt-3 text-center text-[12px] font-semibold text-zinc-500/50 dark:text-zinc-400/50 tracking-wide select-none animate-pulse">
                 {loadingMessage}
+              </p>
+
+              {/* Powered By Branding */}
+              <p className="mt-4 text-center text-[9px] font-black tracking-[1.4px] text-zinc-400/40 dark:text-zinc-500/30 uppercase select-none">
+                Powered by Decorum IT Solutions
               </p>
 
               <div className="h-4 pb-[max(env(safe-area-inset-bottom),16px)]" />
