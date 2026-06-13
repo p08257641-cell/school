@@ -2621,7 +2621,7 @@ export default function App() {
         <AcademicModules.AlumniManagement
           students={studentList}
           onRefresh={() => loadData()}
-          organization={organization}
+          organization={organizations.find((o) => o.id === currentUser?.org_id)}
           onSaveStudent={(data: any) => handleEntitySave("student", data)}
           onUpdateOrganization={(data: any) => handleEntitySave("organization", { ...data, id: currentUser?.org_id })}
         />
@@ -2642,7 +2642,7 @@ export default function App() {
           selectedWardId={selectedWardId}
           onWardSelect={setSelectedWardId}
           onNavigate={setCurrentView}
-          organization={organization}
+          organization={organizations.find((o) => o.id === currentUser?.org_id)}
           data={exams}
           currentUser={currentUser}
           staffList={staffList}
