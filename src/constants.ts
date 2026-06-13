@@ -117,7 +117,7 @@ export const NAVIGATION_CONFIG: NavItem[] = [
   },
   // EXAMS & RESULTS
   {
-    title: 'Exams',
+    title: 'Assessment',
     icon: FileText,
     roles: ['SCHOOL_ADMIN', 'HOD', 'STAFF', 'STUDENT', 'PARENT'],
     children: [
@@ -133,7 +133,7 @@ export const NAVIGATION_CONFIG: NavItem[] = [
   },
   // FINANCE MODULES
   {
-    title: 'Finance',
+    title: 'Business Office',
     icon: Wallet,
     roles: ['SCHOOL_ADMIN', 'PARENT', 'FINANCE', 'STUDENT'],
     children: [
@@ -270,9 +270,9 @@ export const NAVIGATION_CONFIG: NavItem[] = [
 export const MODULE_LINK_MAP: Record<string, string> = {
   'Academics': 'Academic Management',
   'Admit Student': 'Admissions & Onboarding',
-  'Finance': 'Finance & Billing',
+  'Business Office': 'Finance & Billing',
   'Human Resources': 'HR & Payroll',
-  'Exams': 'Exam & Results',
+  'Assessment': 'Exam & Results',
   'Logistics & Services': 'Operations',
   'Library': 'Library System',
   'Files & Storage': 'Cloud Storage (Drive)',
