@@ -290,6 +290,7 @@ export default function App() {
   const [showPartnerLogin, setShowPartnerLogin] = useState(false);
   const [subdomainOrg, setSubdomainOrg] = useState<any>(null);
   const [isSubdomainLoading, setIsSubdomainLoading] = useState(true);
+  const [isFadingOut, setIsFadingOut] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState('Connecting to school servers…');
   const [loadingBgIndex, setLoadingBgIndex] = useState(0);
   const [selectedStaff, setSelectedStaff] = useState<any>(null);
@@ -332,6 +333,9 @@ export default function App() {
   const socketRef = useRef<any>(null);
 
   useEffect(() => {
+    let timerId: any = null;
+    let fadeTimeoutId: any = null;
+
     const detectSubdomain = async () => {
       const hostname = window.location.hostname;
       const parts = hostname.split('.');
@@ -345,58 +349,87 @@ export default function App() {
         }
       }
 
-      if (subdomain) {
-        try {
-          const org = await fetchOrganizationByDomain(subdomain);
-          setSubdomainOrg(org);
-          setShowLanding(false);
-          setShowLogin(true);
-
-          // Build list of image URLs to preload
-          const urlsToPreload: string[] = [loadingBg1, loadingBg2];
-          if (org?.logo) {
-            urlsToPreload.push(org.logo);
-          }
-          if (org?.background_images) {
-            try {
-              const parsed = Array.isArray(org.background_images)
-                ? org.background_images
-                : JSON.parse(org.background_images);
-              if (Array.isArray(parsed)) {
-                urlsToPreload.push(...parsed.filter(Boolean));
-              }
-            } catch (e) {
-              console.error("Failed to parse background images for preloading:", e);
-            }
-          }
-          if (org?.background_image && !urlsToPreload.includes(org.background_image)) {
-            urlsToPreload.push(org.background_image);
-          }
-
-          // Preload all assets in parallel before dismissing the loader
-          await Promise.all(
-            urlsToPreload.map((url) => {
-              return new Promise<void>((resolve) => {
-                const img = new Image();
-                img.src = url;
-                img.onload = () => resolve();
-                img.onerror = () => resolve();
-              });
-            })
-          );
-        } catch (err) {
-          console.error("Failed to fetch organization or preload images for subdomain:", subdomain, err);
-          // Redirect to the main domain (e.g., besoint.skoola.online -> skoola.online)
-          const parentDomain = parts.slice(1).join('.');
-          const port = window.location.port ? `:${window.location.port}` : '';
-          window.location.href = `${window.location.protocol}//${parentDomain}${port}`;
-          return;
-        }
+      if (!subdomain) {
+        setIsSubdomainLoading(false);
+        return;
       }
-      setIsSubdomainLoading(false);
+
+      let minTimeElapsed = false;
+      let dataLoaded = false;
+
+      const checkAndTransition = () => {
+        if (minTimeElapsed && dataLoaded) {
+          setIsFadingOut(true);
+          fadeTimeoutId = setTimeout(() => {
+            setIsSubdomainLoading(false);
+          }, 1200); // 1.2 seconds smooth fade out transition
+        }
+      };
+
+      // Set minimum loading time to 7 seconds to ensure at least 2 images show fully
+      timerId = setTimeout(() => {
+        minTimeElapsed = true;
+        checkAndTransition();
+      }, 7000);
+
+      try {
+        const org = await fetchOrganizationByDomain(subdomain);
+        setSubdomainOrg(org);
+        setShowLanding(false);
+        setShowLogin(true);
+
+        // Build list of image URLs to preload
+        const urlsToPreload: string[] = [loadingBg1, loadingBg2];
+        if (org?.logo) {
+          urlsToPreload.push(org.logo);
+        }
+        if (org?.background_images) {
+          try {
+            const parsed = Array.isArray(org.background_images)
+              ? org.background_images
+              : JSON.parse(org.background_images);
+            if (Array.isArray(parsed)) {
+              urlsToPreload.push(...parsed.filter(Boolean));
+            }
+          } catch (e) {
+            console.error("Failed to parse background images for preloading:", e);
+          }
+        }
+        if (org?.background_image && !urlsToPreload.includes(org.background_image)) {
+          urlsToPreload.push(org.background_image);
+        }
+
+        // Preload all assets in parallel
+        await Promise.all(
+          urlsToPreload.map((url) => {
+            return new Promise<void>((resolve) => {
+              const img = new Image();
+              img.src = url;
+              img.onload = () => resolve();
+              img.onerror = () => resolve();
+            });
+          })
+        );
+      } catch (err) {
+        console.error("Failed to fetch organization or preload images for subdomain:", subdomain, err);
+        if (timerId) clearTimeout(timerId);
+        // Redirect to parent domain
+        const parentDomain = parts.slice(1).join('.');
+        const port = window.location.port ? `:${window.location.port}` : '';
+        window.location.href = `${window.location.protocol}//${parentDomain}${port}`;
+        return;
+      }
+
+      dataLoaded = true;
+      checkAndTransition();
     };
 
     detectSubdomain();
+
+    return () => {
+      if (timerId) clearTimeout(timerId);
+      if (fadeTimeoutId) clearTimeout(fadeTimeoutId);
+    };
   }, []);
 
   useEffect(() => {
@@ -419,7 +452,7 @@ export default function App() {
     if (!isSubdomainLoading) return;
     const interval = setInterval(() => {
       setLoadingBgIndex((prev) => (prev + 1) % 2);
-    }, 4500);
+    }, 3500); // 3.5s slideshow interval
     return () => clearInterval(interval);
   }, [isSubdomainLoading]);
 
@@ -4192,259 +4225,267 @@ export default function App() {
     );
   }
 
-  if (isSubdomainLoading) {
-    const slides = [
-      { img: loadingBg1, title: 'Smart learning', subtitle: 'Digital classrooms powering every student' },
-      { img: loadingBg2, title: 'All in one place', subtitle: 'Grades, fees, attendance — one sharp platform' },
-    ];
-    return (
-      <div className="min-h-screen bg-white dark:bg-zinc-950 flex flex-col relative overflow-hidden select-none">
-        {/* Ambient glows */}
-        <div className="absolute -top-20 -right-10 w-56 h-56 rounded-full bg-[radial-gradient(circle,rgba(0,210,196,0.15)_0%,transparent_70%)] pointer-events-none z-0" />
-        <div className="absolute bottom-32 -left-16 w-52 h-52 rounded-full bg-[radial-gradient(circle,rgba(139,92,246,0.12)_0%,transparent_70%)] pointer-events-none z-0" />
-
-        {/* Safe area content */}
-        <div className="flex flex-col flex-1 z-10 pt-[max(env(safe-area-inset-top),12px)]">
-          {/* Brand Header */}
-          <div className="px-6 pt-3 pb-2">
-            <span className="text-2xl font-black tracking-tight select-none">
-              <span className="text-[#8B5CF6]">Sko</span>
-              <span className="text-[#00D2C4]">ola</span>
-            </span>
-          </div>
-
-          {/* Image Carousel Card */}
-          <div className="flex-1 px-5 pt-2 pb-3 flex flex-col min-h-0">
-            <div className="flex-1 relative rounded-[28px] overflow-hidden border-[1.5px] border-[#8B5CF6]/30 dark:border-[#8B5CF6]/20 shadow-[0_12px_28px_-4px_rgba(139,92,246,0.25)]">
-              {slides.map((slide, idx) => (
-                <div
-                  key={idx}
-                  className={`absolute inset-0 transition-opacity duration-700 ease-out ${
-                    idx === loadingBgIndex ? "opacity-100" : "opacity-0"
-                  }`}
-                >
-                  <img
-                    src={slide.img}
-                    alt={slide.title}
-                    className="w-full h-full object-cover"
-                  />
-                  {/* Bottom gradient overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/70" style={{ backgroundPosition: 'bottom', backgroundSize: '100% 65%' }} />
-                </div>
-              ))}
+  const renderMainContent = () => {
+    if (publicError) {
+      return (
+        <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex flex-col items-center justify-center p-8">
+          <div className="bg-white dark:bg-zinc-900 p-8 rounded-[2rem] shadow-2xl border border-zinc-200 dark:border-zinc-800 text-center max-w-md animate-in zoom-in duration-300">
+            <div className="w-16 h-16 bg-rose-50 dark:bg-rose-900/20 rounded-2xl flex items-center justify-center text-rose-600 mx-auto mb-6">
+              <AlertCircle className="w-8 h-8" />
             </div>
-
-            {/* Caption Panel */}
-            <div className="mt-4 bg-zinc-50/90 dark:bg-zinc-900/90 border border-zinc-200/60 dark:border-zinc-800/60 rounded-[20px] px-[18px] py-[14px] shadow-[0_6px_16px_-2px_rgba(0,0,0,0.12)]">
-              <div className="inline-flex items-center px-[10px] py-1 rounded-full bg-[#8B5CF6]/10 mb-[10px]">
-                <span className="text-[9px] font-black tracking-[1.4px] text-[#8B5CF6] uppercase">SKOOLA</span>
-              </div>
-              {slides.map((slide, idx) => (
-                <div
-                  key={idx}
-                  className={`transition-opacity duration-500 ${idx === loadingBgIndex ? 'block' : 'hidden'}`}
-                >
-                  <h3 className="text-[22px] font-black leading-[1.1] text-zinc-900 dark:text-white tracking-tight -tracking-[0.5px]">
-                    {slide.title}
-                  </h3>
-                  <p className="mt-[6px] text-[13px] text-zinc-500 dark:text-zinc-400 font-medium">
-                    {slide.subtitle}
-                  </p>
-                </div>
-              ))}
-            </div>
+            <h2 className="text-xl font-black text-zinc-900 dark:text-white tracking-tight mb-2 uppercase">Record Error</h2>
+            <p className="text-zinc-500 font-medium mb-8">{publicError}</p>
+            <button
+              onClick={() => {
+                setPublicError(null);
+                setShowLanding(true);
+              }}
+              className="w-full px-8 py-4 bg-indigo-600 text-white rounded-2xl text-sm font-black uppercase tracking-widest shadow-lg shadow-indigo-200 dark:shadow-none hover:bg-indigo-700 transition-all active:scale-95"
+            >
+              Go to Home
+            </button>
           </div>
-
-          {/* Page Dots */}
-          <div className="flex items-center justify-center gap-2 py-1">
-            {slides.map((_, idx) => (
-              <div
-                key={idx}
-                className={`h-2 rounded-full transition-all duration-350 ease-out ${
-                  idx === loadingBgIndex
-                    ? 'w-7 bg-[#00D2C4] shadow-[0_0_8px_rgba(0,210,196,0.45)]'
-                    : 'w-2 bg-white/20 dark:bg-white/15'
-                }`}
-              />
-            ))}
-          </div>
-
-          {/* Ring Loader */}
-          <div className="flex justify-center mt-5">
-            <div className="relative w-[52px] h-[52px] flex items-center justify-center animate-pulse" style={{ animationDuration: '0.9s' }}>
-              <svg className="w-full h-full animate-spin" viewBox="0 0 52 52" style={{ animationDuration: '1.4s', animationTimingFunction: 'linear' }}>
-                <circle cx="26" cy="26" r="22" className="stroke-zinc-100 dark:stroke-zinc-800 fill-none" strokeWidth="4" />
-                <circle cx="26" cy="26" r="22" className="stroke-[#00D2C4] fill-none" strokeWidth="4" strokeDasharray="46.08 138.23" strokeDashoffset="0" strokeLinecap="round" />
-                <circle cx="26" cy="26" r="22" className="stroke-[#8B5CF6] fill-none" strokeWidth="4" strokeDasharray="26.88 138.23" strokeDashoffset="-57.5" strokeLinecap="round" />
-                <circle cx="26" cy="26" r="3.5" className="fill-[#00D2C4]" />
-              </svg>
-            </div>
-          </div>
-
-          {/* Loading Message */}
-          <p className="mt-3 text-center text-[12px] font-semibold text-zinc-500/50 dark:text-zinc-400/50 tracking-wide select-none animate-pulse">
-            {loadingMessage}
-          </p>
-
-          <div className="h-4 pb-[max(env(safe-area-inset-bottom),16px)]" />
         </div>
-      </div>
-    );
-  }
+      );
+    }
 
-  if (publicError) {
-    return (
-      <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex flex-col items-center justify-center p-8">
-        <div className="bg-white dark:bg-zinc-900 p-8 rounded-[2rem] shadow-2xl border border-zinc-200 dark:border-zinc-800 text-center max-w-md animate-in zoom-in duration-300">
-          <div className="w-16 h-16 bg-rose-50 dark:bg-rose-900/20 rounded-2xl flex items-center justify-center text-rose-600 mx-auto mb-6">
-            <AlertCircle className="w-8 h-8" />
-          </div>
-          <h2 className="text-xl font-black text-zinc-900 dark:text-white tracking-tight mb-2 uppercase">Record Error</h2>
-          <p className="text-zinc-500 font-medium mb-8">{publicError}</p>
-          <button
-            onClick={() => {
-              setPublicError(null);
+    if (showLanding)
+      return (
+        <LandingPage
+          onGetStarted={() => {
+            setShowLanding(false);
+            setShowLogin(true);
+          }}
+          onLogin={handleLogin}
+          onPartnerLogin={() => {
+            setShowLanding(false);
+            setShowPartnerLogin(true);
+          }}
+        />
+      );
+    if (showLogin)
+      return (
+        <Login
+          onLogin={handleLogin}
+          organization={subdomainOrg}
+          onBack={() => {
+            if (subdomainOrg) {
+              // Under subdomain context, back button doesn't switch to default landing
+            } else {
               setShowLanding(true);
-            }}
-            className="w-full px-8 py-4 bg-indigo-600 text-white rounded-2xl text-sm font-black uppercase tracking-widest shadow-lg shadow-indigo-200 dark:shadow-none hover:bg-indigo-700 transition-all active:scale-95"
-          >
-            Go to Home
-          </button>
-        </div>
-      </div>
-    );
-  }
+              setShowLogin(false);
+            }
+          }}
+        />
+      );
 
-  if (showLanding)
-    return (
-      <LandingPage
-        onGetStarted={() => {
-          setShowLanding(false);
-          setShowLogin(true);
-        }}
-        onLogin={handleLogin}
-        onPartnerLogin={() => {
-          setShowLanding(false);
-          setShowPartnerLogin(true);
-        }}
-      />
-    );
-  if (showLogin)
-    return (
-      <Login
-        onLogin={handleLogin}
-        organization={subdomainOrg}
-        onBack={() => {
-          if (subdomainOrg) {
-            // Under subdomain context, back button doesn't switch to default landing
-          } else {
+    if (showPartnerLogin)
+      return (
+        <PartnerLogin
+          onLoginSuccess={(data) => {
+            localStorage.setItem("token", data.token);
+            localStorage.setItem("user", JSON.stringify(data.user));
+            setCurrentUser(data.user);
+            setCurrentRole(data.user.role);
+            if (data.user.language) setLanguage(data.user.language as any);
+            setShowPartnerLogin(false);
+            loadData();
+          }}
+          onBackToLanding={() => {
+            setShowPartnerLogin(false);
             setShowLanding(true);
-            setShowLogin(false);
-          }
-        }}
-      />
-    );
+          }}
+        />
+      );
 
-  if (showPartnerLogin)
+    const organization = organizations.find((o) => o.id === currentUser?.org_id);
+
+    if (currentRole === 'PARTNER') {
+      return <PartnerDashboard />;
+    }
+
     return (
-      <PartnerLogin
-        onLoginSuccess={(data) => {
-          localStorage.setItem("token", data.token);
-          localStorage.setItem("user", JSON.stringify(data.user));
-          setCurrentUser(data.user);
-          setCurrentRole(data.user.role);
-          if (data.user.language) setLanguage(data.user.language as any);
-          setShowPartnerLogin(false);
-          loadData();
+      <Layout
+        currentRole={currentRole}
+        currentView={currentView}
+        onNavigate={setCurrentView}
+        onLogout={handleLogout}
+        onRoleChange={(role) => {
+          setCurrentRole(role);
+          setCurrentView("Dashboard");
         }}
-        onBackToLanding={() => {
-          setShowPartnerLogin(false);
-          setShowLanding(true);
-        }}
-      />
+        allowedModules={allowedModules}
+        currentUser={currentUser}
+        organization={organization}
+        wards={wards}
+        selectedWardId={selectedWardId}
+        onWardSelect={setSelectedWardId}
+        subscriptionInfo={subscriptionInfo}
+        notifications={announcements}
+        unreadMessagesCount={unreadMessagesCount}
+      >
+        <div className="max-w-[1600px] mx-auto">{renderContent()}</div>
+        {toast && (
+          <Toast
+            message={toast.message}
+            type={toast.type}
+            onClose={() => setToast(null)}
+          />
+        )}
+
+        <ConfirmationModal
+          isOpen={deleteConfirm.isOpen}
+          onClose={() => setDeleteConfirm({ ...deleteConfirm, isOpen: false })}
+          onConfirm={confirmDelete}
+          title={`Delete ${deleteConfirm.type.charAt(0).toUpperCase() + deleteConfirm.type.slice(1)}`}
+          message={`Are you sure you want to delete this ${deleteConfirm.type}? This action is IRREVERSIBLE and will delete all associated data.`}
+        />
+
+        <Modal
+          isOpen={globalModal.isOpen}
+          onClose={() => setGlobalModal({ ...globalModal, isOpen: false })}
+          title={globalModal.title}
+          footer={
+            <>
+              <button
+                onClick={() => setGlobalModal({ ...globalModal, isOpen: false })}
+                className="px-4 py-2 text-sm font-bold text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-xl transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  const form = document.querySelector("#global-modal-form") as HTMLFormElement;
+                  if (form) {
+                    const formData = new FormData(form);
+                    const data: any = {};
+                    formData.forEach((value, key) => {
+                      data[key] = value;
+                    });
+                    if (globalModal.onSave) {
+                      await globalModal.onSave(data);
+                    }
+                    setGlobalModal({ ...globalModal, isOpen: false });
+                  }
+                }}
+                className="px-6 py-2 bg-indigo-600 text-white text-sm font-bold rounded-xl hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-500/20"
+              >
+                Confirm
+              </button>
+            </>
+          }
+        >
+          <form id="global-modal-form" onSubmit={(e) => e.preventDefault()}>
+            {globalModal.content}
+          </form>
+        </Modal>
+      </Layout>
     );
+  };
 
-  const organization = organizations.find((o) => o.id === currentUser?.org_id);
-
-  if (currentRole === 'PARTNER') {
-    return <PartnerDashboard />;
-  }
+  const slides = [
+    { img: loadingBg1, title: 'Smart learning', subtitle: 'Digital classrooms powering every student' },
+    { img: loadingBg2, title: 'All in one place', subtitle: 'Grades, fees, attendance — one sharp platform' },
+  ];
 
   return (
-    <Layout
-      currentRole={currentRole}
-      currentView={currentView}
-      onNavigate={setCurrentView}
-      onLogout={handleLogout}
-      onRoleChange={(role) => {
-        setCurrentRole(role);
-        setCurrentView("Dashboard");
-      }}
-      allowedModules={allowedModules}
-      currentUser={currentUser}
-      organization={organization}
-      wards={wards}
-      selectedWardId={selectedWardId}
-      onWardSelect={setSelectedWardId}
-      subscriptionInfo={subscriptionInfo}
-      notifications={announcements}
-      unreadMessagesCount={unreadMessagesCount}
-    >
-      <div className="max-w-[1600px] mx-auto">{renderContent()}</div>
-      {toast && (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          onClose={() => setToast(null)}
-        />
+    <div className="relative min-h-screen w-full">
+      {renderMainContent()}
+      {(isSubdomainLoading || isFadingOut) && (
+        <div className={`fixed inset-0 z-[9999] transition-all duration-[1200ms] ease-in-out ${isFadingOut ? 'opacity-0 scale-98 pointer-events-none' : 'opacity-100'}`}>
+          <div className="min-h-screen bg-white dark:bg-zinc-950 flex flex-col relative overflow-hidden select-none">
+            {/* Ambient glows */}
+            <div className="absolute -top-20 -right-10 w-56 h-56 rounded-full bg-[radial-gradient(circle,rgba(0,210,196,0.15)_0%,transparent_70%)] pointer-events-none z-0" />
+            <div className="absolute bottom-32 -left-16 w-52 h-52 rounded-full bg-[radial-gradient(circle,rgba(139,92,246,0.12)_0%,transparent_70%)] pointer-events-none z-0" />
+
+            {/* Safe area content */}
+            <div className="flex flex-col flex-1 z-10 pt-[max(env(safe-area-inset-top),12px)]">
+              {/* Brand Header */}
+              <div className="px-6 pt-3 pb-2">
+                <span className="text-2xl font-black tracking-tight select-none">
+                  <span className="text-[#8B5CF6]">Sko</span>
+                  <span className="text-[#00D2C4]">ola</span>
+                </span>
+              </div>
+
+              {/* Image Carousel Card */}
+              <div className="flex-1 px-5 pt-2 pb-3 flex flex-col min-h-0">
+                <div className="flex-1 relative rounded-[28px] overflow-hidden border-[1.5px] border-[#8B5CF6]/30 dark:border-[#8B5CF6]/20 shadow-[0_12px_28px_-4px_rgba(139,92,246,0.25)]">
+                  {slides.map((slide, idx) => (
+                    <div
+                      key={idx}
+                      className={`absolute inset-0 transition-opacity duration-700 ease-out ${
+                        idx === loadingBgIndex ? "opacity-100" : "opacity-0"
+                      }`}
+                    >
+                      <img
+                        src={slide.img}
+                        alt={slide.title}
+                        className="w-full h-full object-cover"
+                      />
+                      {/* Bottom gradient overlay */}
+                      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/70" style={{ backgroundPosition: 'bottom', backgroundSize: '100% 65%' }} />
+                    </div>
+                  ))}
+                </div>
+
+                {/* Caption Panel */}
+                <div className="mt-4 bg-zinc-50/90 dark:bg-zinc-900/90 border border-zinc-200/60 dark:border-zinc-800/60 rounded-[20px] px-[18px] py-[14px] shadow-[0_6px_16px_-2px_rgba(0,0,0,0.12)]">
+                  <div className="inline-flex items-center px-[10px] py-1 rounded-full bg-[#8B5CF6]/10 mb-[10px]">
+                    <span className="text-[9px] font-black tracking-[1.4px] text-[#8B5CF6] uppercase">SKOOLA</span>
+                  </div>
+                  {slides.map((slide, idx) => (
+                    <div
+                      key={idx}
+                      className={`transition-opacity duration-500 ${idx === loadingBgIndex ? 'block' : 'hidden'}`}
+                    >
+                      <h3 className="text-[22px] font-black leading-[1.1] text-zinc-900 dark:text-white tracking-tight -tracking-[0.5px]">
+                        {slide.title}
+                      </h3>
+                      <p className="mt-[6px] text-[13px] text-zinc-500 dark:text-zinc-400 font-medium">
+                        {slide.subtitle}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Page Dots */}
+              <div className="flex items-center justify-center gap-2 py-1">
+                {slides.map((_, idx) => (
+                  <div
+                    key={idx}
+                    className={`h-2 rounded-full transition-all duration-350 ease-out ${
+                      idx === loadingBgIndex
+                        ? 'w-7 bg-[#00D2C4] shadow-[0_0_8px_rgba(0,210,196,0.45)]'
+                        : 'w-2 bg-white/20 dark:bg-white/15'
+                    }`}
+                  />
+                ))}
+              </div>
+
+              {/* Ring Loader */}
+              <div className="flex justify-center mt-5">
+                <div className="relative w-[52px] h-[52px] flex items-center justify-center animate-pulse" style={{ animationDuration: '0.9s' }}>
+                  <svg className="w-full h-full animate-spin" viewBox="0 0 52 52" style={{ animationDuration: '1.4s', animationTimingFunction: 'linear' }}>
+                    <circle cx="26" cy="26" r="22" className="stroke-zinc-100 dark:stroke-zinc-800 fill-none" strokeWidth="4" />
+                    <circle cx="26" cy="26" r="22" className="stroke-[#00D2C4] fill-none" strokeWidth="4" strokeDasharray="46.08 138.23" strokeDashoffset="0" strokeLinecap="round" />
+                    <circle cx="26" cy="26" r="22" className="stroke-[#8B5CF6] fill-none" strokeWidth="4" strokeDasharray="26.88 138.23" strokeDashoffset="-57.5" strokeLinecap="round" />
+                    <circle cx="26" cy="26" r="3.5" className="fill-[#00D2C4]" />
+                  </svg>
+                </div>
+              </div>
+
+              {/* Loading Message */}
+              <p className="mt-3 text-center text-[12px] font-semibold text-zinc-500/50 dark:text-zinc-400/50 tracking-wide select-none animate-pulse">
+                {loadingMessage}
+              </p>
+
+              <div className="h-4 pb-[max(env(safe-area-inset-bottom),16px)]" />
+            </div>
+          </div>
+        </div>
       )}
-
-      <ConfirmationModal
-        isOpen={deleteConfirm.isOpen}
-        onClose={() => setDeleteConfirm({ ...deleteConfirm, isOpen: false })}
-        onConfirm={confirmDelete}
-        title={`Delete ${deleteConfirm.type.charAt(0).toUpperCase() + deleteConfirm.type.slice(1)}`}
-        message={`Are you sure you want to delete this ${deleteConfirm.type}? This action is IRREVERSIBLE and will delete all associated data.`}
-      />
-
-      <Modal
-        isOpen={globalModal.isOpen}
-        onClose={() => setGlobalModal({ ...globalModal, isOpen: false })}
-        title={globalModal.title}
-        footer={
-          <>
-            <button
-              onClick={() => setGlobalModal({ ...globalModal, isOpen: false })}
-              className="px-4 py-2 text-sm font-bold text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-xl transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={async () => {
-                const form = document.querySelector("#global-modal-form") as HTMLFormElement;
-                if (form) {
-                  const formData = new FormData(form);
-                  const data: any = {};
-                  formData.forEach((value, key) => {
-                    data[key] = value;
-                  });
-                  if (globalModal.onSave) {
-                    await globalModal.onSave(data);
-                  }
-                  setGlobalModal({ ...globalModal, isOpen: false });
-                }
-              }}
-              className="px-6 py-2 bg-indigo-600 text-white text-sm font-bold rounded-xl hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-500/20"
-            >
-              Confirm
-            </button>
-          </>
-        }
-      >
-        <form id="global-modal-form" onSubmit={(e) => e.preventDefault()}>
-          {globalModal.content}
-        </form>
-      </Modal>
-    </Layout>
+    </div>
   );
 }
