@@ -4202,7 +4202,7 @@ export default function App() {
             <div
               key={idx}
               className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
-                idx === loadingBgIndex ? "opacity-25" : "opacity-0"
+                idx === loadingBgIndex ? "opacity-65" : "opacity-0"
               }`}
               style={{
                 backgroundImage: `url(${img})`,
@@ -4213,7 +4213,7 @@ export default function App() {
             />
           ))}
           {/* Glassmorphic/Overlay layer to ensure maximum contrast and readability */}
-          <div className="absolute inset-0 bg-white/70 dark:bg-zinc-950/80 backdrop-blur-sm" />
+          <div className="absolute inset-0 bg-white/40 dark:bg-zinc-950/50 backdrop-blur-[3px]" />
         </div>
 
         {/* Ambient glows */}
