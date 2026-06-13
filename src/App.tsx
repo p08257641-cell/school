@@ -4403,7 +4403,7 @@ export default function App() {
               {/* Brand Header */}
               <div className="px-6 pt-3 pb-2">
                 <span className="text-2xl font-black tracking-tight select-none">
-                  <span className="text-[#8B5CF6]">Sko</span>
+                  <span className="text-[#1D4ED8]">Sko</span>
                   <span className="text-[#00D2C4]">ola</span>
                 </span>
               </div>
