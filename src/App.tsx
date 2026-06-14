@@ -4393,13 +4393,13 @@ export default function App() {
       {renderMainContent()}
       {(isSubdomainLoading || isFadingOut) && (
         <div className={`fixed inset-0 z-[9999] transition-all duration-[1200ms] ease-in-out ${isFadingOut ? 'opacity-0 scale-98 pointer-events-none' : 'opacity-100'}`}>
-          <div className="min-h-screen bg-white dark:bg-zinc-950 flex flex-col relative overflow-hidden select-none">
+          <div className="min-h-screen bg-white dark:bg-zinc-950 flex flex-col items-center justify-center relative overflow-hidden select-none">
             {/* Ambient glows */}
             <div className="absolute -top-20 -right-10 w-56 h-56 rounded-full bg-[radial-gradient(circle,rgba(0,210,196,0.15)_0%,transparent_70%)] pointer-events-none z-0" />
             <div className="absolute bottom-32 -left-16 w-52 h-52 rounded-full bg-[radial-gradient(circle,rgba(139,92,246,0.12)_0%,transparent_70%)] pointer-events-none z-0" />
 
             {/* Safe area content */}
-            <div className="flex flex-col flex-1 z-10 pt-[max(env(safe-area-inset-top),12px)]">
+            <div className="flex flex-col z-10 w-full max-w-sm mx-auto px-0 pt-[max(env(safe-area-inset-top),12px)]">
               {/* Brand Header */}
               <div className="px-6 pt-3 pb-2">
                 <span className="text-2xl font-black tracking-tight select-none">
@@ -4409,8 +4409,8 @@ export default function App() {
               </div>
 
               {/* Image Carousel Card */}
-              <div className="flex-1 px-5 pt-2 pb-3 flex flex-col min-h-0">
-                <div className="flex-1 relative rounded-[28px] overflow-hidden border-[1.5px] border-[#8B5CF6]/30 dark:border-[#8B5CF6]/20 shadow-[0_12px_28px_-4px_rgba(139,92,246,0.25)]">
+              <div className="px-5 pt-2 pb-3 flex flex-col">
+                <div className="relative rounded-[28px] overflow-hidden border-[1.5px] border-[#8B5CF6]/30 dark:border-[#8B5CF6]/20 shadow-[0_12px_28px_-4px_rgba(139,92,246,0.25)]" style={{ height: '340px' }}>
                   {slides.map((slide, idx) => (
                     <div
                       key={idx}
