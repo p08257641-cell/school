@@ -1232,8 +1232,8 @@ export const HRModules = {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-indigo-200 dark:shadow-none">
-              <ShieldCheck className="w-6 h-6" />
+            <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 via-indigo-600 to-violet-700 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-200 dark:shadow-none shrink-0 ring-2 ring-white/30 dark:ring-white/10">
+              <span className="text-white text-xs font-black tracking-wider select-none">RP</span>
             </div>
             <div>
               <h2 className="text-xl font-black text-zinc-900 dark:text-white uppercase tracking-tight">

@@ -175,8 +175,8 @@ export const AIModules = {
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-100 dark:shadow-none">
-              <TrendingUp className="w-6 h-6" />
+            <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 via-indigo-600 to-violet-700 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-100 dark:shadow-none shrink-0 ring-2 ring-white/30 dark:ring-white/10">
+              <span className="text-white text-xs font-black tracking-wider select-none">AI</span>
             </div>
             <div>
               <h2 className="text-xl font-bold text-zinc-900 dark:text-white uppercase tracking-tight">Performance Insights</h2>

@@ -661,8 +661,8 @@ export const StaffAcademicModules = {
       <div className="space-y-6">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-white dark:bg-zinc-900 p-6 rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800 shadow-sm">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-200 dark:shadow-none">
-              <Calendar className="w-6 h-6" />
+            <div className="w-12 h-12 bg-gradient-to-br from-violet-500 via-indigo-600 to-blue-700 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-200 dark:shadow-none shrink-0 ring-2 ring-white/30 dark:ring-white/10">
+              <span className="text-white text-xs font-black tracking-wider select-none">TS</span>
             </div>
             <div>
               <h2 className="text-2xl font-black text-zinc-900 dark:text-white tracking-tight">Teaching Schedule</h2>
@@ -920,8 +920,8 @@ export const StaffAcademicModules = {
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white dark:bg-zinc-900 p-6 rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800 shadow-sm">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-100 dark:shadow-none">
-               <Calendar className="w-6 h-6" />
+            <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 via-indigo-600 to-violet-700 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-200 dark:shadow-none shrink-0 ring-2 ring-white/30 dark:ring-white/10">
+              <span className="text-white text-xs font-black tracking-wider select-none">SA</span>
             </div>
             <div>
               <h2 className="text-xl font-black text-zinc-900 dark:text-white uppercase tracking-tight">Staff Attendance</h2>
@@ -1476,8 +1476,8 @@ export const StaffAcademicModules = {
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white dark:bg-zinc-900 p-6 rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800 shadow-sm">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-200 dark:shadow-none">
-              <ClipboardCheck className="w-6 h-6" />
+            <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 via-blue-600 to-cyan-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-200 dark:shadow-none shrink-0 ring-2 ring-white/30 dark:ring-white/10">
+              <span className="text-white text-xs font-black tracking-wider select-none">ER</span>
             </div>
             <div>
               <h2 className="text-2xl font-black text-zinc-900 dark:text-white tracking-tight">e-Result Management</h2>
@@ -2843,8 +2843,8 @@ export const ExamModules = {
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white dark:bg-zinc-900 p-6 rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800 shadow-sm">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-200 dark:shadow-none">
-              <ClipboardCheck className="w-6 h-6" />
+            <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 via-blue-600 to-cyan-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-200 dark:shadow-none shrink-0 ring-2 ring-white/30 dark:ring-white/10">
+              <span className="text-white text-xs font-black tracking-wider select-none">AR</span>
             </div>
             <div>
               <h2 className="text-2xl font-black text-zinc-900 dark:text-white tracking-tight">Academic Results</h2>

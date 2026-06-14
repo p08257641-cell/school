@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Activity,
   AlertCircle,
@@ -4198,8 +4198,8 @@ export const AcademicModules = {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-amber-200 dark:shadow-none">
-              <LogOut className="w-6 h-6" />
+            <div className="w-12 h-12 bg-gradient-to-br from-amber-400 via-orange-500 to-red-500 rounded-2xl flex items-center justify-center shadow-lg shadow-amber-200 dark:shadow-none shrink-0 ring-2 ring-white/30 dark:ring-white/10">
+              <span className="text-white text-xs font-black tracking-wider select-none">WS</span>
             </div>
             <div>
               <h2 className="text-xl font-black text-zinc-900 dark:text-white uppercase tracking-tight">Withdrawn Students</h2>
@@ -5013,8 +5013,8 @@ export const AcademicModules = {
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-indigo-200 dark:shadow-none">
-              <Building2 className="w-6 h-6" />
+            <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 via-indigo-600 to-violet-700 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-200 dark:shadow-none shrink-0 ring-2 ring-white/30 dark:ring-white/10">
+              <span className="text-white text-xs font-black tracking-wider select-none">DP</span>
             </div>
             <div>
               <h2 className="text-xl font-black text-zinc-900 dark:text-white uppercase tracking-tight">Departmental Overview</h2>
@@ -5397,8 +5397,8 @@ export const AcademicModules = {
       <div className="space-y-6">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 bg-white dark:bg-zinc-900 p-6 md:p-8 rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800 shadow-sm">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 md:w-14 md:h-14 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-indigo-200 dark:shadow-none shrink-0">
-              <GraduationCap className="w-6 h-6 md:w-7 md:h-7" />
+            <div className="w-12 h-12 md:w-14 md:h-14 bg-gradient-to-br from-indigo-500 via-blue-600 to-cyan-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-200 dark:shadow-none shrink-0 ring-2 ring-white/30 dark:ring-white/10">
+              <span className="text-white text-xs md:text-sm font-black tracking-wider select-none">CD</span>
             </div>
             <div>
               <h2 className="text-lg md:text-xl font-black text-zinc-900 dark:text-white uppercase tracking-tight">Classroom Directory</h2>
@@ -5777,8 +5777,8 @@ export const AcademicModules = {
       <div className="space-y-6">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 bg-white dark:bg-zinc-900 p-6 md:p-8 rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800 shadow-sm">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 md:w-14 md:h-14 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-indigo-200 dark:shadow-none shrink-0">
-              <BookOpen className="w-6 h-6 md:w-7 md:h-7" />
+            <div className="w-12 h-12 md:w-14 md:h-14 bg-gradient-to-br from-violet-500 via-indigo-600 to-blue-700 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-200 dark:shadow-none shrink-0 ring-2 ring-white/30 dark:ring-white/10">
+              <span className="text-white text-xs md:text-sm font-black tracking-wider select-none">CI</span>
             </div>
             <div>
               <h2 className="text-lg md:text-xl font-black text-zinc-900 dark:text-white uppercase tracking-tight">Curriculum Inventory</h2>
@@ -7026,8 +7026,8 @@ export const AcademicModules = {
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white dark:bg-zinc-900 p-6 rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800 shadow-sm">
           <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
-            <div className="w-12 h-12 rounded-2xl bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-100 dark:shadow-none">
-              <Calendar className="w-6 h-6" />
+            <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 via-indigo-600 to-violet-700 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-200 dark:shadow-none shrink-0 ring-2 ring-white/30 dark:ring-white/10">
+              <span className="text-white text-xs font-black tracking-wider select-none">AT</span>
             </div>
             <div>
               <h2 className="text-xl font-black text-zinc-900 dark:text-white uppercase tracking-tight">Attendance Tracking</h2>
@@ -9512,8 +9512,8 @@ export const ExamModules = {
       <div className="space-y-6">
         <div className="flex flex-col gap-4 bg-white dark:bg-zinc-900 p-4 sm:p-6 rounded-[1.5rem] sm:rounded-[2.5rem] border border-zinc-200/50 dark:border-zinc-800 shadow-sm">
           <div className="flex items-center gap-3 sm:gap-4">
-            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-200 dark:shadow-none shrink-0">
-              <ClipboardCheck className="w-5 h-5 sm:w-6 sm:h-6" />
+            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-indigo-500 via-blue-600 to-cyan-600 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-200 dark:shadow-none shrink-0 ring-2 ring-white/30 dark:ring-white/10">
+              <span className="text-white text-xs sm:text-sm font-black tracking-wider select-none">AR</span>
             </div>
             <div className="min-w-0">
               <h2 className="text-lg sm:text-2xl font-black text-zinc-900 dark:text-white tracking-tight truncate">Academic Results</h2>
@@ -10632,8 +10632,8 @@ export const ExamModules = {
       <div className="space-y-8">
         <div className="bg-white dark:bg-zinc-900 p-8 rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800 shadow-sm">
           <div className="flex items-center gap-4 mb-8">
-            <div className="w-12 h-12 rounded-2xl bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-200 dark:shadow-none">
-              <TrendingUp className="w-6 h-6" />
+            <div className="w-12 h-12 bg-gradient-to-br from-violet-500 via-indigo-600 to-blue-700 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-200 dark:shadow-none shrink-0 ring-2 ring-white/30 dark:ring-white/10">
+              <span className="text-white text-xs font-black tracking-wider select-none">RA</span>
             </div>
             <div>
               <h2 className="text-2xl font-black text-zinc-900 dark:text-white tracking-tight">Result Analysis</h2>
