@@ -8794,8 +8794,8 @@ export const ExamModules = {
         <div className="flex flex-col gap-3 bg-white dark:bg-zinc-900 p-4 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-sm shrink-0">
-                <Calendar className="w-5 h-5" />
+              <div className="w-10 h-10 rounded-full border-2 border-indigo-500/30 dark:border-indigo-500/20 flex items-center justify-center bg-indigo-500/5 dark:bg-indigo-500/10 shadow-[0_0_20px_rgba(99,102,241,0.15)] shrink-0">
+                <Calendar className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
               </div>
               <div className="min-w-0">
                 <h2 className="text-lg font-bold text-zinc-900 dark:text-white tracking-tight truncate">Examination Schedules</h2>
