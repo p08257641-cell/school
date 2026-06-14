@@ -7588,8 +7588,8 @@ export const AcademicModules = {
         {/* Header Section */}
         <div className="bg-white dark:bg-zinc-900 p-8 rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="flex items-center gap-5">
-            <div className="w-16 h-16 bg-indigo-600 rounded-3xl flex items-center justify-center shadow-xl shadow-indigo-200 dark:shadow-none">
-              <GraduationCap className="w-8 h-8 text-white" />
+            <div className="w-16 h-16 rounded-full border-2 border-indigo-500/30 dark:border-indigo-500/20 flex items-center justify-center bg-indigo-500/5 dark:bg-indigo-500/10 shadow-[0_0_20px_rgba(99,102,241,0.15)] shrink-0">
+              <GraduationCap className="w-8 h-8 text-indigo-600 dark:text-indigo-400" />
             </div>
             <div>
               <h2 className="text-2xl font-black text-zinc-900 dark:text-white tracking-tight">Promotion & Graduation</h2>
