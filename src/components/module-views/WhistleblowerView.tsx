@@ -420,8 +420,8 @@ const WhistleblowerView: React.FC<{ role: string }> = ({ role }) => {
   return (
     <div className="space-y-6 p-6 pb-20 max-w-7xl mx-auto">
       <div className="flex items-center gap-4 mb-2">
-        <div className="w-14 h-14 bg-gradient-to-br from-indigo-500 via-indigo-600 to-violet-700 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-200 dark:shadow-none shrink-0 ring-2 ring-white/30 dark:ring-white/10">
-          <span className="text-white text-sm font-black tracking-wider select-none">WB</span>
+        <div className="w-14 h-14 rounded-full border-2 border-indigo-500/30 dark:border-indigo-500/20 flex items-center justify-center bg-indigo-500/5 dark:bg-indigo-500/10 shadow-[0_0_20px_rgba(99,102,241,0.15)] shrink-0">
+          <Flag className="w-7 h-7 text-indigo-600 dark:text-indigo-400" />
         </div>
         <div>
           <h1 className="text-3xl font-black text-zinc-900 dark:text-white tracking-tight">
