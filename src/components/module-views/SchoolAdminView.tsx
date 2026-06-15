@@ -2767,9 +2767,23 @@ export const AdmitStudentView = ({
     }, 0);
   };
 
-  // Preload admission background image
+  // Aggressively preload admission background image
   useEffect(() => {
+    // Add prefetch link to head for early discovery
+    const link = document.createElement('link');
+    link.rel = 'prefetch';
+    link.as = 'image';
+    link.href = admissionBg;
+    document.head.appendChild(link);
+
+    // Force immediate preload by creating img element
     const img = new Image();
+    img.onload = () => {
+      // Image is now cached in browser
+    };
+    img.onerror = () => {
+      // Handle error silently
+    };
     img.src = admissionBg;
   }, []);
 
@@ -2858,7 +2872,7 @@ export const AdmitStudentView = ({
       <div className="bg-white dark:bg-zinc-900 rounded-[2rem] md:rounded-[3rem] p-6 md:p-10 border border-zinc-200 dark:border-zinc-800 shadow-xl shadow-zinc-200/50 dark:shadow-none relative overflow-hidden">
         {/* Background admission image with selective fade */}
         <div className="absolute inset-0 z-0">
-          <img src={admissionBg} alt="" className="w-full h-full object-cover opacity-40 dark:opacity-25" />
+          <img src={admissionBg} alt="" loading="eager" decoding="async" className="w-full h-full object-cover opacity-40 dark:opacity-25" />
           <div className="absolute inset-0 bg-gradient-to-r from-white/95 via-white/60 to-white/20 dark:from-zinc-900/95 dark:via-zinc-900/60 dark:to-zinc-900/20" />
           <div className="absolute inset-0 bg-gradient-to-b from-white/40 via-transparent to-white/50 dark:from-zinc-900/40 dark:via-transparent dark:to-zinc-900/50" />
         </div>
