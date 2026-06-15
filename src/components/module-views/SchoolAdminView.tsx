@@ -2767,6 +2767,12 @@ export const AdmitStudentView = ({
     }, 0);
   };
 
+  // Preload admission background image
+  useEffect(() => {
+    const img = new Image();
+    img.src = admissionBg;
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const form = e.currentTarget;
@@ -2850,18 +2856,19 @@ export const AdmitStudentView = ({
     <div className="space-y-8">
       {/* Header */}
       <div className="bg-white dark:bg-zinc-900 rounded-[2rem] md:rounded-[3rem] p-6 md:p-10 border border-zinc-200 dark:border-zinc-800 shadow-xl shadow-zinc-200/50 dark:shadow-none relative overflow-hidden">
-        {/* Background admission image with white fade */}
+        {/* Background admission image with selective fade */}
         <div className="absolute inset-0 z-0">
-          <img src={admissionBg} alt="" className="w-full h-full object-cover opacity-45 dark:opacity-30" />
-          <div className="absolute inset-0 bg-gradient-to-r from-white/80 via-white/50 to-white/30 dark:from-zinc-900/80 dark:via-zinc-900/50 dark:to-zinc-900/30" />
+          <img src={admissionBg} alt="" className="w-full h-full object-cover opacity-40 dark:opacity-25" />
+          <div className="absolute inset-0 bg-gradient-to-r from-white/95 via-white/60 to-white/20 dark:from-zinc-900/95 dark:via-zinc-900/60 dark:to-zinc-900/20" />
+          <div className="absolute inset-0 bg-gradient-to-b from-white/40 via-transparent to-white/50 dark:from-zinc-900/40 dark:via-transparent dark:to-zinc-900/50" />
         </div>
         <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl" />
         <div className="absolute -left-16 -bottom-16 w-48 h-48 bg-emerald-500/5 rounded-full blur-3xl" />
         <div className="relative z-10">
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
             <div className="flex items-center gap-6">
-              <div className="w-16 h-16 md:w-20 md:h-20 bg-indigo-600 rounded-[2rem] flex items-center justify-center shadow-2xl shadow-indigo-200 dark:shadow-none">
-                <UserPlus className="w-8 h-8 md:w-10 md:h-10 text-white" />
+              <div className="w-16 h-16 md:w-20 md:h-20 rounded-[2rem] flex items-center justify-center shadow-2xl shadow-indigo-200/30 dark:shadow-none">
+                <UserPlus className="w-8 h-8 md:w-10 md:h-10 text-indigo-600" />
               </div>
               <div>
                 <h1 className="text-3xl md:text-4xl font-black tracking-tight text-zinc-900 dark:text-white">Admit Student</h1>
