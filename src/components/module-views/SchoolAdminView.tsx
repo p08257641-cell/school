@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   Activity,
   AlertCircle,
@@ -79,7 +79,52 @@ import { useLanguage } from '../../lib/LanguageContext';
 import { downloadStudentTemplate, parseStudentExcel } from '../../lib/excel';
 import { Download, FileUp } from 'lucide-react';
 import admissionBg from '../../image/admission.png';
+import subjectBg from '../../image/New folder/subject management.png';
+import classroomBg from '../../image/New folder/classroom management.png';
+import attendanceBg from '../../image/New folder/attendance management.png';
+import academicBg from '../../image/New folder/academic manamgent.png';
+import alumniBg from '../../image/New folder/alumni management.png';
+import examBg from '../../image/New folder/examiniation schedule.png';
+import graduationBg from '../../image/New folder/graduation and promotion.png';
+import bulkBg from '../../image/New folder/bulk operations.png';
 import { fetchCalendarEvents, createCalendarEvent, deleteCalendarEvent, syncPublicHolidays, sendBulkSMS, generateSmartTimetable } from '../../lib/api';
+
+const CardHeaderBackground: React.FC<{ src: string; opacityClass?: string }> = ({ src, opacityClass = "opacity-40 dark:opacity-25" }) => {
+  const [loaded, setLoaded] = useState(false);
+  const imgRef = useRef<HTMLImageElement>(null);
+
+  useEffect(() => {
+    setLoaded(false);
+    // If already cached by the browser, naturalWidth > 0 and complete = true
+    // so onLoad will never fire — detect this and mark as loaded immediately
+    if (imgRef.current?.complete && imgRef.current.naturalWidth > 0) {
+      setLoaded(true);
+    }
+  }, [src]);
+
+  return (
+    <div className="absolute inset-0 z-0 pointer-events-none">
+      <img
+        ref={imgRef}
+        src={src}
+        alt=""
+        onLoad={() => setLoaded(true)}
+        className={cn(
+          "w-full h-full object-cover transition-opacity duration-700 ease-in-out",
+          loaded ? opacityClass : "opacity-0"
+        )}
+      />
+      {!loaded && (
+        <div className="absolute inset-0 flex items-center justify-center bg-zinc-50 dark:bg-zinc-900 animate-pulse">
+          <div className="w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin opacity-50" />
+        </div>
+      )}
+      <div className="absolute inset-0 bg-gradient-to-r from-white/95 via-white/70 to-white/20 dark:from-zinc-900/95 dark:via-zinc-900/70 dark:to-zinc-900/20" />
+      <div className="absolute inset-0 bg-gradient-to-b from-white/40 via-transparent to-white/50 dark:from-zinc-900/40 dark:via-transparent dark:to-zinc-900/50" />
+    </div>
+  );
+};
+
 
 const SectionEditor: React.FC<{ section: ReportCardSection, onUpdate: (s: ReportCardSection) => void, onRemove: () => void }> = ({ section, onUpdate, onRemove }) => {
   return (
@@ -2868,21 +2913,15 @@ export const AdmitStudentView = ({
 
   return (
     <div className="space-y-8">
-      {/* Header */}
       <div className="bg-white dark:bg-zinc-900 rounded-[2rem] md:rounded-[3rem] p-6 md:p-10 border border-zinc-200 dark:border-zinc-800 shadow-xl shadow-zinc-200/50 dark:shadow-none relative overflow-hidden">
-        {/* Background admission image with selective fade */}
-        <div className="absolute inset-0 z-0">
-          <img src={admissionBg} alt="" loading="eager" decoding="async" className="w-full h-full object-cover opacity-40 dark:opacity-25" />
-          <div className="absolute inset-0 bg-gradient-to-r from-white/95 via-white/60 to-white/20 dark:from-zinc-900/95 dark:via-zinc-900/60 dark:to-zinc-900/20" />
-          <div className="absolute inset-0 bg-gradient-to-b from-white/40 via-transparent to-white/50 dark:from-zinc-900/40 dark:via-transparent dark:to-zinc-900/50" />
-        </div>
+        <CardHeaderBackground src={admissionBg} />
         <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl" />
         <div className="absolute -left-16 -bottom-16 w-48 h-48 bg-emerald-500/5 rounded-full blur-3xl" />
         <div className="relative z-10">
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
             <div className="flex items-center gap-6">
-              <div className="w-16 h-16 md:w-20 md:h-20 rounded-[2rem] flex items-center justify-center shadow-2xl shadow-indigo-200/30 dark:shadow-none">
-                <UserPlus className="w-8 h-8 md:w-10 md:h-10 text-indigo-600" />
+              <div className="w-16 h-16 md:w-20 md:h-20 flex items-center justify-center shrink-0">
+                <UserPlus className="w-10 h-10 md:w-12 md:h-12 text-indigo-600 dark:text-indigo-400" />
               </div>
               <div>
                 <h1 className="text-3xl md:text-4xl font-black tracking-tight text-zinc-900 dark:text-white">Admit Student</h1>
@@ -4646,8 +4685,9 @@ export const AcademicModules = {
     return (
       <div className="space-y-6">
         {/* Top bar with stats and controls */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 bg-zinc-50 dark:bg-zinc-800/40 rounded-2xl border border-zinc-200 dark:border-zinc-800/80">
-          <div className="flex flex-col gap-1">
+        <div className="relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
+          <CardHeaderBackground src={alumniBg} />
+          <div className="relative z-10 flex flex-col gap-1">
             <h2 className="text-xl font-black text-zinc-900 dark:text-white uppercase tracking-tight flex items-center gap-2">
               <GraduationCap className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
               Alumni Directory
@@ -4657,7 +4697,7 @@ export const AcademicModules = {
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="relative z-10 flex flex-wrap items-center gap-3">
             {/* Search Bar */}
             <div className="relative">
               <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
@@ -5422,46 +5462,49 @@ export const AcademicModules = {
 
     return (
       <div className="space-y-6">
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 bg-white dark:bg-zinc-900 p-6 md:p-8 rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800 shadow-sm">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 md:w-14 md:h-14 rounded-full border-2 border-indigo-500/30 dark:border-indigo-500/20 flex items-center justify-center bg-indigo-500/5 dark:bg-indigo-500/10 shadow-[0_0_20px_rgba(99,102,241,0.15)] shrink-0">
-              <GraduationCap className="w-6 h-6 md:w-7 md:h-7 text-indigo-600 dark:text-indigo-400" />
+        <div className="relative overflow-hidden bg-white dark:bg-zinc-900 p-6 md:p-8 rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800 shadow-sm">
+          <CardHeaderBackground src={classroomBg} />
+          <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 w-full">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 md:w-14 md:h-14 rounded-full border-2 border-indigo-500/30 dark:border-indigo-500/20 flex items-center justify-center bg-indigo-500/5 dark:bg-indigo-500/10 shadow-[0_0_20px_rgba(99,102,241,0.15)] shrink-0">
+                <GraduationCap className="w-6 h-6 md:w-7 md:h-7 text-indigo-600 dark:text-indigo-400" />
+              </div>
+              <div>
+                <h2 className="text-lg md:text-xl font-black text-zinc-900 dark:text-white uppercase tracking-tight">Classroom Directory</h2>
+                <p className="text-[9px] md:text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Manage class teachers, student capacities & promotion flows</p>
+              </div>
             </div>
-            <div>
-              <h2 className="text-lg md:text-xl font-black text-zinc-900 dark:text-white uppercase tracking-tight">Classroom Directory</h2>
-              <p className="text-[9px] md:text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Manage class teachers, student capacities & promotion flows</p>
+            <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+              <div className="flex items-center gap-1 bg-zinc-100 dark:bg-zinc-800 p-1 rounded-xl">
+                <button
+                  onClick={() => setViewMode('list')}
+                  className={cn(
+                    "p-2 rounded-lg transition-all",
+                    viewMode === 'list' ? "bg-white dark:bg-zinc-700 shadow-sm text-indigo-600" : "text-zinc-400 hover:text-zinc-600"
+                  )}
+                >
+                  <List className="w-5 h-5" />
+                </button>
+                <button
+                  onClick={() => setViewMode('graphical')}
+                  className={cn(
+                    "p-2 rounded-lg transition-all",
+                    viewMode === 'graphical' ? "bg-white dark:bg-zinc-700 shadow-sm text-indigo-600" : "text-zinc-400 hover:text-zinc-600"
+                  )}
+                >
+                  <LayoutGrid className="w-5 h-5" />
+                </button>
+              </div>
+              {onSave && role !== 'STAFF' && (
+                <button
+                  onClick={() => setEditingItem({})}
+                  className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-2.5 bg-indigo-600 text-white rounded-xl font-bold text-sm hover:scale-[1.02] transition-transform shadow-lg shadow-indigo-200"
+                >
+                  <Plus className="w-4 h-4" />
+                  Add Class
+                </button>
+              )}
             </div>
-          </div>
-          <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
-            <div className="flex items-center gap-1 bg-zinc-100 dark:bg-zinc-800 p-1 rounded-xl">
-              <button
-                onClick={() => setViewMode('list')}
-                className={cn(
-                  "p-2 rounded-lg transition-all",
-                  viewMode === 'list' ? "bg-white dark:bg-zinc-700 shadow-sm text-indigo-600" : "text-zinc-400 hover:text-zinc-600"
-                )}
-              >
-                <List className="w-5 h-5" />
-              </button>
-              <button
-                onClick={() => setViewMode('graphical')}
-                className={cn(
-                  "p-2 rounded-lg transition-all",
-                  viewMode === 'graphical' ? "bg-white dark:bg-zinc-700 shadow-sm text-indigo-600" : "text-zinc-400 hover:text-zinc-600"
-                )}
-              >
-                <LayoutGrid className="w-5 h-5" />
-              </button>
-            </div>
-            {onSave && role !== 'STAFF' && (
-              <button
-                onClick={() => setEditingItem({})}
-                className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-2.5 bg-indigo-600 text-white rounded-xl font-bold text-sm hover:scale-[1.02] transition-transform shadow-lg shadow-indigo-200"
-              >
-                <Plus className="w-4 h-4" />
-                Add Class
-              </button>
-            )}
           </div>
         </div>
 
@@ -5802,8 +5845,9 @@ export const AcademicModules = {
 
     return (
       <div className="space-y-6">
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 bg-white dark:bg-zinc-900 p-6 md:p-8 rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800 shadow-sm">
-          <div className="flex items-center gap-4">
+        <div className="relative overflow-hidden flex flex-col md:flex-row items-start md:items-center justify-between gap-6 bg-white dark:bg-zinc-900 p-6 md:p-8 rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800 shadow-sm">
+          <CardHeaderBackground src={subjectBg} />
+          <div className="relative z-10 flex items-center gap-4">
             <div className="w-12 h-12 md:w-14 md:h-14 rounded-full border-2 border-violet-500/30 dark:border-violet-500/20 flex items-center justify-center bg-violet-500/5 dark:bg-violet-500/10 shadow-[0_0_20px_rgba(139,92,246,0.15)] shrink-0">
               <BookOpen className="w-6 h-6 md:w-7 md:h-7 text-violet-600 dark:text-violet-400" />
             </div>
@@ -5812,7 +5856,7 @@ export const AcademicModules = {
               <p className="text-[9px] md:text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Manage subjects, teacher assignments & departmental links</p>
             </div>
           </div>
-          <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+          <div className="relative z-10 flex flex-wrap items-center gap-3 w-full md:w-auto">
             <div className="flex items-center gap-1 bg-zinc-100 dark:bg-zinc-800 p-1 rounded-xl">
               <button
                 onClick={() => setViewMode('list')}
@@ -7051,8 +7095,9 @@ export const AcademicModules = {
 
     return (
       <div className="space-y-6">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white dark:bg-zinc-900 p-6 rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800 shadow-sm">
-          <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
+        <div className="relative overflow-hidden flex flex-col sm:flex-row items-center justify-between gap-4 bg-white dark:bg-zinc-900 p-6 rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800 shadow-sm">
+          <CardHeaderBackground src={attendanceBg} />
+          <div className="relative z-10 flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
             <div className="w-12 h-12 rounded-full border-2 border-indigo-500/30 dark:border-indigo-500/20 flex items-center justify-center bg-indigo-500/5 dark:bg-indigo-500/10 shadow-[0_0_20px_rgba(99,102,241,0.15)] shrink-0">
               <Calendar className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
             </div>
@@ -7613,8 +7658,9 @@ export const AcademicModules = {
     return (
       <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
         {/* Header Section */}
-        <div className="bg-white dark:bg-zinc-900 p-8 rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="flex items-center gap-5">
+        <div className="relative overflow-hidden bg-white dark:bg-zinc-900 p-8 rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <CardHeaderBackground src={graduationBg} />
+          <div className="relative z-10 flex items-center gap-5">
             <div className="w-16 h-16 rounded-full border-2 border-indigo-500/30 dark:border-indigo-500/20 flex items-center justify-center bg-indigo-500/5 dark:bg-indigo-500/10 shadow-[0_0_20px_rgba(99,102,241,0.15)] shrink-0">
               <GraduationCap className="w-8 h-8 text-indigo-600 dark:text-indigo-400" />
             </div>
@@ -7623,7 +7669,7 @@ export const AcademicModules = {
               <p className="text-sm text-zinc-500 font-medium">Manage student progression based on total academic performance averages.</p>
             </div>
           </div>
-          <div className="flex bg-zinc-100 dark:bg-zinc-800 p-1 rounded-xl">
+          <div className="relative z-10 flex bg-zinc-100 dark:bg-zinc-800 p-1 rounded-xl">
             {[
               { id: 'settings', label: 'Settings', icon: SchoolIcon },
               { id: 'audit', label: 'Audit', icon: ClipboardCheck },
@@ -8818,8 +8864,9 @@ export const ExamModules = {
 
     return (
       <div className="space-y-6">
-        <div className="flex flex-col gap-3 bg-white dark:bg-zinc-900 p-4 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div className="relative overflow-hidden flex flex-col gap-3 bg-white dark:bg-zinc-900 p-4 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
+          <CardHeaderBackground src={examBg} />
+          <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full border-2 border-indigo-500/30 dark:border-indigo-500/20 flex items-center justify-center bg-indigo-500/5 dark:bg-indigo-500/10 shadow-[0_0_20px_rgba(99,102,241,0.15)] shrink-0">
                 <Calendar className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
@@ -9537,8 +9584,9 @@ export const ExamModules = {
 
     return (
       <div className="space-y-6">
-        <div className="flex flex-col gap-4 bg-white dark:bg-zinc-900 p-4 sm:p-6 rounded-[1.5rem] sm:rounded-[2.5rem] border border-zinc-200/50 dark:border-zinc-800 shadow-sm">
-          <div className="flex items-center gap-3 sm:gap-4">
+        <div className="relative overflow-hidden flex flex-col gap-4 bg-white dark:bg-zinc-900 p-4 sm:p-6 rounded-[1.5rem] sm:rounded-[2.5rem] border border-zinc-200/50 dark:border-zinc-800 shadow-sm">
+          <CardHeaderBackground src={academicBg} />
+          <div className="relative z-10 flex items-center gap-3 sm:gap-4">
             <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 border-indigo-500/30 dark:border-indigo-500/20 flex items-center justify-center bg-indigo-500/5 dark:bg-indigo-500/10 shadow-[0_0_20px_rgba(99,102,241,0.15)] shrink-0">
               <ClipboardCheck className="w-5 h-5 sm:w-6 sm:h-6 text-indigo-600 dark:text-indigo-400" />
             </div>
@@ -9559,7 +9607,7 @@ export const ExamModules = {
               </div>
             </div>
           </div>
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+          <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
             <div className="flex items-center p-1.5 bg-zinc-100/80 dark:bg-zinc-800/80 backdrop-blur-xl rounded-[1.25rem] sm:rounded-[2rem] border border-zinc-200/50 dark:border-zinc-700/50 overflow-x-auto no-scrollbar scroll-smooth w-full lg:w-auto shadow-inner">
               <button
                 onClick={() => {
