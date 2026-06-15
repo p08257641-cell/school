@@ -2852,8 +2852,8 @@ export const AdmitStudentView = ({
       <div className="bg-white dark:bg-zinc-900 rounded-[2rem] md:rounded-[3rem] p-6 md:p-10 border border-zinc-200 dark:border-zinc-800 shadow-xl shadow-zinc-200/50 dark:shadow-none relative overflow-hidden">
         {/* Background admission image with white fade */}
         <div className="absolute inset-0 z-0">
-          <img src={admissionBg} alt="" className="w-full h-full object-cover opacity-15 dark:opacity-10" />
-          <div className="absolute inset-0 bg-gradient-to-r from-white via-white/90 to-white/70 dark:from-zinc-900 dark:via-zinc-900/90 dark:to-zinc-900/70" />
+          <img src={admissionBg} alt="" className="w-full h-full object-cover opacity-45 dark:opacity-30" />
+          <div className="absolute inset-0 bg-gradient-to-r from-white/80 via-white/50 to-white/30 dark:from-zinc-900/80 dark:via-zinc-900/50 dark:to-zinc-900/30" />
         </div>
         <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl" />
         <div className="absolute -left-16 -bottom-16 w-48 h-48 bg-emerald-500/5 rounded-full blur-3xl" />
