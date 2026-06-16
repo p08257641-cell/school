@@ -5784,11 +5784,11 @@ export const HRModules = {
             )}
           />
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 pb-10">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 pb-10">
             {parentsMap.map((parent) => (
               <div 
                 key={parent.email}
-                className="group relative bg-white dark:bg-zinc-900 rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800 shadow-xl shadow-zinc-200/20 dark:shadow-none p-6 space-y-6 hover:border-indigo-500 transition-all duration-500 hover:-translate-y-1"
+                className="group relative bg-white dark:bg-zinc-900 rounded-[2rem] sm:rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800 shadow-xl shadow-zinc-200/20 dark:shadow-none p-4 sm:p-6 space-y-4 sm:space-y-6 hover:border-indigo-500 transition-all duration-500 hover:-translate-y-1"
               >
                 {/* Parent Card Header */}
                 <div className="flex items-start justify-between gap-3">
@@ -5796,7 +5796,7 @@ export const HRModules = {
                     <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-200 dark:shadow-none shrink-0">
                       <Users className="w-5 h-5 sm:w-6 sm:h-6" />
                     </div>
-                    <div className="min-w-0 flex-1">
+                    <div className="min-w-0 flex-1 overflow-hidden">
                       <h3 className="font-black text-zinc-900 dark:text-white uppercase tracking-tight truncate text-sm sm:text-base">
                         {parent.name}
                       </h3>
@@ -5805,30 +5805,30 @@ export const HRModules = {
                       </p>
                     </div>
                   </div>
-                  <div className="px-2 sm:px-3 py-1 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 rounded-full text-[9px] sm:text-[10px] font-black uppercase shrink-0">
+                  <div className="px-1.5 sm:px-2.5 py-0.5 sm:py-1 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 rounded-full text-[8px] sm:text-[9px] font-black uppercase shrink-0">
                     {parent.children.length} {parent.children.length === 1 ? 'Ward' : 'Wards'}
                   </div>
                 </div>
 
                 {/* Contact Line */}
-                <div className="flex items-center gap-2 text-xs font-bold text-zinc-500 bg-zinc-50 dark:bg-zinc-800/50 p-3 rounded-2xl">
-                  <Phone className="w-3.5 h-3.5 text-indigo-500" />
-                  {parent.contact}
+                <div className="flex items-center gap-2 text-[10px] sm:text-xs font-bold text-zinc-500 bg-zinc-50 dark:bg-zinc-800/50 p-2 sm:p-3 rounded-2xl overflow-hidden">
+                  <Phone className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-indigo-500 shrink-0" />
+                  <span className="truncate">{parent.contact}</span>
                 </div>
 
                 {/* Children Connection Visualization */}
-                <div className="space-y-3 relative pt-2">
-                  <div className="absolute left-[23px] sm:left-[27px] top-0 bottom-6 w-0.5 bg-gradient-to-b from-indigo-500/20 to-transparent" />
+                <div className="space-y-2 sm:space-y-3 relative pt-2">
+                  <div className="absolute left-[19px] sm:left-[23px] top-0 bottom-4 sm:bottom-6 w-0.5 bg-gradient-to-b from-indigo-500/20 to-transparent" />
                   
                   {parent.children.map((child, idx) => (
-                    <div key={child.id} className="flex items-center gap-3 sm:gap-4 pl-2 group/child">
+                    <div key={child.id} className="flex items-center gap-2 sm:gap-4 pl-2 group/child">
                       <div className="relative z-10 shrink-0">
-                        <div className="absolute top-1/2 -left-2 w-4 h-0.5 bg-indigo-500/20" />
-                        <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center text-zinc-400 group-hover/child:border-indigo-500 group-hover/child:text-indigo-600 transition-all shadow-sm">
+                        <div className="absolute top-1/2 -left-1.5 sm:-left-2 w-3 sm:w-4 h-0.5 bg-indigo-500/20" />
+                        <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center text-zinc-400 group-hover/child:border-indigo-500 group-hover/child:text-indigo-600 transition-all shadow-sm">
                           {child.profile_pic ? (
                             <img src={child.profile_pic} className="w-full h-full object-cover rounded-xl" />
                           ) : (
-                            <User className="w-4 h-4 sm:w-5 sm:h-5" />
+                            <User className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                           )}
                         </div>
                       </div>
@@ -5840,7 +5840,7 @@ export const HRModules = {
                           <span className="text-[8px] sm:text-[9px] font-bold text-zinc-400 uppercase">
                             {child.class} {child.section}
                           </span>
-                          <div className="w-1 h-1 rounded-full bg-zinc-300" />
+                          <div className="w-1 h-1 rounded-full bg-zinc-300 shrink-0" />
                           <span className="text-[8px] sm:text-[9px] font-black text-indigo-500 uppercase italic">
                             GPA: {child.gpa || '—'}
                           </span>
@@ -5848,9 +5848,9 @@ export const HRModules = {
                       </div>
                       <button 
                         onClick={() => setViewingStudent(child)}
-                        className="p-1.5 sm:p-2 opacity-0 group-hover:opacity-100 group-hover/child:opacity-100 transition-opacity hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg text-indigo-600 shrink-0"
+                        className="p-1 sm:p-1.5 opacity-0 group-hover:opacity-100 group-hover/child:opacity-100 transition-opacity hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg text-indigo-600 shrink-0"
                       >
-                        <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                        <ArrowRight className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                       </button>
                     </div>
                   ))}
