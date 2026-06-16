@@ -2915,39 +2915,39 @@ export const AdmitStudentView = ({
 
   return (
     <div className="space-y-8">
-      <div className="bg-white dark:bg-zinc-900 rounded-[2rem] md:rounded-[3rem] p-6 md:p-10 border border-zinc-200 dark:border-zinc-800 shadow-xl shadow-zinc-200/50 dark:shadow-none relative overflow-hidden">
+      <div className="bg-white dark:bg-zinc-900 rounded-[1.5rem] md:rounded-[2rem] lg:rounded-[3rem] p-4 md:p-6 lg:p-10 border border-zinc-200 dark:border-zinc-800 shadow-xl shadow-zinc-200/50 dark:shadow-none relative overflow-hidden">
         <CardHeaderBackground src={admissionBg} />
         <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl" />
         <div className="absolute -left-16 -bottom-16 w-48 h-48 bg-emerald-500/5 rounded-full blur-3xl" />
         <div className="relative z-10">
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-            <div className="flex items-center gap-6">
-              <div className="w-16 h-16 md:w-20 md:h-20 flex items-center justify-center shrink-0">
-                <UserPlus className="w-10 h-10 md:w-12 md:h-12 text-indigo-600 dark:text-indigo-400" />
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-6">
+            <div className="flex items-center gap-4 md:gap-6">
+              <div className="w-12 h-12 md:w-16 md:h-16 lg:w-20 lg:h-20 flex items-center justify-center shrink-0">
+                <UserPlus className="w-8 h-8 md:w-10 md:h-10 lg:w-12 lg:h-12 text-indigo-600 dark:text-indigo-400" />
               </div>
               <div>
-                <h1 className="text-3xl md:text-4xl font-black tracking-tight text-zinc-900 dark:text-white">Admit Student</h1>
-                <p className="text-zinc-500 font-bold text-sm md:text-base">Enrol new students or save enquiries for follow-up.</p>
+                <h1 className="text-2xl md:text-3xl lg:text-4xl font-black tracking-tight text-zinc-900 dark:text-white">Admit Student</h1>
+                <p className="text-zinc-500 font-bold text-xs md:text-sm lg:text-base">Enrol new students or save enquiries for follow-up.</p>
               </div>
             </div>
             <div className="flex items-center gap-4">
-              <div className="flex-1 px-4 md:px-6 py-3 md:py-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800 rounded-2xl text-center">
+              <div className="flex-1 px-3 md:px-4 lg:px-6 py-2 md:py-3 lg:py-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800 rounded-2xl text-center">
                 <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Today</p>
-                <p className="text-2xl font-black text-emerald-700 dark:text-emerald-400">{todayAdmitted}</p>
+                <p className="text-xl md:text-2xl font-black text-emerald-700 dark:text-emerald-400">{todayAdmitted}</p>
               </div>
-              <div className="flex-1 px-4 md:px-6 py-3 md:py-4 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800 rounded-2xl text-center">
+              <div className="flex-1 px-3 md:px-4 lg:px-6 py-2 md:py-3 lg:py-4 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800 rounded-2xl text-center">
                 <p className="text-[10px] font-black text-indigo-600 uppercase tracking-widest">Total</p>
-                <p className="text-2xl font-black text-indigo-700 dark:text-indigo-400">{students.length}</p>
+                <p className="text-xl md:text-2xl font-black text-indigo-700 dark:text-indigo-400">{students.length}</p>
               </div>
             </div>
           </div>
 
           {/* Tab Switcher */}
-          <div className="flex flex-wrap items-center gap-2 p-1.5 bg-zinc-100/80 dark:bg-zinc-800/80 backdrop-blur-md rounded-2xl w-full sm:w-fit mt-8 border border-zinc-200/50 dark:border-zinc-700/50">
+          <div className="flex flex-wrap items-center gap-2 p-1.5 bg-zinc-100/80 dark:bg-zinc-800/80 backdrop-blur-md rounded-2xl w-full sm:w-fit mt-4 md:mt-6 lg:mt-8 border border-zinc-200/50 dark:border-zinc-700/50">
             <button
               onClick={() => setActiveTab('admit')}
               className={cn(
-                "px-8 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-300",
+                "px-4 md:px-6 lg:px-8 py-2 md:py-2.5 rounded-xl text-[10px] md:text-xs font-black uppercase tracking-widest transition-all duration-300 flex-1 sm:flex-initial",
                 activeTab === 'admit'
                   ? "bg-white text-indigo-600 shadow-md dark:bg-zinc-900"
                   : "text-zinc-500 hover:text-zinc-700 hover:bg-white/50 dark:hover:bg-zinc-900/50"
@@ -2958,7 +2958,7 @@ export const AdmitStudentView = ({
             <button
               onClick={() => setActiveTab('bulk')}
               className={cn(
-                "px-8 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-300",
+                "px-4 md:px-6 lg:px-8 py-2 md:py-2.5 rounded-xl text-[10px] md:text-xs font-black uppercase tracking-widest transition-all duration-300 flex-1 sm:flex-initial",
                 activeTab === 'bulk'
                   ? "bg-white text-indigo-600 shadow-md dark:bg-zinc-900"
                   : "text-zinc-500 hover:text-zinc-700 hover:bg-white/50 dark:hover:bg-zinc-900/50"
@@ -3684,7 +3684,7 @@ export const AcademicModules = {
                 <button
                   onClick={() => setActiveDetailTab('overview')}
                   className={cn(
-                    "px-8 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-300",
+                    "px-4 md:px-6 lg:px-8 py-2 md:py-2.5 rounded-xl text-[10px] md:text-xs font-black uppercase tracking-widest transition-all duration-300 flex-1 sm:flex-initial",
                     activeDetailTab === 'overview'
                       ? "bg-white text-indigo-600 shadow-md dark:bg-zinc-900"
                       : "text-zinc-500 hover:text-zinc-700 hover:bg-white/50 dark:hover:bg-zinc-900/50"
@@ -3695,7 +3695,7 @@ export const AcademicModules = {
                 <button
                   onClick={() => setActiveDetailTab('academic')}
                   className={cn(
-                    "px-8 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-300",
+                    "px-4 md:px-6 lg:px-8 py-2 md:py-2.5 rounded-xl text-[10px] md:text-xs font-black uppercase tracking-widest transition-all duration-300 flex-1 sm:flex-initial",
                     activeDetailTab === 'academic'
                       ? "bg-white text-indigo-600 shadow-md dark:bg-zinc-900"
                       : "text-zinc-500 hover:text-zinc-700 hover:bg-white/50 dark:hover:bg-zinc-900/50"
@@ -3706,7 +3706,7 @@ export const AcademicModules = {
                 <button
                   onClick={() => setActiveDetailTab('attendance')}
                   className={cn(
-                    "px-8 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-300",
+                    "px-4 md:px-6 lg:px-8 py-2 md:py-2.5 rounded-xl text-[10px] md:text-xs font-black uppercase tracking-widest transition-all duration-300 flex-1 sm:flex-initial",
                     activeDetailTab === 'attendance'
                       ? "bg-white text-indigo-600 shadow-md dark:bg-zinc-900"
                       : "text-zinc-500 hover:text-zinc-700 hover:bg-white/50 dark:hover:bg-zinc-900/50"
@@ -8576,7 +8576,7 @@ export const ExamModules = {
             <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-50/30 dark:bg-indigo-900/10 rounded-bl-[10rem] -mr-32 -mt-32" />
 
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12 relative">
-              <div className="flex items-center gap-6">
+              <div className="flex items-center gap-4 md:gap-6">
                 <div className="w-20 h-20 bg-indigo-600 rounded-[2rem] flex items-center justify-center text-white shadow-2xl shadow-indigo-200 dark:shadow-none animate-in fade-in zoom-in duration-500">
                   <Calendar className="w-10 h-10" />
                 </div>
