@@ -5620,12 +5620,12 @@ export const HRModules = {
 
     return (
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="space-y-1">
             <h2 className="text-2xl font-black text-zinc-900 dark:text-white uppercase tracking-tight">{t('parent_management')}</h2>
             <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Visualize family relationships & manage profiles</p>
           </div>
-          <div className="flex items-center gap-1 bg-zinc-100 dark:bg-zinc-800 p-1 rounded-xl">
+          <div className="flex items-center gap-1 bg-zinc-100 dark:bg-zinc-800 p-1 rounded-xl self-start sm:self-auto">
             <button
               onClick={() => setViewMode('list')}
               className={cn(
@@ -5791,21 +5791,21 @@ export const HRModules = {
                 className="group relative bg-white dark:bg-zinc-900 rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800 shadow-xl shadow-zinc-200/20 dark:shadow-none p-6 space-y-6 hover:border-indigo-500 transition-all duration-500 hover:-translate-y-1"
               >
                 {/* Parent Card Header */}
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="w-14 h-14 rounded-2xl bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-200 dark:shadow-none">
-                      <Users className="w-6 h-6" />
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-center gap-3 sm:gap-4">
+                    <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-200 dark:shadow-none shrink-0">
+                      <Users className="w-5 h-5 sm:w-6 sm:h-6" />
                     </div>
-                    <div>
-                      <h3 className="font-black text-zinc-900 dark:text-white uppercase tracking-tight truncate max-w-[150px]">
+                    <div className="min-w-0 flex-1">
+                      <h3 className="font-black text-zinc-900 dark:text-white uppercase tracking-tight truncate text-sm sm:text-base">
                         {parent.name}
                       </h3>
-                      <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest truncate max-w-[150px]">
+                      <p className="text-[9px] sm:text-[10px] font-bold text-zinc-400 uppercase tracking-widest truncate">
                         {parent.email}
                       </p>
                     </div>
                   </div>
-                  <div className="px-3 py-1 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 rounded-full text-[10px] font-black uppercase">
+                  <div className="px-2 sm:px-3 py-1 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 rounded-full text-[9px] sm:text-[10px] font-black uppercase shrink-0">
                     {parent.children.length} {parent.children.length === 1 ? 'Ward' : 'Wards'}
                   </div>
                 </div>
@@ -5818,39 +5818,39 @@ export const HRModules = {
 
                 {/* Children Connection Visualization */}
                 <div className="space-y-3 relative pt-2">
-                  <div className="absolute left-[27px] top-0 bottom-6 w-0.5 bg-gradient-to-b from-indigo-500/20 to-transparent" />
+                  <div className="absolute left-[23px] sm:left-[27px] top-0 bottom-6 w-0.5 bg-gradient-to-b from-indigo-500/20 to-transparent" />
                   
                   {parent.children.map((child, idx) => (
-                    <div key={child.id} className="flex items-center gap-4 pl-2 group/child">
-                      <div className="relative z-10">
+                    <div key={child.id} className="flex items-center gap-3 sm:gap-4 pl-2 group/child">
+                      <div className="relative z-10 shrink-0">
                         <div className="absolute top-1/2 -left-2 w-4 h-0.5 bg-indigo-500/20" />
-                        <div className="w-10 h-10 rounded-xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center text-zinc-400 group-hover/child:border-indigo-500 group-hover/child:text-indigo-600 transition-all shadow-sm">
+                        <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center text-zinc-400 group-hover/child:border-indigo-500 group-hover/child:text-indigo-600 transition-all shadow-sm">
                           {child.profile_pic ? (
                             <img src={child.profile_pic} className="w-full h-full object-cover rounded-xl" />
                           ) : (
-                            <User className="w-5 h-5" />
+                            <User className="w-4 h-4 sm:w-5 sm:h-5" />
                           )}
                         </div>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h4 className="text-xs font-black text-zinc-700 dark:text-zinc-300 uppercase truncate">
+                        <h4 className="text-[11px] sm:text-xs font-black text-zinc-700 dark:text-zinc-300 uppercase truncate">
                           {child.name}
                         </h4>
-                        <div className="flex items-center gap-2">
-                          <span className="text-[9px] font-bold text-zinc-400 uppercase">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-[8px] sm:text-[9px] font-bold text-zinc-400 uppercase">
                             {child.class} {child.section}
                           </span>
                           <div className="w-1 h-1 rounded-full bg-zinc-300" />
-                          <span className="text-[9px] font-black text-indigo-500 uppercase italic">
+                          <span className="text-[8px] sm:text-[9px] font-black text-indigo-500 uppercase italic">
                             GPA: {child.gpa || '—'}
                           </span>
                         </div>
                       </div>
                       <button 
                         onClick={() => setViewingStudent(child)}
-                        className="p-2 opacity-0 group-hover:opacity-100 group-hover/child:opacity-100 transition-opacity hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg text-indigo-600"
+                        className="p-1.5 sm:p-2 opacity-0 group-hover:opacity-100 group-hover/child:opacity-100 transition-opacity hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg text-indigo-600 shrink-0"
                       >
-                        <ArrowRight className="w-4 h-4" />
+                        <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                       </button>
                     </div>
                   ))}
