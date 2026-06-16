@@ -109,6 +109,8 @@ const CardHeaderBackground: React.FC<{ src: string; opacityClass?: string }> = (
         src={src}
         alt=""
         onLoad={() => setLoaded(true)}
+        loading="lazy"
+        decoding="async"
         className={cn(
           "w-full h-full object-cover transition-opacity duration-700 ease-in-out",
           loaded ? opacityClass : "opacity-0"
@@ -126,7 +128,7 @@ const CardHeaderBackground: React.FC<{ src: string; opacityClass?: string }> = (
 };
 
 
-const SectionEditor: React.FC<{ section: ReportCardSection, onUpdate: (s: ReportCardSection) => void, onRemove: () => void }> = ({ section, onUpdate, onRemove }) => {
+const SectionEditor: React.FC<{ section: ReportCardSection; onUpdate: (s: ReportCardSection) => void; onRemove: () => void }> = ({ section, onUpdate, onRemove }) => {
   return (
     <div className="p-4 bg-white dark:bg-zinc-800 rounded-2xl border border-zinc-200 dark:border-zinc-700 space-y-3">
       <div className="flex items-center justify-between">
