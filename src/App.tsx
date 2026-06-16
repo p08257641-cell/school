@@ -81,6 +81,15 @@ import LandingPage from "./components/LandingPage";
 import Login from "./components/Login";
 import loadingBg1 from "./image/ChatGPT Image Jun 13, 2026, 02_05_55 PM.png";
 import loadingBg2 from "./image/ChatGPT Image Jun 13, 2026, 02_06_55 PM.png";
+// Module header background images for preloading
+import admissionBg from "./image/admission.png";
+import subjectBg from "./image/New folder/subject management.png";
+import classroomBg from "./image/New folder/classroom management.png";
+import attendanceBg from "./image/New folder/attendance management.png";
+import academicBg from "./image/New folder/academic manamgent.png";
+import alumniBg from "./image/New folder/alumni management.png";
+import examBg from "./image/New folder/examiniation schedule.png";
+import graduationBg from "./image/New folder/graduation and promotion.png";
 import PartnerLogin from "./components/PartnerLogin";
 import { API_BASE_URL } from "./constants";
 import PortfolioView from "./components/module-views/PortfolioView";
@@ -332,6 +341,25 @@ export default function App() {
   const pubToken = params.get('token');
   const socketRef = useRef<any>(null);
 
+  // Preload module header background images for faster navigation
+  const preloadModuleImages = () => {
+    const moduleImages = [
+      admissionBg,
+      subjectBg,
+      classroomBg,
+      attendanceBg,
+      academicBg,
+      alumniBg,
+      examBg,
+      graduationBg
+    ];
+    
+    moduleImages.forEach((url) => {
+      const img = new Image();
+      img.src = url;
+    });
+  };
+
   useEffect(() => {
     let timerId: any = null;
     let fadeTimeoutId: any = null;
@@ -379,7 +407,19 @@ export default function App() {
         setShowLogin(true);
 
         // Build list of image URLs to preload
-        const urlsToPreload: string[] = [loadingBg1, loadingBg2];
+        const urlsToPreload: string[] = [
+          loadingBg1,
+          loadingBg2,
+          // Module header background images
+          admissionBg,
+          subjectBg,
+          classroomBg,
+          attendanceBg,
+          academicBg,
+          alumniBg,
+          examBg,
+          graduationBg
+        ];
         if (org?.logo) {
           urlsToPreload.push(org.logo);
         }
