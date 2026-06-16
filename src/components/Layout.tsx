@@ -528,14 +528,6 @@ export default function Layout({
         {/* Content Area */}
         <main className="flex-1 p-2 sm:p-4 md:p-8 overflow-y-auto">
           <div className="max-w-7xl mx-auto">
-            <div className="flex flex-wrap items-center gap-y-1 gap-x-2 text-[10px] sm:text-xs text-zinc-400 mb-6 uppercase tracking-widest font-bold">
-              <span className="hover:text-indigo-600 cursor-pointer transition-colors shrink-0">{t('home')}</span>
-              <ChevronRight className="w-3 h-3 shrink-0" />
-              <span className="text-zinc-900 dark:text-white shrink-0 truncate max-w-[80px] sm:max-w-none">{t(currentRole.toLowerCase())}</span>
-              <ChevronRight className="w-3 h-3 shrink-0" />
-              <span className="text-indigo-600 truncate max-w-[120px] sm:max-w-none">{t(getTranslationKey(currentView))}</span>
-            </div>
-
             {/* Subscription Warning/Expired Banner */}
             {subscriptionInfo && (subscriptionInfo.isExpired || (subscriptionInfo.daysRemaining !== null && subscriptionInfo.daysRemaining <= 7)) && (
               <motion.div 
