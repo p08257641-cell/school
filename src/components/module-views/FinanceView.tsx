@@ -37,6 +37,7 @@ import {
 import { sendBulkSMS } from '../../lib/api';
 import { useLanguage } from '../../lib/LanguageContext';
 import { downloadFeeTemplate, parseFeeExcel } from '../../lib/excel';
+import bulkBg from '../../image/New folder/bulk operations.png';
 import {
   BarChart,
   Bar,
@@ -1126,7 +1127,10 @@ export const FinanceModules = {
 
     return (
       <div className="space-y-6">
-        <div className="flex flex-wrap items-center justify-between gap-4 p-8 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[2.5rem] shadow-sm animate-in fade-in slide-in-from-top-4">
+        <div className="flex flex-wrap items-center justify-between gap-4 p-8 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[2.5rem] shadow-sm animate-in fade-in slide-in-from-top-4 relative overflow-hidden">
+          <div className="absolute inset-0 opacity-10 dark:opacity-5">
+            <img src={bulkBg} alt="" className="w-full h-full object-cover" />
+          </div>
           <div className="flex items-center gap-6">
             <div className="w-16 h-16 rounded-[2rem] bg-indigo-600 flex items-center justify-center text-white shadow-2xl shadow-indigo-200 dark:shadow-none">
               <FileUp className="w-8 h-8" />
