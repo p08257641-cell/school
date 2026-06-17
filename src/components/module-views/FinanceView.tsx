@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   CheckCircle,
   Plus,
@@ -58,6 +58,44 @@ import { Student, UserRole, Ward } from '../../types';
 import { DataTable } from '../DataTable';
 import { SearchableSelect, Modal } from '../UI';
 import { DocumentBuilder } from '../AdminModules';
+
+const CardHeaderBackground: React.FC<{ src: string; opacityClass?: string }> = ({ src, opacityClass = "opacity-40 dark:opacity-25" }) => {
+  const [loaded, setLoaded] = useState(false);
+  const imgRef = useRef<HTMLImageElement>(null);
+
+  useEffect(() => {
+    setLoaded(false);
+    // If already cached by the browser, naturalWidth > 0 and complete = true
+    // so onLoad will never fire — detect this and mark as loaded immediately
+    if (imgRef.current?.complete && imgRef.current.naturalWidth > 0) {
+      setLoaded(true);
+    }
+  }, [src]);
+
+  return (
+    <div className="absolute inset-0 z-0 pointer-events-none">
+      <img
+        ref={imgRef}
+        src={src}
+        alt=""
+        onLoad={() => setLoaded(true)}
+        loading="lazy"
+        decoding="async"
+        className={cn(
+          "w-full h-full object-cover transition-opacity duration-700 ease-in-out",
+          loaded ? opacityClass : "opacity-0"
+        )}
+      />
+      {!loaded && (
+        <div className="absolute inset-0 flex items-center justify-center bg-zinc-50 dark:bg-zinc-900 animate-pulse">
+          <div className="w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin opacity-50" />
+        </div>
+      )}
+      <div className="absolute inset-0 bg-gradient-to-r from-white/95 via-white/70 to-white/20 dark:from-zinc-900/95 dark:via-zinc-900/70 dark:to-zinc-900/20" />
+      <div className="absolute inset-0 bg-gradient-to-b from-white/40 via-transparent to-white/50 dark:from-zinc-900/40 dark:via-transparent dark:to-zinc-900/50" />
+    </div>
+  );
+};
 
 
 const getInvoiceHtml = (invoiceOrInvoices: any | any[], student: any, organization: any, currency: string, payments: any[]) => {
@@ -1127,11 +1165,9 @@ export const FinanceModules = {
 
     return (
       <div className="space-y-6">
-        <div className="flex flex-wrap items-center justify-between gap-4 p-8 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[2.5rem] shadow-sm animate-in fade-in slide-in-from-top-4 relative overflow-hidden">
-          <div className="absolute inset-0 opacity-10 dark:opacity-5">
-            <img src={bulkBg} alt="" className="w-full h-full object-cover" />
-          </div>
-          <div className="flex items-center gap-6">
+        <div className="relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6 p-8 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[2.5rem] shadow-sm animate-in fade-in slide-in-from-top-4">
+          <CardHeaderBackground src={bulkBg} />
+          <div className="relative z-10 flex items-center gap-6">
             <div className="w-16 h-16 rounded-[2rem] bg-indigo-600 flex items-center justify-center text-white shadow-2xl shadow-indigo-200 dark:shadow-none">
               <FileUp className="w-8 h-8" />
             </div>
@@ -1141,7 +1177,7 @@ export const FinanceModules = {
             </div>
           </div>
 
-          <div className="flex flex-col md:flex-row items-center gap-6">
+          <div className="relative z-10 flex flex-col md:flex-row items-center gap-6">
             <div className="flex gap-2">
               <button
                 onClick={() => setIsBulkPrintModalOpen(true)}
