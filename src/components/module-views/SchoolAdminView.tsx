@@ -321,7 +321,32 @@ const SectionEditor: React.FC<{ section: ReportCardSection; onUpdate: (s: Report
   );
 };
 
-export const ReportCardPreview = ({ template, organization, student, onClose }: { template: ReportCardTemplate, organization?: any, student?: any, onClose: () => void }) => {
+export const ReportCardPreview = ({ template, organization, student, onClose }: { template: ReportCardTemplate | null, organization?: any, student?: any, onClose: () => void }) => {
+  // Handle null template by providing a default
+  const defaultTemplate: ReportCardTemplate = {
+    id: 'default',
+    name: 'Default Template',
+    layout: {
+      columns: 2,
+      spacing: 'normal',
+      showLogo: true,
+      primaryColor: '#4f46e5',
+      accentColor: '#818cf8',
+      fontFamily: 'serif',
+      titleStyle: 'classic'
+    },
+    sections: [
+      { id: '1', type: 'StudentInfo', title: 'Student Information', enabled: true },
+      { id: '2', type: 'AcademicResults', title: 'Academic Performance', enabled: true, settings: { showRanking: true, showPercentage: true } },
+      { id: '3', type: 'Attendance', title: 'Attendance Record', enabled: true },
+      { id: '4', type: 'Remarks', title: 'Teacher Remarks', enabled: true },
+      { id: '5', type: 'PrincipalSignature', title: 'Authorization', enabled: true, settings: { signatureTitle: 'Headmaster Signature', showDate: true } }
+    ],
+    is_default: true
+  };
+
+  const safeTemplate = template || defaultTemplate;
+
   const currentStudent = student || {
     name: 'Samuel Kwesi Baidoo',
     id: 'STU-2024-0042',
@@ -337,11 +362,11 @@ export const ReportCardPreview = ({ template, organization, student, onClose }: 
     ]
   };
 
-  const isTwoColumn = template.layout?.columns === 2;
-  const primaryColor = template.layout?.primaryColor || '#4f46e5'; // Default indigo-600
-  const accentColor = template.layout?.accentColor || '#818cf8'; // Default indigo-400
-  const fontFamily = template.layout?.fontFamily || 'serif';
-  const titleStyle = template.layout?.titleStyle || 'classic';
+  const isTwoColumn = safeTemplate.layout?.columns === 2;
+  const primaryColor = safeTemplate.layout?.primaryColor || '#4f46e5'; // Default indigo-600
+  const accentColor = safeTemplate.layout?.accentColor || '#818cf8'; // Default indigo-400
+  const fontFamily = safeTemplate.layout?.fontFamily || 'serif';
+  const titleStyle = safeTemplate.layout?.titleStyle || 'classic';
 
   const themeStyles = {
     fontFamily: fontFamily === 'serif' ? 'ui-serif, Georgia, Cambria, "Times New Roman", Times, serif' :
@@ -363,7 +388,7 @@ export const ReportCardPreview = ({ template, organization, student, onClose }: 
             titleStyle === 'bold' ? "border-b-8" : "border-b-4"
           )} style={{ borderColor: themeStyles.primary }}>
             <div className="space-y-2">
-              {template.layout?.showLogo && (
+              {safeTemplate.layout?.showLogo && (
                 <div className="w-20 h-20 rounded-2xl flex items-center justify-center bg-white border border-zinc-100 dark:border-zinc-800 shadow-sm mb-4 overflow-hidden">
                   {organization?.logo ? (
                     <img src={organization.logo} alt="School Logo" className="w-full h-full object-contain p-1" />
@@ -394,7 +419,7 @@ export const ReportCardPreview = ({ template, organization, student, onClose }: 
 
           {/* Sections Grid */}
           <div className={cn("grid gap-8", isTwoColumn ? "grid-cols-1 lg:grid-cols-2" : "grid-cols-1")}>
-            {template.sections?.filter(s => s.enabled).map((section) => (
+            {safeTemplate.sections?.filter(s => s.enabled).map((section) => (
               <div key={section.id} className={cn("space-y-4", section.type === 'AcademicResults' && !isTwoColumn && "col-span-full")}>
                 <h3
                   className="text-xs font-black uppercase tracking-[0.2em] border-b pb-2"
@@ -668,7 +693,7 @@ export const ReportCardPreview = ({ template, organization, student, onClose }: 
     }
 
     return (
-      <Modal isOpen={true} onClose={onClose} title={`Preview: ${template.name}`} maxWidth="max-w-[1000px]" maxHeight="max-h-[90vh]">
+      <Modal isOpen={true} onClose={onClose} title={`Preview: ${safeTemplate.name}`} maxWidth="max-w-[1000px]" maxHeight="max-h-[90vh]">
         {content}
       </Modal>
     );

@@ -139,6 +139,45 @@ async function seedOpsData() {
         await client.query("UPDATE students SET hostel_room_id = $1, hostel_status = 'Approved' WHERE id = $2", [roomId, studentIds[3]]);
     }
 
+    // --- 5. Announcements ---
+    console.log("Seeding Announcements...");
+    const announcements = [
+      {
+        title: "Welcome to the New Academic Year",
+        content: "We are excited to start the new academic year with new programs and activities. Please check the notice board for updated schedules and event calendars.",
+        target_audience: "ALL",
+        priority: "High"
+      },
+      {
+        title: "Staff Meeting Reminder",
+        content: "All staff members are required to attend the monthly meeting this Friday at 2:00 PM in the main conference room. Attendance is mandatory.",
+        target_audience: "STAFF",
+        priority: "Normal"
+      },
+      {
+        title: "Parent-Teacher Conference",
+        content: "Parent-teacher conferences will be held next month. Please sign up for a time slot through the parent portal or contact the school office.",
+        target_audience: "PARENT",
+        priority: "Normal"
+      },
+      {
+        title: "Exam Schedule Released",
+        content: "The final exam schedule for this term has been released. Please check your student portal for detailed examination timings and venues.",
+        target_audience: "STUDENT",
+        priority: "High"
+      }
+    ];
+
+    // Clean existing announcements for this org
+    await client.query("DELETE FROM announcements WHERE org_id = $1", [orgId]);
+
+    for (const announcement of announcements) {
+      await client.query(
+        "INSERT INTO announcements (org_id, sender_id, title, content, target_audience, priority) VALUES ($1, $2, $3, $4, $5, $6)",
+        [orgId, staff1, announcement.title, announcement.content, announcement.target_audience, announcement.priority]
+      );
+    }
+
     await client.query('COMMIT');
     console.log("Seeding Completed Successfully.");
 

@@ -831,7 +831,18 @@ export default function App() {
         currentRole === "HOD" || currentRole === "SCHOOL_ADMIN"
           ? fetchHODDashboardStats()
           : Promise.resolve(null),
-        fetch(`${API_BASE_URL}/announcements`, { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } }).then(res => res.ok ? res.json() : []),
+        fetch(`${API_BASE_URL}/announcements`, { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } })
+          .then(res => {
+            if (!res.ok) {
+              console.error('Announcements fetch failed with status:', res.status);
+              return [];
+            }
+            return res.json();
+          })
+          .catch(err => {
+            console.error('Announcements fetch error:', err);
+            return [];
+          }),
         fetch(`${API_BASE_URL}/meetings`, { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } }).then(res => res.ok ? res.json() : []),
         fetch(`${API_BASE_URL}/inventory/items`, { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } }).then(res => res.ok ? res.json() : []),
         currentRole === 'SUPER_ADMIN' ? fetchSMSSettings() : Promise.resolve(null),
@@ -909,7 +920,10 @@ export default function App() {
       assignIfFulfilled(47, setInventory);
       assignIfFulfilled(48, setDocumentTemplates);
 
-      assignIfFulfilled(51, setAnnouncements);
+      assignIfFulfilled(51, (data) => {
+
+        setAnnouncements(data);
+      });
       assignIfFulfilled(52, setMeetings);
       assignIfFulfilled(53, setInventoryItems);
 
@@ -924,7 +938,10 @@ export default function App() {
       }
 
       assignIfFulfilled(50, setHodStats);
-      assignIfFulfilled(51, setAnnouncements);
+      assignIfFulfilled(51, (data) => {
+
+        setAnnouncements(data);
+      });
       assignIfFulfilled(52, setMeetings);
       assignIfFulfilled(53, setSmsSettings);
     } catch (err) {
