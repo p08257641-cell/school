@@ -4267,12 +4267,6 @@ export default function App() {
     return (
       <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex items-center justify-center p-4 sm:p-8">
         <div className="w-full max-w-5xl bg-white dark:bg-zinc-900 rounded-[3rem] shadow-2xl shadow-indigo-200/50 dark:shadow-none overflow-hidden relative">
-          <button
-            onClick={() => { setPublicResultData(null); setShowLanding(true); }}
-            className="absolute top-8 right-8 z-50 p-3 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-2xl text-zinc-500 transition-colors"
-          >
-            <Calendar className="w-5 h-5" />
-          </button>
           <ReportCardPreview
             template={template}
             organization={organization}

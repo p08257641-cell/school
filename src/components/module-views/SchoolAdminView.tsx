@@ -423,8 +423,8 @@ export const ReportCardPreview = ({ template, organization, student, onClose }: 
           </div>
 
           {/* School Link for Parents */}
-          {organization?.custom_domain && (
-            <div className="text-center py-4">
+          <div className="text-center py-4">
+            {organization?.custom_domain ? (
               <a
                 href={`https://${organization.custom_domain}.skoola.online`}
                 target="_blank"
@@ -434,8 +434,18 @@ export const ReportCardPreview = ({ template, organization, student, onClose }: 
                 <ExternalLink className="w-4 h-4" />
                 Login to Parent Portal for Full Details
               </a>
-            </div>
-          )}
+            ) : (
+              <a
+                href="https://skoola.online"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors border border-indigo-200 dark:border-indigo-800"
+              >
+                <ExternalLink className="w-4 h-4" />
+                Visit Skoola Online Platform
+              </a>
+            )}
+          </div>
 
           {/* Sections Grid */}
           <div className={cn("grid gap-8", isTwoColumn ? "grid-cols-1 lg:grid-cols-2" : "grid-cols-1")}>
@@ -9762,7 +9772,7 @@ export const ExamModules = {
         </div>
 
         {/* School Domain Link for Parents */}
-        {((role as any) === 'PARENT' || (role as any) === 'STUDENT') && organization?.custom_domain && (
+        {((role as any) === 'PARENT' || (role as any) === 'STUDENT') && (
           <div className="bg-gradient-to-r from-indigo-50 to-blue-50 dark:from-indigo-950/30 dark:to-blue-950/30 border border-indigo-200 dark:border-indigo-800 rounded-2xl p-4 sm:p-6 shadow-sm">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
               <div className="flex items-center gap-3">
@@ -9774,15 +9784,27 @@ export const ExamModules = {
                   <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Login to view complete ward information</p>
                 </div>
               </div>
-              <a
-                href={`https://${organization.custom_domain}.skoola.online`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold uppercase tracking-widest transition-colors shadow-lg shadow-indigo-200 dark:shadow-none whitespace-nowrap"
-              >
-                <ExternalLink className="w-4 h-4" />
-                Go to School Portal
-              </a>
+              {organization?.custom_domain ? (
+                <a
+                  href={`https://${organization.custom_domain}.skoola.online`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold uppercase tracking-widest transition-colors shadow-lg shadow-indigo-200 dark:shadow-none whitespace-nowrap"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  Go to School Portal
+                </a>
+              ) : (
+                <a
+                  href="https://skoola.online"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold uppercase tracking-widest transition-colors shadow-lg shadow-indigo-200 dark:shadow-none whitespace-nowrap"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  Visit Skoola Online
+                </a>
+              )}
             </div>
           </div>
         )}
