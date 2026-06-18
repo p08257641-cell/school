@@ -3249,25 +3249,8 @@ export default function App() {
                 });
               }
 
-              // 3. Update Student specific fields (including linking to parent)
-              // NOTE: Deliberately excluded class, section, class_id to prevent editing student class
-              if (data.id) {
-                const studentPayload = {
-                  name: data.name || data.student_name || "Unknown",
-                  religion: data.religion,
-                  parent_email: data.parent_email,
-                  secondary_parent_email: data.secondary_parent_email,
-                  parent_name: data.parent_name,
-                  contact: data.contact,
-                  secondary_parent_name: data.secondary_parent_name,
-                  secondary_parent_contact: data.secondary_parent_contact
-                };
-                console.log("Updating student:", data.id, studentPayload);
-                await updateStudent(data.id, studentPayload);
-              }
-
               (window as any).showToast?.(
-                "Parent and student details updated!",
+                "Parent details updated!",
                 "success",
               );
 

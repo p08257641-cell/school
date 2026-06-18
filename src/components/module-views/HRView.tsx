@@ -5677,10 +5677,6 @@ export const HRModules = {
             onView={(item) => setViewingStudent(item)}
             renderForm={(item) => (
               <div className="space-y-8 max-h-[70vh] overflow-y-auto px-1">
-                {/* Hidden fields to ensure data integrity */}
-                <input type="hidden" name="id" defaultValue={item?.id} />
-                <input type="hidden" name="name" defaultValue={item?.name} />
-                
                 {/* Primary Parent section */}
                 <div className="space-y-4">
                   <h4 className="text-[10px] font-black text-indigo-600 uppercase tracking-[0.2em] border-b border-indigo-100 pb-2 flex items-center gap-2">
@@ -5756,28 +5752,6 @@ export const HRModules = {
                       placeholder="Enter secondary parent email..."
                       className="w-full px-4 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm"
                     />
-                  </div>
-                </div>
-
-                {/* Additional Details */}
-                <div className="space-y-4 pt-4">
-                  <h4 className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em] border-b border-zinc-100 pb-2">Additional Information</h4>
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-zinc-500 uppercase">{t('religion')}</label>
-                    <select
-                      name="religion"
-                      defaultValue={item?.religion || ""}
-                      className="w-full px-4 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500"
-                    >
-                      <option value="">Select Religion...</option>
-                      <option value="Christianity">Christianity</option>
-                      <option value="Islam">Islam</option>
-                      <option value="Hinduism">Hinduism</option>
-                      <option value="Buddhism">Buddhism</option>
-                      <option value="Sikhism">Sikhism</option>
-                      <option value="Traditional">Traditional</option>
-                      <option value="Other">Other</option>
-                    </select>
                   </div>
                 </div>
               </div>
