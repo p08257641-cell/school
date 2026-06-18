@@ -9644,7 +9644,6 @@ export const ExamModules = {
                 <p className="text-[10px] sm:text-xs font-bold text-zinc-500 uppercase tracking-widest truncate">{performanceGroupBy} summary â€” {(organization as any)?.academic_year || '2025/2026'}</p>
                 <div className="flex flex-wrap items-center gap-2 mt-2 sm:mt-0">
                   <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 text-[10px] font-bold uppercase tracking-[0.25em]">
-                    <Calendar className="w-3.5 h-3.5" />
                     {(organization as any)?.academic_year || '2025/2026'}
                   </span>
                   <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 text-[10px] font-bold uppercase tracking-[0.25em]">
