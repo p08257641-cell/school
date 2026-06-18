@@ -432,7 +432,7 @@ export const ReportCardPreview = ({ template, organization, student, onClose }: 
                 className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors border border-indigo-200 dark:border-indigo-800"
               >
                 <ExternalLink className="w-4 h-4" />
-                Click here to view full details about student
+                Login to Parent Portal for Full Details
               </a>
             </div>
           )}
@@ -9760,6 +9760,32 @@ export const ExamModules = {
             )}
           </div>
         </div>
+
+        {/* School Domain Link for Parents */}
+        {((role as any) === 'PARENT' || (role as any) === 'STUDENT') && organization?.custom_domain && (
+          <div className="bg-gradient-to-r from-indigo-50 to-blue-50 dark:from-indigo-950/30 dark:to-blue-950/30 border border-indigo-200 dark:border-indigo-800 rounded-2xl p-4 sm:p-6 shadow-sm">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center">
+                  <GraduationCap className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                </div>
+                <div>
+                  <p className="text-sm font-black text-zinc-900 dark:text-white">Access Your School Portal</p>
+                  <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Login to view complete ward information</p>
+                </div>
+              </div>
+              <a
+                href={`https://${organization.custom_domain}.skoola.online`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold uppercase tracking-widest transition-colors shadow-lg shadow-indigo-200 dark:shadow-none whitespace-nowrap"
+              >
+                <ExternalLink className="w-4 h-4" />
+                Go to School Portal
+              </a>
+            </div>
+          </div>
+        )}
 
         {showBroadcaster ? (
           <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
