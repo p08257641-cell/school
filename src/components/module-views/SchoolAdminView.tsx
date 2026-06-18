@@ -391,8 +391,12 @@ export const ReportCardPreview = ({ template, organization, student, onClose }: 
               {safeTemplate.layout?.showLogo && (
                 <div className="w-20 h-20 rounded-2xl flex items-center justify-center bg-white border border-zinc-100 dark:border-zinc-800 shadow-sm mb-4 overflow-hidden">
                   {organization?.logo ? (
-                    <img src={organization.logo} alt="School Logo" className="w-full h-full object-contain p-1" />
-                  ) : (
+                    <img src={organization.logo} alt="School Logo" className="w-full h-full object-contain p-1" onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = 'none';
+                      (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
+                    }} />
+                  ) : null}
+                  {(!organization?.logo || organization.logo === 'null' || organization.logo === '') && (
                     <div className="w-full h-full flex items-center justify-center text-white" style={{ backgroundColor: themeStyles.primary }}>
                       <SchoolIcon className="w-10 h-10" />
                     </div>
@@ -593,17 +597,23 @@ export const ReportCardPreview = ({ template, organization, student, onClose }: 
                   <div className="pt-8 space-y-4">
                     <div className="flex flex-col items-center justify-center space-y-2">
                       <div className="h-20 flex flex-col items-center justify-end w-64 border-b-2 border-zinc-200 dark:border-zinc-800 pb-2">
-                        {organization?.signature ? (
+                        {organization?.signature && organization.signature !== 'null' && organization.signature !== '' ? (
                           <img
                             src={organization.signature}
                             alt="Principal Signature"
                             className="max-h-16 object-contain"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).style.display = 'none';
+                            }}
                           />
-                        ) : section.settings?.signatureUrl ? (
+                        ) : section.settings?.signatureUrl && section.settings.signatureUrl !== 'null' && section.settings.signatureUrl !== '' ? (
                           <img
-                            src={section.settings?.signatureUrl}
+                            src={section.settings.signatureUrl}
                             alt="Signature"
                             className="max-h-16 object-contain"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).style.display = 'none';
+                            }}
                           />
                         ) : (
                           <div className="h-12 w-full"></div>

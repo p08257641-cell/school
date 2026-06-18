@@ -50,7 +50,13 @@ export const getOrganization = async (req: AuthRequest, res: Response) => {
       WHERE o.id = $1
     `, [id]);
     if (result.rows.length === 0) return res.status(404).json({ error: 'Organization not found' });
-    res.json(result.rows[0]);
+    // Ensure logo and signature fields are explicitly included
+    const org = result.rows[0];
+    res.json({
+      ...org,
+      logo: org.logo || null,
+      signature: org.signature || null
+    });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
@@ -87,7 +93,13 @@ export const getOrganizations = async (req: AuthRequest, res: Response) => {
         WHERE o.id = $1
       `, [orgId]);
     }
-    res.json(result.rows);
+    // Ensure logo and signature fields are explicitly included (they should be from o.* but this ensures they're present)
+    const organizations = result.rows.map((org: any) => ({
+      ...org,
+      logo: org.logo || null,
+      signature: org.signature || null
+    }));
+    res.json(organizations);
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
@@ -101,8 +113,8 @@ export const getOrganizationByDomain = async (req: Request, res: Response) => {
 
   try {
     const result = await pool.query(
-      `SELECT id, name, logo, logo_url, background_image, background_images, plan, custom_domain, status, timezone, language 
-       FROM organizations 
+      `SELECT id, name, logo, logo_url, background_image, background_images, plan, custom_domain, status, timezone, language, signature
+       FROM organizations
        WHERE LOWER(custom_domain) = LOWER($1) LIMIT 1`,
       [domain.trim()]
     );
@@ -111,7 +123,12 @@ export const getOrganizationByDomain = async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Organization not found for this subdomain.' });
     }
 
-    res.json(result.rows[0]);
+    const org = result.rows[0];
+    res.json({
+      ...org,
+      logo: org.logo || null,
+      signature: org.signature || null
+    });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
