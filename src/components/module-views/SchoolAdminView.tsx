@@ -3782,40 +3782,52 @@ export const AcademicModules = {
                 </div>
               </div>
 
-              {/* Tab Navigation */}
-              <div className="flex flex-wrap items-center gap-2 p-1.5 bg-zinc-100/80 dark:bg-zinc-800/80 backdrop-blur-md rounded-2xl w-fit mx-auto md:mx-0 border border-zinc-200/50 dark:border-zinc-700/50">
+              {/* Modern Tab Navigation */}
+              <div className="flex flex-wrap items-center gap-2 p-1.5 bg-gradient-to-r from-zinc-100/90 to-zinc-50/90 dark:from-zinc-800/90 dark:to-zinc-900/90 backdrop-blur-xl rounded-2xl w-fit mx-auto md:mx-0 border border-zinc-200/70 dark:border-zinc-700/70 shadow-lg shadow-zinc-200/50 dark:shadow-zinc-900/50">
                 <button
                   onClick={() => setActiveDetailTab('overview')}
                   className={cn(
-                    "px-4 md:px-6 lg:px-8 py-2 md:py-2.5 rounded-xl text-[10px] md:text-xs font-black uppercase tracking-widest transition-all duration-300 flex-1 sm:flex-initial",
+                    "group relative flex items-center gap-2 px-5 md:px-7 py-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-300",
                     activeDetailTab === 'overview'
-                      ? "bg-white text-indigo-600 shadow-md dark:bg-zinc-900"
-                      : "text-zinc-500 hover:text-zinc-700 hover:bg-white/50 dark:hover:bg-zinc-900/50"
+                      ? "bg-gradient-to-r from-indigo-500 to-indigo-600 text-white shadow-lg shadow-indigo-500/25 hover:shadow-xl hover:shadow-indigo-500/40"
+                      : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-white/80 dark:hover:bg-zinc-800/80"
                   )}
                 >
-                  Overview
+                  {activeDetailTab === 'overview' && (
+                    <div className="absolute inset-0 bg-white/10 rounded-xl animate-pulse" />
+                  )}
+                  <Layout className="w-4 h-4" />
+                  <span className="relative z-10">Overview</span>
                 </button>
                 <button
                   onClick={() => setActiveDetailTab('academic')}
                   className={cn(
-                    "px-4 md:px-6 lg:px-8 py-2 md:py-2.5 rounded-xl text-[10px] md:text-xs font-black uppercase tracking-widest transition-all duration-300 flex-1 sm:flex-initial",
+                    "group relative flex items-center gap-2 px-5 md:px-7 py-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-300",
                     activeDetailTab === 'academic'
-                      ? "bg-white text-indigo-600 shadow-md dark:bg-zinc-900"
-                      : "text-zinc-500 hover:text-zinc-700 hover:bg-white/50 dark:hover:bg-zinc-900/50"
+                      ? "bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-500/25 hover:shadow-xl hover:shadow-emerald-500/40"
+                      : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-white/80 dark:hover:bg-zinc-800/80"
                   )}
                 >
-                  Academic History
+                  {activeDetailTab === 'academic' && (
+                    <div className="absolute inset-0 bg-white/10 rounded-xl animate-pulse" />
+                  )}
+                  <BookOpen className="w-4 h-4" />
+                  <span className="relative z-10">Academic History</span>
                 </button>
                 <button
                   onClick={() => setActiveDetailTab('attendance')}
                   className={cn(
-                    "px-4 md:px-6 lg:px-8 py-2 md:py-2.5 rounded-xl text-[10px] md:text-xs font-black uppercase tracking-widest transition-all duration-300 flex-1 sm:flex-initial",
+                    "group relative flex items-center gap-2 px-5 md:px-7 py-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-300",
                     activeDetailTab === 'attendance'
-                      ? "bg-white text-indigo-600 shadow-md dark:bg-zinc-900"
-                      : "text-zinc-500 hover:text-zinc-700 hover:bg-white/50 dark:hover:bg-zinc-900/50"
+                      ? "bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-lg shadow-amber-500/25 hover:shadow-xl hover:shadow-amber-500/40"
+                      : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-white/80 dark:hover:bg-zinc-800/80"
                   )}
                 >
-                  Attendance Logs
+                  {activeDetailTab === 'attendance' && (
+                    <div className="absolute inset-0 bg-white/10 rounded-xl animate-pulse" />
+                  )}
+                  <ClipboardCheck className="w-4 h-4" />
+                  <span className="relative z-10">Attendance Logs</span>
                 </button>
               </div>
 
