@@ -543,15 +543,15 @@ router.patch('/students/:id', checkRole(['SUPER_ADMIN', 'SCHOOL_ADMIN']), async 
 
     const toNull = (val: any) => (val === '' || val === undefined) ? null : val;
 
+    // Protect admission_no and date_enrolled from being updated - these should only be set during initial creation
     const result = await pool.query(
-      'UPDATE students SET name = $1, email = $2, parent_email = $3, status = $4, gpa = $5, admission_no = $6, class_id = $7, parent_name = $8, contact = $9, entrance_exam_score = $10, profile_pic = $11, previous_school_profile_pic = $12, fee_status = $13, fee_amount = $14, math_score = $15, english_score = $16, science_score = $17, interview_score = $18, previous_school = $19, custom_scores = $20, date_of_birth = $21, gender = $22, date_enrolled = $23, parent_password = COALESCE($24, parent_password), secondary_parent_name = $27, secondary_parent_email = $28, secondary_parent_contact = $29, religion = $30, batch = $31 WHERE id = $25 AND org_id = $26 RETURNING *',
+      'UPDATE students SET name = $1, email = $2, parent_email = $3, status = $4, gpa = $5, admission_no = admission_no, class_id = $6, parent_name = $7, contact = $8, entrance_exam_score = $9, profile_pic = $10, previous_school_profile_pic = $11, fee_status = $12, fee_amount = $13, math_score = $14, english_score = $15, science_score = $16, interview_score = $17, previous_school = $18, custom_scores = $19, date_of_birth = $20, gender = $21, date_enrolled = date_enrolled, parent_password = COALESCE($22, parent_password), secondary_parent_name = $23, secondary_parent_email = $24, secondary_parent_contact = $25, religion = $26, batch = $27 WHERE id = $28 AND org_id = $29 RETURNING *',
       [
         toNull(name),
         toNull(email),
         toNull(parent_email),
         toNull(status),
         toNull(gpa),
-        toNull(admission_no),
         toNull(class_id),
         toNull(parent_name),
         toNull(contact),
@@ -568,15 +568,14 @@ router.patch('/students/:id', checkRole(['SUPER_ADMIN', 'SCHOOL_ADMIN']), async 
         JSON.stringify(custom_scores || {}),
         toNull(date_of_birth),
         toNull(gender),
-        toNull(date_enrolled),
         toNull(hashParentPW),
-        id,
-        orgId,
         toNull(secondary_parent_name),
         toNull(secondary_parent_email),
         toNull(secondary_parent_contact),
         toNull(religion),
-        toNull(batch)
+        toNull(batch),
+        id,
+        orgId
       ]
     );
     if (result.rows.length === 0) return res.status(404).json({ error: 'Student not found' });

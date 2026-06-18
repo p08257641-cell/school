@@ -4122,9 +4122,12 @@ export const AcademicModules = {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-1.5">
                       <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Date Enrolled</label>
-                      <input type="date" name="date_enrolled" defaultValue={item?.date_enrolled ? new Date(item.date_enrolled).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]} className="w-full px-5 py-3 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-indigo-500 font-medium" />
+                      <input type="date" name="date_enrolled" defaultValue={item?.date_enrolled ? new Date(item.date_enrolled).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]} readOnly className="w-full px-5 py-3 bg-zinc-100 dark:bg-zinc-700 border border-zinc-200 dark:border-zinc-700 rounded-2xl text-sm outline-none font-medium text-zinc-500 dark:text-zinc-400 cursor-not-allowed" />
+                      <p className="text-[10px] text-zinc-400 italic">Enrollment date cannot be modified</p>
                     </div>
                   </div>
+                  {/* Hidden field to preserve admission_no if it exists */}
+                  {item?.admission_no && <input type="hidden" name="admission_no" value={item.admission_no} />}
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Previous School</label>
                     <input type="text" name="previous_school" defaultValue={item?.previous_school} placeholder="Name of previous school (if any)" className="w-full px-5 py-3 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-indigo-500" />
