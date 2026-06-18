@@ -639,11 +639,6 @@ export const ReportCardPreview = ({ template, organization, student, onClose }: 
                         <p className="text-xs font-black uppercase tracking-widest text-zinc-900 dark:text-white">
                           {section.settings?.signatureTitle || 'Headmaster / Principal Signature'}
                         </p>
-                        {section.settings?.showDate && (
-                          <p className="text-[10px] font-bold text-zinc-400 uppercase mt-1">
-                            Date: {new Date().toLocaleDateString()}
-                          </p>
-                        )}
                       </div>
                     </div>
                   </div>
