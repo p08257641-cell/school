@@ -3683,42 +3683,99 @@ export const AcademicModules = {
                     <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                   </div>
 
-                  <div className="space-y-4 flex-1 text-center md:text-left w-full">
-                    <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-                      <h3 className="text-4xl font-black text-zinc-900 dark:text-white uppercase tracking-tight">{item.name}</h3>
-                      {(role === 'SCHOOL_ADMIN' || role === 'SUPER_ADMIN') && item.status !== 'Alumni' && item.status !== 'Withdrawn' && (
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => setWithdrawConfirmStudent(item)}
-                            className="flex items-center gap-2 px-6 py-2.5 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-2xl hover:bg-red-100 hover:scale-105 active:scale-95 transition-all font-black text-xs shadow-sm uppercase tracking-widest shrink-0 border border-red-100 dark:border-red-800"
-                          >
-                            <LogOut className="w-4 h-4" /> Withdraw
-                          </button>
-                          <button
-                            onClick={() => setManualPromoStudent(item)}
-                            className="flex items-center gap-2 px-6 py-2.5 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 rounded-2xl hover:scale-105 active:scale-95 transition-all font-black text-xs shadow-xl uppercase tracking-widest shrink-0"
-                          >
-                            <TrendingUp className="w-4 h-4" /> Promote
-                          </button>
+                  <div className="flex-1 w-full">
+                    {/* Modern Student Header Card */}
+                    <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-white via-zinc-50 to-white dark:from-zinc-900 dark:via-zinc-800 dark:to-zinc-900 border border-zinc-200/60 dark:border-zinc-700/60 shadow-xl shadow-zinc-200/50 dark:shadow-zinc-900/50">
+                      {/* Decorative background elements */}
+                      <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-indigo-500/10 to-purple-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+                      <div className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-br from-emerald-500/10 to-teal-500/10 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2" />
+                      
+                      <div className="relative p-6 md:p-8">
+                        {/* Top row: Name and Action Buttons */}
+                        <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-6">
+                          {/* Name Section */}
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3 mb-3">
+                              <div className="px-3 py-1 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 text-[10px] font-black uppercase tracking-widest border border-indigo-200/50 dark:border-indigo-700/50">
+                                Student Profile
+                              </div>
+                              <div className={cn(
+                                "px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border",
+                                item.status === 'Active' 
+                                  ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border-emerald-200/50 dark:border-emerald-700/50"
+                                  : item.status === 'Alumni'
+                                    ? "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border-blue-200/50 dark:border-blue-700/50"
+                                    : "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 border-amber-200/50 dark:border-amber-700/50"
+                              )}>
+                                {item.status || 'Active'}
+                              </div>
+                            </div>
+                            <h3 className="text-3xl md:text-4xl font-black text-zinc-900 dark:text-white tracking-tight mb-2">
+                              {item.name}
+                            </h3>
+                          </div>
+
+                          {/* Action Buttons */}
+                          {(role === 'SCHOOL_ADMIN' || role === 'SUPER_ADMIN') && item.status !== 'Alumni' && item.status !== 'Withdrawn' && (
+                            <div className="flex items-center gap-3 lg:mt-2">
+                              <button
+                                onClick={() => setWithdrawConfirmStudent(item)}
+                                className="group relative flex items-center gap-2.5 px-5 py-3 bg-white dark:bg-zinc-800 text-red-600 dark:text-red-400 rounded-2xl hover:bg-red-50 dark:hover:bg-red-900/20 active:scale-95 transition-all duration-200 font-bold text-xs shadow-lg shadow-zinc-200/50 dark:shadow-zinc-900/50 border border-red-200/60 dark:border-red-800/60 hover:border-red-300 dark:hover:border-red-700"
+                              >
+                                <LogOut className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                                <span className="uppercase tracking-wider">Withdraw</span>
+                              </button>
+                              <button
+                                onClick={() => setManualPromoStudent(item)}
+                                className="group relative flex items-center gap-2.5 px-5 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-2xl active:scale-95 transition-all duration-200 font-bold text-xs shadow-lg shadow-indigo-500/25 hover:shadow-xl hover:shadow-indigo-500/40"
+                              >
+                                <TrendingUp className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                                <span className="uppercase tracking-wider">Promote</span>
+                              </button>
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
 
-                    <div className="flex flex-wrap items-center justify-center md:justify-start gap-3">
-                      <div className="px-4 py-2 rounded-xl bg-white/80 dark:bg-zinc-800/80 backdrop-blur-sm text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] shadow-sm flex items-center gap-2 border border-zinc-200/50 dark:border-zinc-700/50">
-                        <Fingerprint className="w-3 h-3 text-indigo-500" />
-                        ID: {item.id.slice(0, 8)}
-                      </div>
+                        {/* Bottom row: Info Badges */}
+                        <div className="flex flex-wrap items-center gap-3 mt-6 pt-6 border-t border-zinc-200/60 dark:border-zinc-700/60">
+                          <div className="group flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-white dark:bg-zinc-800/50 border border-zinc-200/60 dark:border-zinc-700/60 hover:border-indigo-300 dark:hover:border-indigo-600 transition-all shadow-sm hover:shadow-md">
+                            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center shadow-md">
+                              <Fingerprint className="w-4 h-4 text-white" />
+                            </div>
+                            <div>
+                              <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider">Student ID</p>
+                              <p className="text-sm font-black text-zinc-900 dark:text-white tracking-tight">{item.id.slice(0, 8)}</p>
+                            </div>
+                          </div>
 
-                      <div className="px-4 py-2 rounded-xl bg-indigo-50/80 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 text-[10px] font-black uppercase tracking-[0.2em] border border-indigo-200/50 dark:border-indigo-800/50 backdrop-blur-sm shadow-sm flex items-center gap-2">
-                        <GraduationCap className="w-3 h-3" />
-                        {(() => {
-                          const cls = classes?.find((c: any) => c.id === item.class_id);
-                          if (cls) {
-                            return `${cls.name}${cls.section ? ` - ${cls.section}` : ''}`.trim();
-                          }
-                          return `${item.class} ${item.section ? `- ${item.section}` : ''}`.trim();
-                        })()}
+                          <div className="group flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-white dark:bg-zinc-800/50 border border-zinc-200/60 dark:border-zinc-700/60 hover:border-emerald-300 dark:hover:border-emerald-600 transition-all shadow-sm hover:shadow-md">
+                            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center shadow-md">
+                              <GraduationCap className="w-4 h-4 text-white" />
+                            </div>
+                            <div>
+                              <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider">Class</p>
+                              <p className="text-sm font-black text-zinc-900 dark:text-white tracking-tight">
+                                {(() => {
+                                  const cls = classes?.find((c: any) => c.id === item.class_id);
+                                  if (cls) {
+                                    return `${cls.name}${cls.section ? ` - ${cls.section}` : ''}`.trim();
+                                  }
+                                  return `${item.class} ${item.section ? `- ${item.section}` : ''}`.trim();
+                                })()}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="group flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-white dark:bg-zinc-800/50 border border-zinc-200/60 dark:border-zinc-700/60 hover:border-amber-300 dark:hover:border-amber-600 transition-all shadow-sm hover:shadow-md">
+                            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center shadow-md">
+                              <Calendar className="w-4 h-4 text-white" />
+                            </div>
+                            <div>
+                              <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider">Admission No</p>
+                              <p className="text-sm font-black text-zinc-900 dark:text-white tracking-tight">{item.admission_no || 'N/A'}</p>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
