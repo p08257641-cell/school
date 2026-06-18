@@ -21,6 +21,7 @@ import {
   CreditCard,
   Edit,
   Eye,
+  ExternalLink,
   FileText,
   Fingerprint,
   GraduationCap,
@@ -421,6 +422,21 @@ export const ReportCardPreview = ({ template, organization, student, onClose }: 
             </div>
           </div>
 
+          {/* School Link for Parents */}
+          {organization?.custom_domain && (
+            <div className="text-center py-4">
+              <a
+                href={`https://${organization.custom_domain}.skoola.online`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors border border-indigo-200 dark:border-indigo-800"
+              >
+                <ExternalLink className="w-4 h-4" />
+                Click here to view full details about student
+              </a>
+            </div>
+          )}
+
           {/* Sections Grid */}
           <div className={cn("grid gap-8", isTwoColumn ? "grid-cols-1 lg:grid-cols-2" : "grid-cols-1")}>
             {safeTemplate.sections?.filter(s => s.enabled).map((section) => (
@@ -525,22 +541,22 @@ export const ReportCardPreview = ({ template, organization, student, onClose }: 
                     </table>
                     {(section.settings?.showRanking || section.settings?.showPosition || section.settings?.showAttendance) && (
                       <div className="p-4 bg-zinc-50 dark:bg-zinc-800/30 border-t border-zinc-200 dark:border-zinc-800 grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        {section.settings?.showPosition && (
+                        {section.settings?.showPosition && currentStudent.classPosition && (
                           <div className="text-center">
                             <p className="text-[10px] font-bold text-zinc-400 uppercase">Class Position</p>
-                            <p className="text-lg font-black" style={{ color: themeStyles.primary }}>{currentStudent.classPosition || 'â€”'}</p>
+                            <p className="text-lg font-black" style={{ color: themeStyles.primary }}>{currentStudent.classPosition}</p>
                           </div>
                         )}
-                        {section.settings?.showRanking && (
+                        {section.settings?.showRanking && currentStudent.rankPercentile && (
                           <div className="text-center">
                             <p className="text-[10px] font-bold text-zinc-400 uppercase">Rank Percentile</p>
-                            <p className="text-lg font-black text-zinc-900 dark:text-white">{currentStudent.rankPercentile || 'â€”'}</p>
+                            <p className="text-lg font-black text-zinc-900 dark:text-white">{currentStudent.rankPercentile}</p>
                           </div>
                         )}
-                        {section.settings?.showAttendance && (
+                        {section.settings?.showAttendance && currentStudent.attendance && (
                           <div className="text-center">
                             <p className="text-[10px] font-bold text-zinc-400 uppercase">Attendance</p>
-                            <p className="text-lg font-black text-emerald-600">{currentStudent.attendance || 'â€”'}</p>
+                            <p className="text-lg font-black text-emerald-600">{currentStudent.attendance}</p>
                           </div>
                         )}
                       </div>
