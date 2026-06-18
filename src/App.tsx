@@ -3233,20 +3233,44 @@ export default function App() {
           onSave={async (data) => {
             console.log("Saving Parent Management data:", data);
             try {
-              // 1. Update Primary Parent (if email exists)
-              if (data.parent_email) {
-                await updateParent(data.parent_email, {
-                  parent_name: data.parent_name,
-                  contact: data.contact,
+              // Extract only parent-related fields to prevent student data corruption
+              const parentData = {
+                // Use original email addresses for proper parent identification
+                parent_email: data.original_parent_email || data.parent_email,
+                parent_name: data.parent_name,
+                contact: data.contact,
+                secondary_parent_email: data.original_secondary_parent_email || data.secondary_parent_email,
+                secondary_parent_name: data.secondary_parent_name,
+                secondary_parent_contact: data.secondary_parent_contact,
+                // New email values if they were changed
+                new_parent_email: data.parent_email,
+                new_secondary_parent_email: data.secondary_parent_email,
+              };
+
+              console.log("Extracted parent data:", parentData);
+
+              // 1. Update Primary Parent (if original email exists and is not empty)
+              if (parentData.parent_email && parentData.parent_email.trim() !== "") {
+                await updateParent(parentData.parent_email, {
+                  parent_name: parentData.parent_name,
+                  contact: parentData.contact,
                 });
+                console.log("Updated primary parent:", parentData.parent_email);
+              } else {
+                console.warn("Primary parent email is empty, skipping update");
               }
 
-              // 2. Update Secondary Parent (if email exists and is different)
-              if (data.secondary_parent_email && data.secondary_parent_email !== data.parent_email) {
-                await updateParent(data.secondary_parent_email, {
-                  parent_name: data.secondary_parent_name,
-                  contact: data.secondary_parent_contact,
+              // 2. Update Secondary Parent (if original email exists, is not empty, and is different)
+              if (parentData.secondary_parent_email && 
+                  parentData.secondary_parent_email.trim() !== "" && 
+                  parentData.secondary_parent_email !== parentData.parent_email) {
+                await updateParent(parentData.secondary_parent_email, {
+                  parent_name: parentData.secondary_parent_name,
+                  contact: parentData.secondary_parent_contact,
                 });
+                console.log("Updated secondary parent:", parentData.secondary_parent_email);
+              } else {
+                console.warn("Secondary parent email is empty or same as primary, skipping update");
               }
 
               (window as any).showToast?.(

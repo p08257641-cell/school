@@ -5677,6 +5677,10 @@ export const HRModules = {
             onView={(item) => setViewingStudent(item)}
             renderForm={(item) => (
               <div className="space-y-8 max-h-[70vh] overflow-y-auto px-1">
+                {/* Hidden fields to preserve original email addresses for proper parent identification */}
+                <input type="hidden" name="original_parent_email" defaultValue={item?.parent_email} />
+                <input type="hidden" name="original_secondary_parent_email" defaultValue={item?.secondary_parent_email} />
+                
                 {/* Primary Parent section */}
                 <div className="space-y-4">
                   <h4 className="text-[10px] font-black text-indigo-600 uppercase tracking-[0.2em] border-b border-indigo-100 pb-2 flex items-center gap-2">
