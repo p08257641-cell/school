@@ -3796,7 +3796,7 @@ export const AcademicModules = {
                   {activeDetailTab === 'overview' && (
                     <div className="absolute inset-0 bg-white/10 rounded-xl animate-pulse" />
                   )}
-                  <Layout className="w-4 h-4" />
+                  <LayoutGrid className="w-4 h-4" />
                   <span className="relative z-10">Overview</span>
                 </button>
                 <button
