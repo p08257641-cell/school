@@ -3763,127 +3763,147 @@ export const AcademicModules = {
               </div>
 
               {activeDetailTab === 'overview' ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                  <div className="space-y-6">
-                    <h4 className="text-[10px] font-black text-indigo-500 uppercase tracking-[0.3em] flex items-center gap-2 mb-4">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 text-[8px] font-black tracking-widest border border-indigo-200/60 dark:border-indigo-700/40">â—</span> Personal Profile
-                    </h4>
-                    <div className="grid grid-cols-1 gap-4">
-                      <div className="p-6 rounded-[2rem] bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 flex justify-between items-center group hover:border-indigo-200 dark:hover:border-indigo-900 hover:shadow-xl hover:shadow-indigo-100 dark:hover:shadow-none transition-all duration-300">
-                        <div className="space-y-2">
-                          <p className="text-[10px] font-bold uppercase text-zinc-400 tracking-widest flex items-center gap-2">
-                            <span className="p-2 rounded-xl bg-zinc-50 dark:bg-zinc-800 group-hover:bg-indigo-50 dark:group-hover:bg-indigo-900/30 group-hover:text-indigo-600 transition-colors">
-                              <Calendar className="w-3 h-3" />
-                            </span>
-                            Date of Birth
-                          </p>
-                          <p className="font-black text-zinc-900 dark:text-white text-sm pl-11">
-                            {item.date_of_birth ? new Date(item.date_of_birth).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : 'Not Specified'}
-                          </p>
-                        </div>
+                <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  {/* Quick Stats Row */}
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="relative p-5 rounded-2xl bg-gradient-to-br from-indigo-500 to-indigo-600 text-white overflow-hidden group hover:scale-105 transition-transform duration-300 shadow-lg shadow-indigo-200 dark:shadow-none">
+                      <div className="absolute right-0 top-0 w-20 h-20 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-xl" />
+                      <div className="relative z-10">
+                        <Calendar className="w-5 h-5 mb-2 opacity-80" />
+                        <p className="text-[10px] font-bold uppercase tracking-wider opacity-70">Age</p>
+                        <p className="text-2xl font-black">
+                          {item.date_of_birth ? Math.floor((new Date().getTime() - new Date(item.date_of_birth).getTime()) / (1000 * 60 * 60 * 24 * 365.25)) : '--'}
+                        </p>
                       </div>
-                      <div className="p-6 rounded-[2rem] bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 flex justify-between items-center group hover:border-indigo-200 transition-all duration-300">
-                        <div className="space-y-2">
-                          <p className="text-[10px] font-bold uppercase text-zinc-400 tracking-widest flex items-center gap-2">
-                            <span className="p-2 rounded-xl bg-zinc-50 dark:bg-zinc-800 group-hover:bg-indigo-50 transition-colors">
-                              <Users className="w-3 h-3" />
-                            </span>
-                            Primary Parent
-                          </p>
-                          <p className="font-black text-zinc-900 dark:text-white text-sm pl-11">{item.parent_name || 'N/A'}</p>
-                        </div>
+                    </div>
+                    <div className="relative p-5 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-600 text-white overflow-hidden group hover:scale-105 transition-transform duration-300 shadow-lg shadow-emerald-200 dark:shadow-none">
+                      <div className="absolute right-0 top-0 w-20 h-20 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-xl" />
+                      <div className="relative z-10">
+                        <Users className="w-5 h-5 mb-2 opacity-80" />
+                        <p className="text-[10px] font-bold uppercase tracking-wider opacity-70">Class</p>
+                        <p className="text-lg font-black truncate">
+                          {(() => {
+                            const cls = classes?.find((c: any) => c.id === item.class_id);
+                            if (cls) return `${cls.name}${cls.section ? `-${cls.section}` : ''}`.trim();
+                            return item.class || 'N/A';
+                          })()}
+                        </p>
                       </div>
-                      <div className="p-6 rounded-[2rem] bg-indigo-50/10 dark:bg-indigo-900/10 border border-indigo-100/30 flex justify-between items-center group transition-all duration-300">
-                        <div className="space-y-2">
-                          <p className="text-[10px] font-bold uppercase text-indigo-600 tracking-widest flex items-center gap-2">
-                            <span className="p-2 rounded-xl bg-white dark:bg-zinc-800 group-hover:bg-indigo-50 transition-colors">
-                              <Zap className="w-3 h-3" />
-                            </span>
-                            {t('religion')}
-                          </p>
-                          <p className="font-black text-zinc-900 dark:text-white text-sm pl-11 uppercase tracking-wider">{item.religion || 'N/A'}</p>
-                        </div>
+                    </div>
+                    <div className="relative p-5 rounded-2xl bg-gradient-to-br from-amber-500 to-amber-600 text-white overflow-hidden group hover:scale-105 transition-transform duration-300 shadow-lg shadow-amber-200 dark:shadow-none">
+                      <div className="absolute right-0 top-0 w-20 h-20 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-xl" />
+                      <div className="relative z-10">
+                        <ShieldCheck className="w-5 h-5 mb-2 opacity-80" />
+                        <p className="text-[10px] font-bold uppercase tracking-wider opacity-70">Status</p>
+                        <p className="text-lg font-black uppercase">{item.status || 'Active'}</p>
                       </div>
-                      <div className="p-6 rounded-[2rem] bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 flex justify-between items-center group hover:border-indigo-200 dark:hover:border-indigo-900 hover:shadow-xl hover:shadow-indigo-100 dark:hover:shadow-none transition-all duration-300">
-                        <div className="space-y-2">
-                          <p className="text-[10px] font-bold uppercase text-zinc-400 tracking-widest flex items-center gap-2">
-                            <span className="p-2 rounded-xl bg-zinc-50 dark:bg-zinc-800 group-hover:bg-indigo-50 dark:group-hover:bg-indigo-900/30 group-hover:text-indigo-600 transition-colors">
-                              <Layers className="w-3 h-3" />
-                            </span>
-                            Current Section
-                          </p>
-                          <p className="font-black text-zinc-900 dark:text-white text-sm pl-11">
-                            {item.section || 'Not Assigned'}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="p-6 rounded-[2rem] bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 flex justify-between items-center group hover:border-indigo-200 dark:hover:border-indigo-900 hover:shadow-xl hover:shadow-indigo-100 dark:hover:shadow-none transition-all duration-300">
-                        <div className="space-y-2">
-                          <p className="text-[10px] font-bold uppercase text-zinc-400 tracking-widest flex items-center gap-2">
-                            <span className="p-2 rounded-xl bg-zinc-50 dark:bg-zinc-800 group-hover:bg-indigo-50 dark:group-hover:bg-indigo-900/30 group-hover:text-indigo-600 transition-colors">
-                              <Phone className="w-3 h-3" />
-                            </span>
-                            Parent Contact
-                          </p>
-                          <p className="font-black text-zinc-900 dark:text-white text-sm pl-11">
-                            {item.contact || 'N/A'}
-                          </p>
-                        </div>
+                    </div>
+                    <div className="relative p-5 rounded-2xl bg-gradient-to-br from-purple-500 to-purple-600 text-white overflow-hidden group hover:scale-105 transition-transform duration-300 shadow-lg shadow-purple-200 dark:shadow-none">
+                      <div className="absolute right-0 top-0 w-20 h-20 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-xl" />
+                      <div className="relative z-10">
+                        <SchoolIcon className="w-5 h-5 mb-2 opacity-80" />
+                        <p className="text-[10px] font-bold uppercase tracking-wider opacity-70">Section</p>
+                        <p className="text-lg font-black">{item.section || 'N/A'}</p>
                       </div>
                     </div>
                   </div>
 
-                  <div className="space-y-6">
-                    <h4 className="text-[10px] font-black text-indigo-500 uppercase tracking-[0.3em] flex items-center gap-2 mb-4">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 text-[8px] font-black tracking-widest border border-indigo-200/60 dark:border-indigo-700/40">â—</span> {t('secondary_parent_details')}
-                    </h4>
-                    <div className="grid grid-cols-1 gap-4">
-                      <div className="p-6 rounded-[2rem] bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 flex justify-between items-center group hover:border-indigo-200 transition-all duration-300">
-                        <div className="space-y-2">
-                          <p className="text-[10px] font-bold uppercase text-zinc-400 tracking-widest flex items-center gap-2">
-                            <span className="p-2 rounded-xl bg-zinc-50 dark:bg-zinc-800 group-hover:bg-indigo-50 transition-colors">
-                              <Users className="w-3" />
-                            </span>
-                            {t('secondary_parent_name')}
-                          </p>
-                          <p className="font-black text-zinc-900 dark:text-white text-sm pl-11">{item.secondary_parent_name || 'N/A'}</p>
+                  {/* Detailed Information Grid */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Personal Information Card */}
+                    <div className="p-6 rounded-3xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-sm">
+                      <div className="flex items-center gap-3 mb-6">
+                        <div className="p-2.5 rounded-xl bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400">
+                          <User className="w-5 h-5" />
                         </div>
+                        <h4 className="text-sm font-black text-zinc-900 dark:text-white uppercase tracking-wider">Personal Information</h4>
                       </div>
-                      <div className="p-6 rounded-[2rem] bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 flex justify-between items-center group hover:border-indigo-200 transition-all duration-300">
-                        <div className="space-y-2">
-                          <p className="text-[10px] font-bold uppercase text-zinc-400 tracking-widest flex items-center gap-2">
-                            <span className="p-2 rounded-xl bg-zinc-50 dark:bg-zinc-800 group-hover:bg-indigo-50 transition-colors">
-                              <Phone className="w-3" />
-                            </span>
-                            {t('secondary_parent_contact')}
-                          </p>
-                          <p className="font-black text-zinc-900 dark:text-white text-sm pl-11">{item.secondary_parent_contact || 'N/A'}</p>
+                      <div className="space-y-4">
+                        <div className="flex items-start gap-4 p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-800/50 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors">
+                          <Calendar className="w-4 h-4 text-indigo-500 mt-0.5 shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-[10px] font-bold uppercase text-zinc-500 tracking-wider mb-1">Date of Birth</p>
+                            <p className="font-bold text-zinc-900 dark:text-white text-sm truncate">
+                              {item.date_of_birth ? new Date(item.date_of_birth).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : 'Not Specified'}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-4 p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-800/50 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors">
+                          <Zap className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-[10px] font-bold uppercase text-zinc-500 tracking-wider mb-1">Religion</p>
+                            <p className="font-bold text-zinc-900 dark:text-white text-sm uppercase truncate">{item.religion || 'N/A'}</p>
+                          </div>
                         </div>
                       </div>
                     </div>
 
-                    <h4 className="text-[10px] font-black text-indigo-500 uppercase tracking-[0.3em] flex items-center gap-2 mb-4">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 text-[8px] font-black tracking-widest border border-indigo-200/60 dark:border-indigo-700/40">â—</span> Academic Background
-                    </h4>
-                    <div className="grid grid-cols-1 gap-4">
-                      <div className="relative p-6 rounded-[2rem] border border-indigo-100 dark:border-indigo-900/50 bg-indigo-50/50 dark:bg-indigo-900/10 space-y-3 group hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-all duration-300 overflow-hidden">
-                        <div className="absolute right-0 top-0 w-32 h-32 bg-indigo-500/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl group-hover:bg-indigo-500/10 transition-colors" />
-                        <div className="relative z-10">
-                          <p className="text-[10px] font-bold uppercase text-indigo-600/70 dark:text-indigo-400 tracking-widest flex items-center gap-2 mb-2">
-                            <SchoolIcon className="w-3 h-3" /> Previous Institution
-                          </p>
-                          <p className="font-black text-indigo-900 dark:text-indigo-100 text-lg leading-tight">{item.previous_school || 'Private Application'}</p>
+                    {/* Parent Information Card */}
+                    <div className="p-6 rounded-3xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-sm">
+                      <div className="flex items-center gap-3 mb-6">
+                        <div className="p-2.5 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400">
+                          <Users className="w-5 h-5" />
                         </div>
+                        <h4 className="text-sm font-black text-zinc-900 dark:text-white uppercase tracking-wider">Parent Information</h4>
                       </div>
-                      <div className="p-6 rounded-[2rem] bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 flex justify-between items-center group hover:border-emerald-200 dark:hover:border-emerald-900/50 hover:shadow-xl hover:shadow-emerald-100 dark:hover:shadow-none transition-all duration-300">
-                        <div className="space-y-2">
-                          <p className="text-[10px] font-bold uppercase text-zinc-400 tracking-widest flex items-center gap-2">
-                            <span className="p-2 rounded-xl bg-zinc-50 dark:bg-zinc-800 group-hover:bg-emerald-50 dark:group-hover:bg-emerald-900/30 group-hover:text-emerald-600 transition-colors">
-                              <ShieldCheck className="w-3 h-3" />
-                            </span>
-                            Enrollment Date
+                      <div className="space-y-4">
+                        <div className="flex items-start gap-4 p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-800/50 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors">
+                          <User className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-[10px] font-bold uppercase text-zinc-500 tracking-wider mb-1">Primary Parent</p>
+                            <p className="font-bold text-zinc-900 dark:text-white text-sm truncate">{item.parent_name || 'N/A'}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-4 p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-800/50 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors">
+                          <Phone className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-[10px] font-bold uppercase text-zinc-500 tracking-wider mb-1">Contact Number</p>
+                            <p className="font-bold text-zinc-900 dark:text-white text-sm truncate">{item.contact || 'N/A'}</p>
+                          </div>
+                        </div>
+                        {item.secondary_parent_name && (
+                          <>
+                            <div className="flex items-start gap-4 p-4 rounded-2xl bg-indigo-50 dark:bg-indigo-900/20 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-colors">
+                              <User className="w-4 h-4 text-indigo-500 mt-0.5 shrink-0" />
+                              <div className="flex-1 min-w-0">
+                                <p className="text-[10px] font-bold uppercase text-indigo-600 tracking-wider mb-1">Secondary Parent</p>
+                                <p className="font-bold text-zinc-900 dark:text-white text-sm truncate">{item.secondary_parent_name}</p>
+                              </div>
+                            </div>
+                            {item.secondary_parent_contact && (
+                              <div className="flex items-start gap-4 p-4 rounded-2xl bg-indigo-50 dark:bg-indigo-900/20 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-colors">
+                                <Phone className="w-4 h-4 text-indigo-500 mt-0.5 shrink-0" />
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-[10px] font-bold uppercase text-indigo-600 tracking-wider mb-1">Secondary Contact</p>
+                                  <p className="font-bold text-zinc-900 dark:text-white text-sm truncate">{item.secondary_parent_contact}</p>
+                                </div>
+                              </div>
+                            )}
+                          </>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Academic Background Card */}
+                    <div className="lg:col-span-2 p-6 rounded-3xl bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 border border-indigo-100 dark:border-indigo-800/30 shadow-sm">
+                      <div className="flex items-center gap-3 mb-6">
+                        <div className="p-2.5 rounded-xl bg-indigo-600 text-white">
+                          <SchoolIcon className="w-5 h-5" />
+                        </div>
+                        <h4 className="text-sm font-black text-zinc-900 dark:text-white uppercase tracking-wider">Academic Background</h4>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="p-5 rounded-2xl bg-white dark:bg-zinc-900 border border-indigo-200 dark:border-indigo-800 shadow-sm">
+                          <p className="text-[10px] font-bold uppercase text-indigo-600 tracking-wider mb-2 flex items-center gap-2">
+                            <Building2 className="w-3 h-3" /> Previous School
                           </p>
-                          <p className="font-black text-zinc-900 dark:text-white text-sm pl-11">
+                          <p className="font-black text-zinc-900 dark:text-white text-lg leading-tight">{item.previous_school || 'Private Application'}</p>
+                        </div>
+                        <div className="p-5 rounded-2xl bg-white dark:bg-zinc-900 border border-indigo-200 dark:border-indigo-800 shadow-sm">
+                          <p className="text-[10px] font-bold uppercase text-indigo-600 tracking-wider mb-2 flex items-center gap-2">
+                            <Calendar className="w-3 h-3" /> Enrollment Date
+                          </p>
+                          <p className="font-black text-zinc-900 dark:text-white text-lg leading-tight">
                             {item.date_enrolled ? new Date(item.date_enrolled).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : 'Pre-Migration'}
                           </p>
                         </div>
