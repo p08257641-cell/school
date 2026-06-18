@@ -3250,6 +3250,7 @@ export default function App() {
               }
 
               // 3. Update Student specific fields (including linking to parent)
+              // NOTE: Deliberately excluded class, section, class_id to prevent editing student class
               if (data.id) {
                 const studentPayload = {
                   name: data.name || data.student_name || "Unknown",
@@ -4251,6 +4252,7 @@ export default function App() {
     // Prepare student object for ReportCardPreview
     const formattedStudent = {
       ...student,
+      id: student.admission_no || student.student_id || String(student.id).slice(0, 8),
       results: results.map((r: any) => ({
         subject: r.subject_name || r.subject,
         classScore: (r.score_details as any)?.showClassScore || 0,
@@ -4273,7 +4275,7 @@ export default function App() {
           </button>
           <ReportCardPreview
             template={template}
-            organization={organizations.find((o) => o.id === currentUser?.org_id)}
+            organization={organization}
             student={formattedStudent}
             onClose={() => { setPublicResultData(null); setShowLanding(true); }}
           />
