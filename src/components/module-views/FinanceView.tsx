@@ -4123,7 +4123,7 @@ export const FinanceModules = {
                 <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Bill To</p>
                 <h2 className="text-xl font-black text-zinc-900 dark:text-white uppercase">{student?.name}</h2>
                 <p className="text-sm font-bold text-zinc-500 uppercase tracking-widest">{student?.class_name || 'N/A'}</p>
-                <p className="text-xs font-medium text-zinc-400">{student?.id}</p>
+                <p className="text-xs font-medium text-zinc-400">{student?.student_id || student?.id}</p>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-2xl border border-zinc-100 dark:border-zinc-800">
