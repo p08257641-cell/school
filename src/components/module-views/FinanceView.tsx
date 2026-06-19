@@ -4061,18 +4061,6 @@ export const FinanceModules = {
     return (
       <div className="bg-zinc-100 dark:bg-zinc-950 p-2 sm:p-6 md:p-12 min-h-screen font-sans">
         <div className="max-w-4xl mx-auto space-y-6 animate-in fade-in duration-500">
-          
-          {/* Actions */}
-          <div className="flex justify-end no-print">
-            <button 
-              onClick={() => window.print()}
-              className="flex items-center gap-2 px-6 py-2.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-zinc-50 transition-all shadow-sm active:scale-95"
-            >
-              <Download className="w-4 h-4" />
-              Download Statement
-            </button>
-          </div>
-
           <div className="bg-white dark:bg-zinc-900 shadow-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden rounded-[1rem] sm:rounded-[2rem]">
             {/* Document Header */}
             <div className="p-8 sm:p-12 border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-800/10">
@@ -4091,8 +4079,17 @@ export const FinanceModules = {
                   </div>
                 </div>
                 <div className="md:text-right space-y-4">
-                  <div className="inline-block px-4 py-2 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 rounded-lg text-[10px] font-black uppercase tracking-[0.2em]">
-                    Official Fee Statement
+                  <div className="flex items-center justify-end gap-3 flex-wrap">
+                    <div className="inline-block px-4 py-2 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 rounded-lg text-[10px] font-black uppercase tracking-[0.2em]">
+                      Official Fee Statement
+                    </div>
+                    <button 
+                      onClick={() => window.print()}
+                      className="no-print flex items-center gap-2 px-4 py-2 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-all shadow-sm"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      Download
+                    </button>
                   </div>
                   <div className="space-y-1">
                     <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Statement Date</p>
