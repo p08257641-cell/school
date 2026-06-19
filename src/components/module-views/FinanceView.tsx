@@ -32,7 +32,8 @@ import {
   X,
   MessageSquare,
   Send,
-  School
+  School,
+  ExternalLink
 } from 'lucide-react';
 import { sendBulkSMS } from '../../lib/api';
 import { useLanguage } from '../../lib/LanguageContext';
@@ -2684,27 +2685,6 @@ export const FinanceModules = {
                 </div>
               </div>
 
-              {/* View Official Fee Statement Button */}
-              <div className="flex justify-center">
-                <button
-                  onClick={() => {
-                    // Generate token and open fee history view in a new tab
-                    const wardStudent = students?.find(s => String(s.id) === String(selectedWardId));
-                    if (wardStudent && organization) {
-                      const token = btoa(`${wardStudent.id}|${organization.id}`);
-                      window.open(`/?view=FeeHistory&token=${token}`, '_blank');
-                    } else {
-                      // Fallback: show error
-                      (window as any).showToast?.('Unable to generate fee statement link. Please contact school administration.', 'error');
-                    }
-                  }}
-                  className="px-8 py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-sm font-black uppercase tracking-widest shadow-lg shadow-indigo-200 dark:shadow-none transition-all flex items-center gap-3 hover:scale-105 active:scale-95"
-                >
-                  <FileText className="w-5 h-5" />
-                  View Official Fee Statement
-                </button>
-              </div>
-
               {/* Invoices List */}
               <div className="space-y-4">
                 <h3 className="text-xl font-black text-zinc-900 dark:text-white uppercase tracking-tight flex items-center gap-3">
@@ -4121,6 +4101,21 @@ export const FinanceModules = {
                 </div>
               </div>
             </div>
+
+            {/* School Link for Parents */}
+            {organization?.custom_domain && (
+              <div className="text-center py-4 bg-zinc-50/50 dark:bg-zinc-800/10">
+                <a
+                  href={`https://${organization.custom_domain}.skoola.online`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors border border-indigo-200 dark:border-indigo-800"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  Login to Parent Portal for Full Details
+                </a>
+              </div>
+            )}
 
             {/* Student Info */}
             <div className="p-8 sm:p-12 grid grid-cols-1 md:grid-cols-2 gap-8 bg-white dark:bg-zinc-900">
