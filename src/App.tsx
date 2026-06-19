@@ -2385,6 +2385,7 @@ export default function App() {
             classes={classList}
             gradingScales={gradingScales}
             attendance={studentAttendance}
+            organization={organizations.find((o) => o.id === currentUser?.org_id)}
             onSave={(data) => handleEntitySave("student", data)}
             onDelete={(item) => handleEntityDelete("student", item)}
             onRefresh={loadData}

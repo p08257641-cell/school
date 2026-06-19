@@ -90,6 +90,77 @@ import graduationBg from '../../image/New folder/graduation and promotion.png';
 import bulkBg from '../../image/New folder/bulk operations.png';
 import { fetchCalendarEvents, createCalendarEvent, deleteCalendarEvent, syncPublicHolidays, sendBulkSMS, generateSmartTimetable } from '../../lib/api';
 
+// Expands raw attendance records into a full per-school-day log so that days a
+// student missed (no scan / no record) are surfaced as "Absent" rows. School
+// days are derived from the configured term start/end dates, weekend inclusion
+// setting and the academic-calendar holidays. Days in the future are ignored.
+const buildAttendanceLog = (
+  records: any[],
+  options: { termStartDate?: string; termEndDate?: string; includeWeekends?: boolean; holidays?: any[] }
+): any[] => {
+  const { termStartDate, termEndDate, includeWeekends = false, holidays = [] } = options;
+
+  const normalizeDate = (d: any): string | null => {
+    if (!d) return null;
+    const dt = new Date(d);
+    if (isNaN(dt.getTime())) return null;
+    return dt.toISOString().split('T')[0];
+  };
+
+  const byDate = new Map<string, any>();
+  (records || []).forEach(r => {
+    const ds = normalizeDate(r.date || r.created_at);
+    if (ds && !byDate.has(ds)) byDate.set(ds, r);
+  });
+
+  const isHoliday = (dateStr: string) => (holidays || []).some(h => {
+    const hStart = (h.start_date || '').split('T')[0];
+    const hEnd = h.end_date ? h.end_date.split('T')[0] : hStart;
+    return hStart && dateStr >= hStart && dateStr <= hEnd;
+  });
+
+  const result: any[] = [];
+  const seen = new Set<string>();
+
+  if (termStartDate && termEndDate) {
+    const start = new Date(termStartDate);
+    const end = new Date(termEndDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (!isNaN(start.getTime()) && !isNaN(end.getTime()) && start <= end) {
+      const effectiveEnd = end < today ? end : today;
+      const curr = new Date(start);
+      while (curr <= effectiveEnd) {
+        const dayOfWeek = curr.getDay();
+        const skipWeekend = !includeWeekends && (dayOfWeek === 0 || dayOfWeek === 6);
+        const dateStr = curr.toISOString().split('T')[0];
+        if (!skipWeekend && !isHoliday(dateStr)) {
+          const rec = byDate.get(dateStr);
+          if (rec) {
+            result.push({ ...rec, date: dateStr });
+          } else {
+            result.push({ date: dateStr, status: 'Absent', remarks: 'Missed class', isMissed: true });
+          }
+          seen.add(dateStr);
+        }
+        curr.setDate(curr.getDate() + 1);
+      }
+    }
+  }
+
+  // Keep any real records that fall outside the term window or on otherwise
+  // excluded days (weekends/holidays) so nothing recorded is ever hidden.
+  (records || []).forEach(r => {
+    const ds = normalizeDate(r.date || r.created_at);
+    if (ds && !seen.has(ds)) {
+      result.push({ ...r, date: ds });
+      seen.add(ds);
+    }
+  });
+
+  return result.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+};
+
 const CardHeaderBackground: React.FC<{ src: string; opacityClass?: string }> = ({ src, opacityClass = "opacity-40 dark:opacity-25" }) => {
   const [loaded, setLoaded] = useState(false);
   const imgRef = useRef<HTMLImageElement>(null);
@@ -3551,11 +3622,30 @@ export const AdmitStudentView = ({
 };
 
 export const AcademicModules = {
-  StudentManagement: ({ data, role, onSave, onDelete, onRefresh, results = [], exams = [], classes = [], gradingScales = [], attendance = [], canEdit, canDelete }: { data: Student[], role?: UserRole, onSave?: (data: any) => void, onDelete?: (item: any) => void, onRefresh?: () => void, results?: any[], exams?: any[], classes?: any[], gradingScales?: any[], attendance?: any[], canEdit?: (item: any) => boolean, canDelete?: (item: any) => boolean }) => {
+  StudentManagement: ({ data, role, onSave, onDelete, onRefresh, results = [], exams = [], classes = [], gradingScales = [], attendance = [], organization, canEdit, canDelete }: { data: Student[], role?: UserRole, onSave?: (data: any) => void, onDelete?: (item: any) => void, onRefresh?: () => void, results?: any[], exams?: any[], classes?: any[], gradingScales?: any[], attendance?: any[], organization?: any, canEdit?: (item: any) => boolean, canDelete?: (item: any) => boolean }) => {
     const { t } = useLanguage();
     const [viewItem, setViewItem] = useState<Student | null>(null);
     const [activeDetailTab, setActiveDetailTab] = useState<'overview' | 'academic' | 'attendance'>('overview');
     const [withdrawConfirmStudent, setWithdrawConfirmStudent] = useState<Student | null>(null);
+    const [calendarEvents, setCalendarEvents] = useState<any[]>([]);
+
+    useEffect(() => {
+      let active = true;
+      fetchCalendarEvents()
+        .then(events => { if (active) setCalendarEvents(events || []); })
+        .catch(err => console.error('Failed to load calendar events', err));
+      return () => { active = false; };
+    }, []);
+
+    const attendanceTermStart = organization?.term_start_date ? new Date(organization.term_start_date).toISOString().split('T')[0] : '';
+    const attendanceTermEnd = organization?.term_end_date ? new Date(organization.term_end_date).toISOString().split('T')[0] : '';
+    const attendanceIncludeWeekends = organization?.attendance_include_weekends || false;
+    const attendanceHolidays = useMemo(() => calendarEvents.filter(e => e.event_type === 'Holiday'), [calendarEvents]);
+
+    const getStudentAttendanceLog = (studentId: any) => buildAttendanceLog(
+      (attendance || []).filter((a: any) => String(a.student_id) === String(studentId)),
+      { termStartDate: attendanceTermStart, termEndDate: attendanceTermEnd, includeWeekends: attendanceIncludeWeekends, holidays: attendanceHolidays }
+    );
 
     const getGrade = (score: number, classId: string) => {
       // Find scale assigned to this class
@@ -4083,8 +4173,38 @@ export const AcademicModules = {
                     <h4 className="text-[10px] font-black text-indigo-500 uppercase tracking-[0.3em] flex items-center gap-2 mb-4">
                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 text-[8px] font-black tracking-widest border border-indigo-200/60 dark:border-indigo-700/40">â—</span> Attendance History
                     </h4>
-                    {attendance?.filter((a: any) => String(a.student_id) === String(item.id)).length > 0 ? (
-                      <div className="rounded-[2.5rem] border border-zinc-200/50 dark:border-zinc-800/50 overflow-hidden shadow-sm bg-white dark:bg-zinc-900 transition-all hover:shadow-md max-h-96 overflow-y-auto custom-scrollbar">
+                    {(() => {
+                      const attLog = getStudentAttendanceLog(item.id);
+                      if (attLog.length === 0) {
+                        return (
+                          <div className="py-24 text-center space-y-5 bg-zinc-50/50 dark:bg-zinc-800/10 rounded-[3rem] border-2 border-dashed border-zinc-200 dark:border-zinc-800 max-w-2xl mx-auto">
+                            <div className="w-20 h-20 bg-white dark:bg-zinc-800 rounded-[2rem] mx-auto flex items-center justify-center shadow-sm">
+                              <Calendar className="w-10 h-10 text-zinc-300 dark:text-zinc-600" />
+                            </div>
+                            <p className="text-zinc-400 font-bold tracking-wide">No attendance records found for this student.</p>
+                          </div>
+                        );
+                      }
+                      const presentCount = attLog.filter((r: any) => r.status === 'Present').length;
+                      const lateCount = attLog.filter((r: any) => r.status === 'Late').length;
+                      const absentCount = attLog.filter((r: any) => r.status !== 'Present' && r.status !== 'Late').length;
+                      return (
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-3 gap-3 max-w-xl">
+                          <div className="p-3 rounded-2xl bg-emerald-50/50 dark:bg-emerald-900/10 border border-emerald-100/50 dark:border-emerald-800/30 text-center">
+                            <p className="text-[9px] font-black text-emerald-600 uppercase tracking-widest">Present</p>
+                            <p className="text-lg font-black text-emerald-700 dark:text-emerald-400">{presentCount}</p>
+                          </div>
+                          <div className="p-3 rounded-2xl bg-amber-50/50 dark:bg-amber-900/10 border border-amber-100/50 dark:border-amber-800/30 text-center">
+                            <p className="text-[9px] font-black text-amber-600 uppercase tracking-widest">Late</p>
+                            <p className="text-lg font-black text-amber-700 dark:text-amber-400">{lateCount}</p>
+                          </div>
+                          <div className="p-3 rounded-2xl bg-rose-50/50 dark:bg-rose-900/10 border border-rose-100/50 dark:border-rose-800/30 text-center">
+                            <p className="text-[9px] font-black text-rose-600 uppercase tracking-widest">Missed</p>
+                            <p className="text-lg font-black text-rose-700 dark:text-rose-400">{absentCount}</p>
+                          </div>
+                        </div>
+                        <div className="rounded-[2.5rem] border border-zinc-200/50 dark:border-zinc-800/50 overflow-hidden shadow-sm bg-white dark:bg-zinc-900 transition-all hover:shadow-md max-h-96 overflow-y-auto custom-scrollbar">
                         <table className="w-full text-left text-sm">
                           <thead className="bg-zinc-50/80 dark:bg-zinc-800/80 backdrop-blur-sm sticky top-0 z-10">
                             <tr>
@@ -4094,13 +4214,11 @@ export const AcademicModules = {
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
-                            {attendance.filter((a: any) => String(a.student_id) === String(item.id))
-                              .sort((a: any, b: any) => new Date(b.date || b.created_at || 0).getTime() - new Date(a.date || a.created_at || 0).getTime())
-                              .map((record: any, idx: number) => (
-                              <tr key={idx} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors group">
+                            {attLog.map((record: any, idx: number) => (
+                              <tr key={idx} className={cn("hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors group", record.isMissed && "bg-rose-50/30 dark:bg-rose-900/5")}>
                                 <td className="px-8 py-5">
                                   <p className="font-bold text-zinc-900 dark:text-white text-[13px]">{record.date ? new Date(record.date).toLocaleDateString() : 'N/A'}</p>
-                                  {record.clock_in && <p className="text-[10px] text-zinc-400 font-bold tracking-wider mt-0.5">In: {record.clock_in} {record.clock_out && `â€¢ Out: ${record.clock_out}`}</p>}
+                                  {record.clock_in && <p className="text-[10px] text-zinc-400 font-bold tracking-wider mt-0.5">In: {record.clock_in} {record.clock_out && `Out: ${record.clock_out}`}</p>}
                                 </td>
                                 <td className="px-8 py-5">
                                   <span className={cn(
@@ -4109,7 +4227,7 @@ export const AcademicModules = {
                                       record.status === 'Late' ? "bg-amber-50 text-amber-600 dark:bg-amber-900/30" :
                                         "bg-red-50 text-red-600 dark:bg-red-900/30"
                                   )}>
-                                    {record.status}
+                                    {record.isMissed ? 'Absent' : record.status}
                                   </span>
                                 </td>
                                 <td className="px-8 py-5">
@@ -4119,15 +4237,10 @@ export const AcademicModules = {
                             ))}
                           </tbody>
                         </table>
-                      </div>
-                    ) : (
-                      <div className="py-24 text-center space-y-5 bg-zinc-50/50 dark:bg-zinc-800/10 rounded-[3rem] border-2 border-dashed border-zinc-200 dark:border-zinc-800 max-w-2xl mx-auto">
-                        <div className="w-20 h-20 bg-white dark:bg-zinc-800 rounded-[2rem] mx-auto flex items-center justify-center shadow-sm">
-                          <Calendar className="w-10 h-10 text-zinc-300 dark:text-zinc-600" />
                         </div>
-                        <p className="text-zinc-400 font-bold tracking-wide">No attendance records found for this student.</p>
                       </div>
-                    )}
+                      );
+                    })()}
                   </div>
                 </div>
               ) : null}
@@ -7087,7 +7200,11 @@ export const AcademicModules = {
     }, [data, selectedMonth]);
 
     const aggregatedData = useMemo(() => {
-      if (role !== 'SCHOOL_ADMIN' && role !== 'HOD') return filteredData;
+      if (role !== 'SCHOOL_ADMIN' && role !== 'HOD') {
+        const log = buildAttendanceLog(data || [], { termStartDate, termEndDate, includeWeekends, holidays });
+        if (selectedMonth === 'Entire Term') return log;
+        return log.filter(item => new Date(item.date).toLocaleString('default', { month: 'long', year: 'numeric' }) === selectedMonth);
+      }
 
       let dynamicDenominator = totalSchoolDays;
 
@@ -7304,10 +7421,10 @@ export const AcademicModules = {
           <div className="p-6">
             <DataTable
               title={`${viewingStudent?.name}'s Records`}
-              data={(data || []).filter((r: any) => 
-                String(r.student_id) === String(viewingStudent?.id) && 
-                (selectedMonth === 'Entire Term' || !selectedMonth || new Date(r.date).toLocaleString('default', { month: 'long', year: 'numeric' }) === selectedMonth)
-              )}
+              data={buildAttendanceLog(
+                (data || []).filter((r: any) => String(r.student_id) === String(viewingStudent?.id)),
+                { termStartDate, termEndDate, includeWeekends, holidays }
+              ).filter((r: any) => selectedMonth === 'Entire Term' || !selectedMonth || new Date(r.date).toLocaleString('default', { month: 'long', year: 'numeric' }) === selectedMonth)}
               canEdit={canEdit}
               canDelete={canDelete}
               columns={[
