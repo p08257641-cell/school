@@ -4106,10 +4106,11 @@ export const FinanceModules = {
                   href={`https://${organization.custom_domain}.skoola.online`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors border border-indigo-200 dark:border-indigo-800"
+                  className="inline-flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400 rounded-xl text-[10px] sm:text-xs font-bold uppercase tracking-widest hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors border border-indigo-200 dark:border-indigo-800 text-center"
                 >
-                  <ExternalLink className="w-4 h-4" />
-                  Login to Parent Portal for Full Details
+                  <ExternalLink className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  <span className="hidden sm:inline">Login to Parent Portal for Full Details</span>
+                  <span className="sm:hidden">Parent Portal Login</span>
                 </a>
               </div>
             )}
