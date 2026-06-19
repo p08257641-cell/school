@@ -4215,27 +4215,10 @@ export default function App() {
   if (publicResultData) {
     if (publicResultData.isFeeHistory) {
       return (
-        <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex flex-col">
-          <div className="p-4 sm:p-6 flex justify-between items-center bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 shadow-sm sticky top-0 z-50">
-            <div className="flex items-center gap-3">
-              <div>
-                <h2 className="text-sm sm:text-lg font-black tracking-tight text-zinc-900 dark:text-white uppercase leading-none">Official Fee Statement</h2>
-                <p className="text-[9px] sm:text-[10px] font-bold text-zinc-400 uppercase tracking-widest mt-1">Secure Parent Portal</p>
-              </div>
-            </div>
-            <button
-              onClick={() => { setPublicResultData(null); setShowLanding(true); }}
-              className="p-2.5 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-xl text-zinc-500 transition-all hover:scale-105 active:scale-95"
-              title="Close View"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-          <div className="flex-1 overflow-auto">
-            {FinanceModules.FeeHistoryPreview && (
-              <FinanceModules.FeeHistoryPreview data={publicResultData} />
-            )}
-          </div>
+        <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
+          {FinanceModules.FeeHistoryPreview && (
+            <FinanceModules.FeeHistoryPreview data={publicResultData} />
+          )}
         </div>
       );
     }
