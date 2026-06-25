@@ -830,10 +830,24 @@ export default function LandingPage({ onGetStarted, onLogin, onPartnerLogin }: L
         onClose={() => setShowPolicyModal(false)}
         title={policyType === 'privacy' ? t('privacy_policy_title') : t('partner_terms_title')}
       >
-        <div className="space-y-4 text-zinc-600 dark:text-zinc-400 text-sm leading-relaxed">
+        <div className="space-y-6 text-zinc-600 dark:text-zinc-400 text-sm leading-relaxed">
           <p>
             {policyType === 'privacy' ? t('privacy_policy_content') : t('partner_terms_content')}
           </p>
+          <div className="pt-4 border-t border-zinc-100 dark:border-zinc-800 flex justify-end">
+            <a
+              href={policyType === 'privacy' ? '/Skoola_Privacy_Policy.pdf' : '/Skoola_Terms_of_Service.pdf'}
+              download={policyType === 'privacy' ? 'Skoola_Privacy_Policy.pdf' : 'Skoola_Terms_of_Service.pdf'}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-100 rounded-xl font-bold text-xs hover:scale-[1.02] active:scale-[0.98] transition-all shadow-md"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"></path>
+              </svg>
+              {policyType === 'privacy' ? 'Download Official Privacy Policy (PDF)' : 'Download Official Terms of Service (PDF)'}
+            </a>
+          </div>
         </div>
       </Modal>
 
