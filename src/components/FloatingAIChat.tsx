@@ -32,7 +32,7 @@ const DEFAULT_CONFIG: RoleConfig = {
   sendBtnBg: 'bg-indigo-600 hover:bg-indigo-700',
   title: 'OmniAI Assistant',
   welcomeMessage: 'Hello! I\'m OmniAI assistant. How can I help you today?',
-  systemPrompt: 'You are OmniAI, a helpful assistant for SchoolHub school management system.',
+  systemPrompt: 'You are OmniAI, a helpful assistant for Skoola school management system.',
   suggestions: []
 };
 
@@ -45,7 +45,7 @@ const ROLE_CONFIGS: Record<string, Partial<RoleConfig>> = {
     sendBtnBg: 'bg-amber-600 hover:bg-amber-700 text-zinc-950 font-bold',
     title: 'OmniAI Executive Console',
     welcomeMessage: 'Welcome, Administrator. I am configured with the OmniAI Executive Prompt to assist you with school operations, platform statistics, and administrative workflows. How may I assist you today?',
-    systemPrompt: `You are OmniAI, a senior executive advisor for SchoolHub. 
+    systemPrompt: `You are OmniAI, a senior executive advisor for Skoola. 
     You assist the school administrator with high-level decisions, school analytics, student academic trends, and staff management.
     When asked to draft circulars, announcements, or notifications, generate professional, well-structured emails/memos with placeholders where relevant.
     When asked about whistleblower reports, staff leave, daily collections, or admissions, guide them on how to access these modules or analyze the metadata provided.`,
@@ -69,7 +69,7 @@ const ROLE_CONFIGS: Record<string, Partial<RoleConfig>> = {
     sendBtnBg: 'bg-amber-600 hover:bg-amber-700 text-zinc-950 font-bold',
     title: 'OmniAI Executive Console',
     welcomeMessage: 'Welcome, Administrator. I am configured with the OmniAI Executive Prompt to assist you with school operations, platform statistics, and administrative workflows. How may I assist you today?',
-    systemPrompt: `You are OmniAI, a senior executive advisor for SchoolHub. 
+    systemPrompt: `You are OmniAI, a senior executive advisor for Skoola. 
     You assist the school administrator with high-level decisions, school analytics, student academic trends, and staff management.
     When asked to draft circulars, announcements, or notifications, generate professional, well-structured emails/memos with placeholders where relevant.
     When asked about whistleblower reports, staff leave, daily collections, or admissions, guide them on how to access these modules or analyze the metadata provided.`,
@@ -93,7 +93,7 @@ const ROLE_CONFIGS: Record<string, Partial<RoleConfig>> = {
     sendBtnBg: 'bg-emerald-600 hover:bg-emerald-700 text-white',
     title: 'OmniAI Educator Assistant',
     welcomeMessage: 'Hello Teacher! I\'m your OmniAI teaching assistant. Let\'s work together to create lesson notes, build assignments, or check your classes/subjects. What are we planning today?',
-    systemPrompt: `You are OmniAI, a direct classroom teaching assistant for SchoolHub. 
+    systemPrompt: `You are OmniAI, a direct classroom teaching assistant for Skoola. 
     Focus on curriculum design, grading, class timetables, lesson planning, and student assignments.`,
     suggestions: [
       { label: '📝 Create Assignment', text: 'Create an assignment' },
@@ -110,7 +110,7 @@ const ROLE_CONFIGS: Record<string, Partial<RoleConfig>> = {
     sendBtnBg: 'bg-emerald-600 hover:bg-emerald-700 text-white',
     title: 'OmniAI Educator Assistant',
     welcomeMessage: 'Hello Head of Department! I\'m your OmniAI teaching assistant. Let\'s work together to create lesson notes, build assignments, or check department classes/subjects. What are we planning today?',
-    systemPrompt: `You are OmniAI, a direct classroom teaching assistant and HOD for SchoolHub. 
+    systemPrompt: `You are OmniAI, a direct classroom teaching assistant and HOD for Skoola. 
     Focus on curriculum design, grading, class timetables, lesson planning, and student assignments.`,
     suggestions: [
       { label: '📝 Create Assignment', text: 'Create an assignment' },
@@ -162,7 +162,7 @@ export function FloatingAIChat({ organization, currentUser, currentRole }: { org
       } else if (currentRole === 'HOD') {
         content = `Hello ${userName}! As Head of Department, I am your OmniAI assistant. Let's work together to manage department resources, create lesson notes, or build assignments. What are we planning today?`;
       } else {
-        content = `Hello ${userName}! I'm OmniAI, your assistant for ${organization?.name || 'SchoolHub'}. How can I help you today?`;
+        content = `Hello ${userName}! I'm OmniAI, your assistant for ${organization?.name || 'Skoola'}. How can I help you today?`;
       }
       
       setMessages([
@@ -201,7 +201,7 @@ export function FloatingAIChat({ organization, currentUser, currentRole }: { org
       const result = await generateAIResponse(prompt, {
         systemPrompt: `${config.systemPrompt}
         You are currently assisting ${currentUser?.name || 'a user'} who is logged in as a ${currentRole || 'user'}. 
-        The school is ${organization?.name || 'SchoolHub'}.
+        The school is ${organization?.name || 'Skoola'}.
         Keep responses concise, professional, and aware of the user's role.`
       });
 

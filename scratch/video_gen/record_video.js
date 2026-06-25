@@ -26,7 +26,7 @@ const path = require('path');
         aspectRatio: '16:9'
     });
 
-    const savePath = './schoolhub_demo.mp4';
+    const savePath = './skoola_demo.mp4';
     console.log("Starting recording to " + savePath);
     await recorder.start(savePath);
 

@@ -100,7 +100,7 @@ export default function PartnerLogin({ onLoginSuccess, onBackToLanding }: Partne
         <div className="hidden lg:flex flex-col justify-between p-12 bg-zinc-50 dark:bg-zinc-950 border-r border-zinc-200 dark:border-zinc-800 transition-colors">
           <div>
             <div className="flex items-center gap-3 mb-8 cursor-pointer group" onClick={onBackToLanding}>
-              <img src="/assets/schoolhub_icon.png" alt="Logo" className="h-10 w-10 group-hover:scale-105 transition-transform" />
+              <img src="/assets/skoola_icon.png" alt="Logo" className="h-10 w-10 group-hover:scale-105 transition-transform" />
               <span className="text-2xl font-black tracking-tight text-zinc-900 dark:text-white">
                 {t('partner_portal')}
               </span>
@@ -149,7 +149,7 @@ export default function PartnerLogin({ onLoginSuccess, onBackToLanding }: Partne
           </button>
           
           <div className="lg:hidden flex justify-center mb-8" onClick={onBackToLanding}>
-            <img src="/assets/schoolhub_full_logo.png" alt="Logo" className="h-16 cursor-pointer hover:scale-105 transition-transform" />
+            <img src="/assets/skoola_full_logo.png" alt="Logo" className="h-16 cursor-pointer hover:scale-105 transition-transform" />
           </div>
           
           <div className="mb-10 text-center lg:text-left">

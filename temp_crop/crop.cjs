@@ -2,7 +2,7 @@ const Jimp = require('jimp');
 const path = require('path');
 
 async function autoCropFavicon() {
-  const iconPath = path.join(__dirname, '../public/assets/schoolhub_icon.png');
+  const iconPath = path.join(__dirname, '../public/assets/skoola_icon.png');
   const image = await Jimp.read(iconPath);
   
   // Crop the image to remove transparent boundaries

@@ -127,8 +127,8 @@ export default function LandingPage({ onGetStarted, onLogin, onPartnerLogin }: L
         <div className="max-w-7xl mx-auto px-6 md:px-6 h-14 md:h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <img
-              src="/assets/schoolhub_icon.png"
-              alt="SchoolHub"
+              src="/assets/skoola_icon.png"
+              alt="Skoola"
               className="w-12 h-12 md:w-16 md:h-16 object-contain group-hover:rotate-12 transition-transform"
             />
           </div>
@@ -266,7 +266,7 @@ export default function LandingPage({ onGetStarted, onLogin, onPartnerLogin }: L
                     </div>
                   </div>
 
-                  {/* Grow with SchoolHubSchool Card */}
+                  {/* Grow with Skoola Card */}
                   <div className="relative w-full md:w-[45%] flex-1 md:max-w-[420px] mt-4 md:mt-0">
                     <motion.div
                       initial={{ opacity: 0, scale: 0.9 }}
@@ -844,7 +844,7 @@ export default function LandingPage({ onGetStarted, onLogin, onPartnerLogin }: L
             <div className="flex flex-col md:flex-row justify-between items-center gap-8">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold">O</div>
-                <span className="font-bold text-xl tracking-tight text-zinc-900 dark:text-white">SchoolHubSchool</span>
+                <span className="font-bold text-xl tracking-tight text-zinc-900 dark:text-white">Skoola</span>
               </div>
 
               <div className="flex flex-wrap justify-center gap-8 text-xs font-bold uppercase tracking-widest text-zinc-400">
@@ -854,7 +854,7 @@ export default function LandingPage({ onGetStarted, onLogin, onPartnerLogin }: L
               </div>
 
               <p className="text-[10px] md:text-xs text-zinc-400 font-medium">
-                © 2026 SchoolHubSchool. All rights reserved.
+                © 2026 Skoola. All rights reserved.
               </p>
             </div>
           </div>

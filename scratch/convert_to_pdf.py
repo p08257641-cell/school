@@ -3,7 +3,7 @@ import re
 import markdown
 from fpdf import FPDF
 
-class SchoolHubPDF(FPDF):
+class SkoolaPDF(FPDF):
     def header(self):
         # Draw a beautiful branded 4mm indigo strip at the absolute top of all pages (excluding cover page)
         if self.page_no() > 1:
@@ -14,7 +14,7 @@ class SchoolHubPDF(FPDF):
             self.set_y(8)
             self.set_font('Helvetica', 'I', 8)
             self.set_text_color(156, 163, 175)
-            self.cell(0, 10, 'SchoolHub by Decorum IT Solutions - Reference Guide', align='R')
+            self.cell(0, 10, 'Skoola by Decorum IT Solutions - Reference Guide', align='R')
             self.ln(12)
 
     def footer(self):
@@ -76,7 +76,7 @@ def compile_pdf(md_filepath, pdf_filepath, doc_title, doc_subtitle):
     html_content = clean_unsupported_characters(html_content)
 
     print(f"Compiling PDF: {pdf_filepath}")
-    pdf = SchoolHubPDF()
+    pdf = SkoolaPDF()
     pdf.alias_nb_pages()
     
     # --- 1. COVER PAGE ---
@@ -95,7 +95,7 @@ def compile_pdf(md_filepath, pdf_filepath, doc_title, doc_subtitle):
     pdf.set_y(28)
     pdf.set_font('Helvetica', 'B', 36)
     pdf.set_text_color(255, 255, 255)
-    pdf.cell(0, 15, "SchoolHub", align='C')
+    pdf.cell(0, 15, "Skoola", align='C')
     pdf.ln(15)
     
     # Cover page middle area
@@ -153,11 +153,11 @@ if __name__ == '__main__':
     base_dir = r"c:\Users\inspy\OneDrive\Documents\school"
     artifact_dir = r"C:\Users\inspy\.gemini\antigravity\brain\eb252566-5a01-4d23-bcf9-63b8244b3aa6"
     
-    faq_md = os.path.join(artifact_dir, "schoolhub_faq_pdf.md")
+    faq_md = os.path.join(artifact_dir, "skoola_faq_pdf.md")
     playbook_md = os.path.join(artifact_dir, "decorum_marketing_playbook.md")
     
-    faq_pdf = os.path.join(base_dir, "SchoolHub_FAQ_Official_Reference.pdf")
-    playbook_pdf = os.path.join(base_dir, "SchoolHub_Strategic_Marketing_Playbook.pdf")
+    faq_pdf = os.path.join(base_dir, "Skoola_FAQ_Official_Reference.pdf")
+    playbook_pdf = os.path.join(base_dir, "Skoola_Strategic_Marketing_Playbook.pdf")
     
     # Compile FAQ
     if os.path.exists(faq_md):
@@ -178,7 +178,7 @@ if __name__ == '__main__':
                 playbook_md, 
                 playbook_pdf, 
                 "Strategic Marketing Playbook", 
-                "The Ultimate Strategy to Market, Sell, and Scale the SchoolHub Platform"
+                "The Ultimate Strategy to Market, Sell, and Scale the Skoola Platform"
             )
         except Exception as e:
             print(f"Failed to compile Playbook PDF: {e}")

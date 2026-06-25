@@ -1442,7 +1442,7 @@ export function SchoolBilling({
           </p>
           <div className="pt-6 flex flex-col sm:flex-row items-center justify-center gap-4">
             <a
-              href="mailto:support@schoolhub.com"
+              href="mailto:support@skoola.com"
               className="w-full sm:w-auto px-8 py-4 bg-white text-indigo-600 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-indigo-50 transition-colors"
             >
               Contact Support
@@ -2599,7 +2599,7 @@ export function ReceiptsManagement({ data }: { data?: any[] }) {
           <div class="receipt-container">
             <div class="header">
               <h1>Payment Receipt</h1>
-              <p>SchoolHub RBMS - Subscription Services</p>
+              <p>Skoola RBMS - Subscription Services</p>
               <div class="receipt-number">
                 <div>Receipt Number</div>
                 <span>#${receipt.id.split('-')[0].toUpperCase()}</span>
@@ -2651,7 +2651,7 @@ export function ReceiptsManagement({ data }: { data?: any[] }) {
 
               <div class="footer">
                 <p>This is a computer-generated receipt and requires no signature.</p>
-                <p style="margin-top: 8px;">&copy; ${new Date().getFullYear()} SchoolHub RBMS - Powered by Zencoder Inc.</p>
+                <p style="margin-top: 8px;">&copy; ${new Date().getFullYear()} Skoola RBMS - Powered by Zencoder Inc.</p>
               </div>
             </div>
           </div>
@@ -3499,11 +3499,11 @@ export function Settings({ role }: { role?: UserRole }) {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <label className="text-sm font-bold text-zinc-700 dark:text-zinc-300">{t('platform_name')}</label>
-                  <input type="text" defaultValue="SchoolHub RBMS" className="w-full px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500" />
+                  <input type="text" defaultValue="Skoola RBMS" className="w-full px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500" />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-bold text-zinc-700 dark:text-zinc-300">{t('support_email')}</label>
-                  <input type="email" defaultValue="support@schoolhub.com" className="w-full px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500" />
+                  <input type="email" defaultValue="support@skoola.com" className="w-full px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500" />
                 </div>
               </div>
               <div className="flex items-center gap-6 p-4 border border-dashed border-zinc-200 dark:border-zinc-800 rounded-2xl">

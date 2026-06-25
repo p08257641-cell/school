@@ -197,7 +197,7 @@ const getGeminiResponse = async (prompt: string, orgId: string, systemPrompt?: s
         {
           model: 'llama-3.3-70b-versatile',
           messages: [
-            { role: 'system', content: systemPrompt || "You are OmniAI, a helpful assistant for SchoolHub school management system." },
+            { role: 'system', content: systemPrompt || "You are OmniAI, a helpful assistant for Skoola school management system." },
             { role: 'user', content: prompt }
           ],
           temperature: 0.7
@@ -219,7 +219,7 @@ const getGeminiResponse = async (prompt: string, orgId: string, systemPrompt?: s
           {
             model: 'llama-3.1-8b-instant',
             messages: [
-              { role: 'system', content: systemPrompt || "You are OmniAI, a helpful assistant for SchoolHub school management system." },
+              { role: 'system', content: systemPrompt || "You are OmniAI, a helpful assistant for Skoola school management system." },
               { role: 'user', content: prompt }
             ],
             temperature: 0.7
@@ -245,7 +245,7 @@ const getGeminiResponse = async (prompt: string, orgId: string, systemPrompt?: s
       model: 'gemini-2.5-flash',
       contents: prompt,
       config: {
-        systemInstruction: systemPrompt || "You are OmniAI, a helpful assistant for SchoolHub school management system."
+        systemInstruction: systemPrompt || "You are OmniAI, a helpful assistant for Skoola school management system."
       }
     });
     return response.text || null;
@@ -952,7 +952,7 @@ Warm regards,
 
 **${userName}**
 *Office of the Administrator*
-SchoolHub Management Console`;
+Skoola Management Console`;
 };
 
 const buildSchoolContext = async (req: AuthRequest) => {
@@ -1219,7 +1219,7 @@ export const generateResponse = async (req: AuthRequest, res: Response) => {
 
     // 3. Try Gemini with rich school context for truly open-ended questions
     const schoolContext = await buildSchoolContext(req);
-    const enrichedSystemPrompt = `You are OmniAI, an intelligent school management assistant for SchoolHub.
+    const enrichedSystemPrompt = `You are OmniAI, an intelligent school management assistant for Skoola.
 You have access to the following real-time school data about the current user and their school:
 
 ${schoolContext}
