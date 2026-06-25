@@ -224,13 +224,10 @@ export default function LandingPage({ onGetStarted, onLogin, onPartnerLogin }: L
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.1 }}
-                      className="inline-flex items-center gap-2 px-3 py-1 bg-indigo-50 dark:bg-indigo-900/20 rounded-full border border-indigo-100 dark:border-indigo-900/30"
+                      className="inline-flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-700 shadow-sm"
                     >
-                      <span className="relative flex h-2 w-2">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
-                      </span>
-                      <span className="text-[8px] md:text-[9px] font-black uppercase tracking-widest text-indigo-600 dark:text-indigo-400">{t('next_gen_platform')}</span>
+                      <span className="text-base leading-none">🏫</span>
+                      <span className="text-[10px] md:text-[11px] font-bold tracking-wide text-zinc-700 dark:text-zinc-300">{t('next_gen_platform')}</span>
                     </motion.div>
 
                     <h1 className="text-xl sm:text-4xl lg:text-5xl font-black tracking-tight leading-[0.95] md:leading-[0.9]" dangerouslySetInnerHTML={{ __html: t('hero_title').replace('School', '<span class="text-indigo-600">School</span>').replace('école', '<span class="text-indigo-600">école</span>').replace('escola', '<span class="text-indigo-600">escola</span>').replace('Shule', '<span class="text-indigo-600">Shule</span>').replace('مدرستك', '<span class="text-indigo-600">مدرستك</span>') }} />
