@@ -158,14 +158,14 @@ export default function Login({ onLogin, onBack, organization }: LoginProps) {
                 {t('email_or_phone')}
               </label>
               <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-indigo-600" />
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-indigo-400 peer-focus:text-indigo-700 transition-colors pointer-events-none" />
                 <input
                   type="text"
                   required
                   autoComplete="off"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-12 pr-6 py-4 bg-white/60 border border-zinc-200/60 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all text-sm text-zinc-800 placeholder-zinc-400/80 backdrop-blur-sm"
+                  className="peer w-full pl-12 pr-6 py-4 bg-white/60 border border-zinc-200/60 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 outline-none transition-all text-sm text-zinc-800 placeholder-zinc-400/80 backdrop-blur-sm"
                   placeholder={t('email_or_phone') + '...'}
                 />
               </div>
@@ -181,14 +181,14 @@ export default function Login({ onLogin, onBack, organization }: LoginProps) {
                 </button>
               </div>
               <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-indigo-600" />
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-indigo-400 peer-focus:text-indigo-700 transition-colors pointer-events-none" />
                 <input
                   type={showPassword ? 'text' : 'password'}
                   required
                   autoComplete="new-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-12 pr-12 py-4 bg-white/60 border border-zinc-200/60 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all text-sm text-zinc-800 placeholder-zinc-400/80 backdrop-blur-sm"
+                  className="peer w-full pl-12 pr-12 py-4 bg-white/60 border border-zinc-200/60 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 outline-none transition-all text-sm text-zinc-800 placeholder-zinc-400/80 backdrop-blur-sm"
                   placeholder="••••••••"
                 />
                 <button
