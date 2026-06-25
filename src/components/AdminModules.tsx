@@ -1509,7 +1509,7 @@ export function SubscriptionPlans({ data, onRefresh, organizations = [], plans =
         <body>
           <div class="header">
             <div>
-              <div class="logo">OMNISCHOOL</div>
+              <div class="logo">SKOOLA</div>
               <div style="font-size: 12px; color: #71717a; margin-top: 4px;">Smart School Management Ecosystem</div>
             </div>
             <div class="receipt-title">RECEIPT</div>
@@ -1564,8 +1564,8 @@ export function SubscriptionPlans({ data, onRefresh, organizations = [], plans =
           </div>
 
           <div class="footer">
-            <p>Thank you for choosing OmniSchool. This is a computer generated receipt.</p>
-            <p>&copy; ${new Date().getFullYear()} OmniSchool Management Systems. All rights reserved.</p>
+            <p>Thank you for choosing Skoola. This is a computer generated receipt.</p>
+            <p>&copy; ${new Date().getFullYear()} Skoola Management Systems. All rights reserved.</p>
           </div>
 
           <script>window.onload = () => { window.print(); window.close(); }</script>
@@ -3433,7 +3433,7 @@ export function Settings({ role }: { role?: UserRole }) {
                     maxLength={11}
                     value={organization?.sms_sender_id || ''}
                     onChange={(e) => setOrganization({ ...organization, sms_sender_id: e.target.value.toUpperCase() })}
-                    placeholder="e.g., OMNISCHOOL"
+                    placeholder="e.g., SKOOLA"
                     className="w-full px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 font-bold tracking-wider"
                   />
                   <p className="text-[10px] text-zinc-500 italic">This ID will appear as the sender of your school's SMS messages. Max 11 characters.</p>
