@@ -224,9 +224,9 @@ export default function LandingPage({ onGetStarted, onLogin, onPartnerLogin }: L
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.1 }}
-                      className="inline-flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-700 shadow-sm"
+                      className="inline-flex items-center gap-2.5 px-3 py-1.5 bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-700 shadow-sm"
                     >
-                      <span className="text-base leading-none">🏫</span>
+                      <span className="w-1 h-3.5 rounded-full bg-indigo-500 block"></span>
                       <span className="text-[10px] md:text-[11px] font-bold tracking-wide text-zinc-700 dark:text-zinc-300">{t('next_gen_platform')}</span>
                     </motion.div>
 
