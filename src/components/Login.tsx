@@ -157,15 +157,15 @@ export default function Login({ onLogin, onBack, organization }: LoginProps) {
               <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-4 mb-1 block">
                 {t('email_or_phone')}
               </label>
-              <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-indigo-400 peer-focus:text-indigo-700 transition-colors pointer-events-none" />
+              <div className="relative group">
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400 group-focus-within:text-indigo-600 transition-colors pointer-events-none" />
                 <input
                   type="text"
                   required
                   autoComplete="off"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="peer w-full pl-12 pr-6 py-4 bg-white/60 border border-zinc-200/60 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 outline-none transition-all text-sm text-zinc-800 placeholder-zinc-400/80 backdrop-blur-sm"
+                  className="w-full pl-12 pr-6 py-4 bg-white/60 border border-zinc-200/60 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 outline-none transition-all text-sm text-zinc-800 placeholder-zinc-400/80 backdrop-blur-sm"
                   placeholder={t('email_or_phone') + '...'}
                 />
               </div>
@@ -180,15 +180,15 @@ export default function Login({ onLogin, onBack, organization }: LoginProps) {
                   {t('forgot_password')}
                 </button>
               </div>
-              <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-indigo-400 peer-focus:text-indigo-700 transition-colors pointer-events-none" />
+              <div className="relative group">
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400 group-focus-within:text-indigo-600 transition-colors pointer-events-none" />
                 <input
                   type={showPassword ? 'text' : 'password'}
                   required
                   autoComplete="new-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="peer w-full pl-12 pr-12 py-4 bg-white/60 border border-zinc-200/60 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 outline-none transition-all text-sm text-zinc-800 placeholder-zinc-400/80 backdrop-blur-sm"
+                  className="w-full pl-12 pr-12 py-4 bg-white/60 border border-zinc-200/60 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 outline-none transition-all text-sm text-zinc-800 placeholder-zinc-400/80 backdrop-blur-sm"
                   placeholder="••••••••"
                 />
                 <button
