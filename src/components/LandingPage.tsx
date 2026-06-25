@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import kasanowLogo from '../image/logo.jpg';
+import ohenebaLogo from '../image/oheneba_logo.png';
 import { cn } from '../lib/utils';
 import { useLanguage } from '../lib/LanguageContext';
 import { registerPartner, loginPartner, requestDemo } from '../lib/api';
@@ -359,8 +360,8 @@ export default function LandingPage({ onGetStarted, onLogin, onPartnerLogin }: L
                         </div>
 
                         <div className="flex items-center gap-4 group/partner cursor-default opacity-60 hover:opacity-100 transition-opacity">
-                          <div className="w-12 h-12 md:w-16 md:h-16 bg-amber-50 dark:bg-amber-900/20 rounded-2xl flex items-center justify-center border border-amber-100/50 dark:border-amber-800/50 group-hover/partner:scale-110 group-hover/partner:rotate-6 transition-all duration-500 shadow-lg shadow-amber-500/5">
-                            <Tv className="w-6 h-6 md:w-8 md:h-8 text-amber-600" />
+                          <div className="w-12 h-12 md:w-16 md:h-16 rounded-2xl overflow-hidden flex items-center justify-center border border-amber-100/50 dark:border-amber-800/50 group-hover/partner:scale-110 group-hover/partner:rotate-6 transition-all duration-500 shadow-lg shadow-amber-500/5">
+                            <img src={ohenebaLogo} alt="Oheneba Media Logo" className="w-full h-full object-contain" />
                           </div>
                           <div className="text-left">
                             <span className="block text-sm md:text-base font-black tracking-tight uppercase leading-none text-zinc-900 dark:text-white">Oheneba</span>
