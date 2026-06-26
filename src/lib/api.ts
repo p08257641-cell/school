@@ -110,6 +110,17 @@ export const resetPartnerPassword = async (id: string) => {
   return response.data;
 };
 
+export const fetchPartnerLeads = async () => {
+  const response = await api.get('/partners-leads');
+  return response.data;
+};
+
+export const deletePartnerLead = async (id: number) => {
+  const response = await api.delete(`/partners-leads/${id}`);
+  return response.data;
+};
+
+
 export const registerPlatformUser = async (user: any) => {
   const response = await api.post('/auth/register', user);
   return response.data;

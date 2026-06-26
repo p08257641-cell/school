@@ -77,6 +77,8 @@ import {
   awardPartnerReward,
   fetchPartnerRewards,
   deletePartnerReward,
+  fetchPartnerLeads,
+  deletePartnerLead,
   syncPublicHolidays,
   saveAIKey,
   fetchAIKeys,
@@ -4277,17 +4279,21 @@ export function DocumentBuilder({ data = [], onRefresh, organization, lockedType
 
 export function PartnersManagement({ onRefresh }: { onRefresh?: () => void }) {
   const { t } = useLanguage();
+  const [activeTab, setActiveTab] = useState<'partners' | 'leads'>('partners');
   const [partners, setPartners] = useState<any[]>([]);
+  const [leads, setLeads] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPartner, setEditingPartner] = useState<any>(null);
   const [viewingPartner, setViewingPartner] = useState<any>(null);
+  const [approvedLeadId, setApprovedLeadId] = useState<number | null>(null);
   const [formData, setFormData] = useState({
     name: '', email: '', password: 'zxcv123$$', contact_number: '', company_name: '', registration_number: '', status: 'Active', language: 'en', currency: 'GH₵'
   });
   const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean, partner: any | null }>({ isOpen: false, partner: null });
   const [resetConfirm, setResetConfirm] = useState<{ isOpen: boolean, partner: any | null }>({ isOpen: false, partner: null });
   const [rewardModal, setRewardModal] = useState<{ isOpen: boolean, partner: any | null }>({ isOpen: false, partner: null });
+  const [deleteLeadConfirm, setDeleteLeadConfirm] = useState<{ isOpen: boolean, leadId: number | null, companyName: string }>({ isOpen: false, leadId: null, companyName: '' });
 
   const loadPartners = async () => {
     try {
@@ -4301,19 +4307,56 @@ export function PartnersManagement({ onRefresh }: { onRefresh?: () => void }) {
     }
   };
 
-  useEffect(() => { loadPartners(); }, []);
+  const loadLeads = async () => {
+    try {
+      setLoading(true);
+      const data = await fetchPartnerLeads();
+      setLeads(data);
+    } catch (err) {
+      console.error('Failed to load partner leads:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'partners') {
+      loadPartners();
+    } else {
+      loadLeads();
+    }
+  }, [activeTab]);
 
   const handleAdd = () => {
     setEditingPartner(null);
+    setApprovedLeadId(null);
     setFormData({ name: '', email: '', password: 'zxcv123$$', contact_number: '', company_name: '', registration_number: '', status: 'Active', language: 'en', currency: 'GH₵' });
     setIsModalOpen(true);
   };
 
   const handleEdit = (partner: any) => {
     setEditingPartner(partner);
+    setApprovedLeadId(null);
     setFormData({
       name: partner.name, email: partner.email, password: '', contact_number: partner.contact_number || '',
       company_name: partner.company_name || '', registration_number: partner.registration_number || '', status: partner.status || 'Active', language: partner.language || 'en', currency: partner.currency || 'GH₵'
+    });
+    setIsModalOpen(true);
+  };
+
+  const handleApproveLead = (lead: any) => {
+    setEditingPartner(null);
+    setApprovedLeadId(lead.id);
+    setFormData({
+      name: '',
+      email: lead.email,
+      password: 'zxcv123$$',
+      contact_number: '',
+      company_name: lead.company_name,
+      registration_number: '',
+      status: 'Active',
+      language: 'en',
+      currency: 'GH₵'
     });
     setIsModalOpen(true);
   };
@@ -4327,9 +4370,17 @@ export function PartnersManagement({ onRefresh }: { onRefresh?: () => void }) {
       } else {
         await createPartnerAdmin(formData);
         (window as any).showToast?.('Partner created successfully!', 'success');
+        if (approvedLeadId) {
+          await deletePartnerLead(approvedLeadId);
+          setApprovedLeadId(null);
+        }
       }
       setIsModalOpen(false);
-      loadPartners();
+      if (activeTab === 'partners') {
+        loadPartners();
+      } else {
+        setActiveTab('partners'); // Switch tab to see active partners list
+      }
     } catch (err: any) {
       (window as any).showToast?.(err, 'error');
     }
@@ -4356,6 +4407,18 @@ export function PartnersManagement({ onRefresh }: { onRefresh?: () => void }) {
     }
   };
 
+  const handleConfirmDeleteLead = async () => {
+    if (!deleteLeadConfirm.leadId) return;
+    try {
+      await deletePartnerLead(deleteLeadConfirm.leadId);
+      (window as any).showToast?.('Partner application deleted!', 'success');
+      loadLeads();
+      setDeleteLeadConfirm({ isOpen: false, leadId: null, companyName: '' });
+    } catch (err) {
+      (window as any).showToast?.(err, 'error');
+    }
+  };
+
   const handleConfirmReset = async () => {
     if (!resetConfirm.partner) return;
     try {
@@ -4377,33 +4440,82 @@ export function PartnersManagement({ onRefresh }: { onRefresh?: () => void }) {
 
   return (
     <div className="space-y-8">
-      <DataTable
-        title="Partner Management"
-        data={partners}
-        onAdd={handleAdd}
-        onEdit={handleEdit}
-        autoModal={false}
-        autoViewModal={false}
-        onDelete={(p: any) => setDeleteConfirm({ isOpen: true, partner: p })}
-        onView={(p: any) => setViewingPartner(p)}
-        columns={[
-          { header: 'Name', accessor: 'name', className: 'font-bold' },
-          { header: 'Company', accessor: 'company_name', className: 'text-zinc-500' },
-          { header: 'Email', accessor: 'email', className: 'text-zinc-500' },
-          { header: 'Status', accessor: (item: any) => statusBadge(item.status || 'Pending') },
-          { header: 'Referral Code', accessor: 'referral_code', className: 'font-mono text-indigo-600' },
-          { header: 'Earnings', accessor: (item: any) => `${item.currency || 'GH₵'} ${parseFloat(item.converted_total_earnings || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` }
-        ]}
-        extraActions={(p: any) => (
-          <button
-            onClick={() => setRewardModal({ isOpen: true, partner: p })}
-            className="flex items-center w-full gap-3 px-3 py-2 text-sm text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 hover:text-indigo-600 rounded-lg transition-colors"
-          >
-            <Award className="w-4 h-4" />
-            Awards & Rewards
-          </button>
-        )}
-      />
+      {/* Tabs */}
+      <div className="flex gap-4 border-b border-zinc-200 dark:border-zinc-800 pb-px">
+        <button
+          onClick={() => setActiveTab('partners')}
+          className={`pb-4 px-2 text-sm font-bold border-b-2 transition-all ${
+            activeTab === 'partners'
+              ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400'
+              : 'border-transparent text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300'
+          }`}
+        >
+          Active Partners ({partners.length})
+        </button>
+        <button
+          onClick={() => setActiveTab('leads')}
+          className={`pb-4 px-2 text-sm font-bold border-b-2 transition-all ${
+            activeTab === 'leads'
+              ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400'
+              : 'border-transparent text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300'
+          }`}
+        >
+          Partner Applications ({leads.length})
+        </button>
+      </div>
+
+      {activeTab === 'partners' ? (
+        <DataTable
+          title="Partner Management"
+          data={partners}
+          onAdd={handleAdd}
+          onEdit={handleEdit}
+          autoModal={false}
+          autoViewModal={false}
+          onDelete={(p: any) => setDeleteConfirm({ isOpen: true, partner: p })}
+          onView={(p: any) => setViewingPartner(p)}
+          columns={[
+            { header: 'Name', accessor: 'name', className: 'font-bold' },
+            { header: 'Company', accessor: 'company_name', className: 'text-zinc-500' },
+            { header: 'Email', accessor: 'email', className: 'text-zinc-500' },
+            { header: 'Status', accessor: (item: any) => statusBadge(item.status || 'Pending') },
+            { header: 'Referral Code', accessor: 'referral_code', className: 'font-mono text-indigo-600' },
+            { header: 'Earnings', accessor: (item: any) => `${item.currency || 'GH₵'} ${parseFloat(item.converted_total_earnings || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` }
+          ]}
+          extraActions={(p: any) => (
+            <button
+              onClick={() => setRewardModal({ isOpen: true, partner: p })}
+              className="flex items-center w-full gap-3 px-3 py-2 text-sm text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 hover:text-indigo-600 rounded-lg transition-colors"
+            >
+              <Award className="w-4 h-4" />
+              Awards & Rewards
+            </button>
+          )}
+        />
+      ) : (
+        <DataTable
+          title="Partner Applications"
+          data={leads}
+          autoModal={false}
+          autoViewModal={false}
+          onDelete={(lead: any) => setDeleteLeadConfirm({ isOpen: true, leadId: lead.id, companyName: lead.company_name })}
+          columns={[
+            { header: 'Company Name', accessor: 'company_name', className: 'font-bold' },
+            { header: 'Business Email', accessor: 'email', className: 'text-zinc-500 font-medium' },
+            { header: 'Country', accessor: 'country', className: 'text-zinc-500' },
+            { header: 'Submitted At', accessor: (item: any) => new Date(item.submitted_at).toLocaleString() }
+          ]}
+          extraActions={(lead: any) => (
+            <button
+              onClick={() => handleApproveLead(lead)}
+              className="flex items-center w-full gap-3 px-3 py-2 text-sm text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/20 rounded-lg transition-colors font-bold"
+            >
+              <Check className="w-4 h-4" />
+              Approve Lead
+            </button>
+          )}
+        />
+      )}
 
       {/* View Partner Details */}
       <Modal isOpen={!!viewingPartner} onClose={() => setViewingPartner(null)} title="Partner Details" maxWidth="max-w-2xl">
@@ -4570,6 +4682,14 @@ export function PartnersManagement({ onRefresh }: { onRefresh?: () => void }) {
         onConfirm={handleConfirmReset}
         title="Reset Partner Password"
         message={`Are you sure you want to reset the password for "${resetConfirm.partner?.name}" back to the default (zxcv123$$)?`}
+      />
+
+      <ConfirmationModal
+        isOpen={deleteLeadConfirm.isOpen}
+        onClose={() => setDeleteLeadConfirm({ ...deleteLeadConfirm, isOpen: false })}
+        onConfirm={handleConfirmDeleteLead}
+        title="Delete Partner Application"
+        message={`Are you sure you want to delete the partnership application from "${deleteLeadConfirm.companyName}"? This action cannot be undone.`}
       />
     </div>
   );

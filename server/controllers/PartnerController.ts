@@ -435,3 +435,24 @@ export const deleteReward = async (req: AuthRequest, res: Response) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+export const getPartnerLeads = async (req: AuthRequest, res: Response) => {
+  try {
+    const result = await pool.query('SELECT * FROM partner_leads ORDER BY submitted_at DESC');
+    res.json(result.rows);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+export const deletePartnerLead = async (req: AuthRequest, res: Response) => {
+  const { id } = req.params;
+  try {
+    const result = await pool.query('DELETE FROM partner_leads WHERE id = $1 RETURNING id', [id]);
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Partner lead not found' });
+    res.json({ message: 'Partner lead deleted successfully' });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
