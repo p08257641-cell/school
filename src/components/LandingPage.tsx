@@ -21,6 +21,7 @@ import ohenebaLogo from '../image/oheneba_logo.png';
 import { cn } from '../lib/utils';
 import { useLanguage } from '../lib/LanguageContext';
 import { registerPartner, loginPartner, requestDemo } from '../lib/api';
+import { API_BASE_URL } from '../constants';
 import { UserRole } from '../types';
 import { Modal } from './UI';
 
@@ -604,11 +605,26 @@ export default function LandingPage({ onGetStarted, onLogin, onPartnerLogin }: L
                             return;
                           }
                           setPartnerLoading(true);
-                          // Simulate a submission for lead generation
-                          setTimeout(() => {
-                            setPartnerLoading(false);
+                          try {
+                            const res = await fetch(`${API_BASE_URL}/partner-leads`, {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({
+                                company_name: partnerLeadData.company_name,
+                                email: partnerLeadData.email,
+                                country: partnerLeadData.country,
+                              }),
+                            });
+                            if (!res.ok) {
+                              const err = await res.json();
+                              throw new Error(err.error || 'Submission failed');
+                            }
                             setIsPartnerSubmitted(true);
-                          }, 1500);
+                          } catch (err: any) {
+                            (window as any).showToast?.(err.message || 'Failed to submit. Please try again.', 'error');
+                          } finally {
+                            setPartnerLoading(false);
+                          }
                         }}
                       >
                         <div>

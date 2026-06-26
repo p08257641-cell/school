@@ -41,6 +41,22 @@ router.post('/auth/register', AuthController.register);
 router.post('/auth/partner/login', PartnerController.login);
 router.post('/auth/partner/register', PartnerController.register);
 router.post('/demo-request', OrganizationController.requestDemo);
+router.post('/partner-leads', async (req: any, res: any) => {
+  const { company_name, email, country } = req.body;
+  if (!company_name || !email || !country) {
+    return res.status(400).json({ error: 'company_name, email, and country are required.' });
+  }
+  try {
+    await pool.query(
+      'INSERT INTO partner_leads (company_name, email, country) VALUES ($1, $2, $3)',
+      [company_name, email, country]
+    );
+    return res.status(201).json({ success: true, message: 'Partnership application received.' });
+  } catch (err: any) {
+    console.error('Error saving partner lead:', err.message);
+    return res.status(500).json({ error: 'Failed to save application. Please try again.' });
+  }
+});
 router.get('/public/organization-by-domain', OrganizationController.getOrganizationByDomain);
 router.get('/public/report-card/:token', ExamController.getPublicReportCardData);
 router.get('/public/fee-history/:token', FinanceController.getPublicFeeHistoryData);

@@ -26,6 +26,16 @@ export async function init() {
     `);
 
     await client.query(`
+      CREATE TABLE IF NOT EXISTS partner_leads (
+        id SERIAL PRIMARY KEY,
+        company_name TEXT NOT NULL,
+        email TEXT NOT NULL,
+        country TEXT NOT NULL,
+        submitted_at TIMESTAMPTZ DEFAULT NOW()
+      )
+    `);
+
+    await client.query(`
       CREATE TABLE IF NOT EXISTS organizations (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         name VARCHAR(255) NOT NULL,
