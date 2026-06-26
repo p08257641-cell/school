@@ -26,6 +26,24 @@ import { InventoryController } from '../controllers/InventoryController.ts';
 import { verifyToken, checkRole } from '../middleware/auth.ts';
 import pool from '../db.ts';
 import bcrypt from 'bcryptjs';
+import { EmailService } from '../services/EmailService.ts';
+
+// In-memory OTP storage for partner email verification
+interface OTPData {
+  otp: string;
+  expiresAt: number;
+}
+const otpStore = new Map<string, OTPData>();
+
+// Helper to clean up expired OTPs (runs periodically every 5 minutes)
+setInterval(() => {
+  const now = Date.now();
+  for (const [email, data] of otpStore.entries()) {
+    if (data.expiresAt < now) {
+      otpStore.delete(email);
+    }
+  }
+}, 5 * 60 * 1000);
 
 const router = Router();
 
@@ -41,7 +59,8 @@ router.post('/auth/register', AuthController.register);
 router.post('/auth/partner/login', PartnerController.login);
 router.post('/auth/partner/register', PartnerController.register);
 router.post('/demo-request', OrganizationController.requestDemo);
-router.post('/partner-leads', async (req: any, res: any) => {
+
+router.post('/partner-leads/send-otp', async (req: any, res: any) => {
   const { company_name, email, country } = req.body;
   if (!company_name || !email || !country) {
     return res.status(400).json({ error: 'company_name, email, and country are required.' });
@@ -52,17 +71,65 @@ router.post('/partner-leads', async (req: any, res: any) => {
     'gmx.com', 'live.com', 'msn.com', 'proton.me'
   ];
   const emailDomain = email.split('@')[1]?.toLowerCase().trim();
-  if (freeDomains.includes(emailDomain)) {
+  const isTestingException = email.toLowerCase().trim() === 'danieldnkansah@gmail.com';
+  if (freeDomains.includes(emailDomain) && !isTestingException) {
     return res.status(400).json({ error: 'Please use a business email address (personal accounts like Gmail, Yahoo, etc. are not allowed).' });
   }
+
+  try {
+    // Generate a 6-digit numeric OTP code
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const normalizedEmail = email.toLowerCase().trim();
+
+    // Store in-memory with 10-minute expiry
+    otpStore.set(normalizedEmail, {
+      otp,
+      expiresAt: Date.now() + 10 * 60 * 1000,
+    });
+
+    // Send OTP email
+    await EmailService.sendOTP(normalizedEmail, otp);
+
+    return res.status(200).json({ success: true, message: 'Verification code sent to your email.' });
+  } catch (err: any) {
+    console.error('Error sending OTP for partner lead:', err.message);
+    return res.status(500).json({ error: err.message || 'Failed to send verification email. Please check your email address and try again.' });
+  }
+});
+
+router.post('/partner-leads/verify-otp', async (req: any, res: any) => {
+  const { company_name, email, country, otp } = req.body;
+  if (!company_name || !email || !country || !otp) {
+    return res.status(400).json({ error: 'company_name, email, country, and otp are required.' });
+  }
+
+  const normalizedEmail = email.toLowerCase().trim();
+  const storedOtpData = otpStore.get(normalizedEmail);
+
+  if (!storedOtpData) {
+    return res.status(400).json({ error: 'No verification code found or it has expired. Please request a new one.' });
+  }
+
+  if (storedOtpData.expiresAt < Date.now()) {
+    otpStore.delete(normalizedEmail);
+    return res.status(400).json({ error: 'Verification code has expired. Please request a new one.' });
+  }
+
+  if (storedOtpData.otp !== otp.trim()) {
+    return res.status(400).json({ error: 'Invalid verification code. Please check your email and try again.' });
+  }
+
+  // Clear OTP on successful verification
+  otpStore.delete(normalizedEmail);
+
   try {
     await pool.query(
       'INSERT INTO partner_leads (company_name, email, country) VALUES ($1, $2, $3)',
       [company_name, email, country]
     );
-    return res.status(201).json({ success: true, message: 'Partnership application received.' });
+    return res.status(201).json({ success: true, message: 'Partnership application received and verified.' });
   } catch (err: any) {
-    console.error('Error saving partner lead:', err.message);
+    console.error('Error saving verified partner lead:', err.message);
     return res.status(500).json({ error: 'Failed to save application. Please try again.' });
   }
 });

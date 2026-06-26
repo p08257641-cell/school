@@ -51,6 +51,9 @@ export default function LandingPage({ onGetStarted, onLogin, onPartnerLogin }: L
     acceptedTerms: false
   });
   const [partnerLoading, setPartnerLoading] = useState(false);
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpValue, setOtpValue] = useState('');
+  const [resendLoading, setResendLoading] = useState(false);
 
   useEffect(() => {
     // Scroll to top when section changes
@@ -59,6 +62,20 @@ export default function LandingPage({ onGetStarted, onLogin, onPartnerLogin }: L
       mainEl.scrollTop = 0;
     }
   }, [activeSection]);
+
+  useEffect(() => {
+    if (!showPartnerModal) {
+      setIsPartnerSubmitted(false);
+      setOtpSent(false);
+      setOtpValue('');
+      setPartnerLeadData({
+        email: '',
+        company_name: '',
+        country: '',
+        acceptedTerms: false
+      });
+    }
+  }, [showPartnerModal]);
 
   const handlePolicyClick = (e: React.MouseEvent) => {
     const target = e.target as HTMLElement;
@@ -600,102 +617,210 @@ export default function LandingPage({ onGetStarted, onLogin, onPartnerLogin }: L
                         className="space-y-3 md:space-y-4 text-left"
                         onSubmit={async (e) => {
                           e.preventDefault();
-                          if (!partnerLeadData.acceptedTerms) {
-                            (window as any).showToast?.('Please accept the terms and conditions', 'error');
-                            return;
-                          }
-                          const freeDomains = [
-                            'gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 'aol.com',
-                            'mail.com', 'zoho.com', 'protonmail.com', 'yandex.com', 'icloud.com',
-                            'gmx.com', 'live.com', 'msn.com', 'proton.me'
-                          ];
-                          const emailDomain = partnerLeadData.email.split('@')[1]?.toLowerCase().trim();
-                          if (freeDomains.includes(emailDomain)) {
-                            (window as any).showToast?.('Please use a business email address (personal accounts like Gmail, Yahoo, etc. are not allowed).', 'error');
-                            return;
-                          }
-                          setPartnerLoading(true);
-                          try {
-                            const res = await fetch(`${API_BASE_URL}/partner-leads`, {
-                              method: 'POST',
-                              headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify({
-                                company_name: partnerLeadData.company_name,
-                                email: partnerLeadData.email,
-                                country: partnerLeadData.country,
-                              }),
-                            });
-                            if (!res.ok) {
-                              const err = await res.json();
-                              throw new Error(err.error || 'Submission failed');
+                          if (!otpSent) {
+                            if (!partnerLeadData.acceptedTerms) {
+                              (window as any).showToast?.('Please accept the terms and conditions', 'error');
+                              return;
                             }
-                            setIsPartnerSubmitted(true);
-                          } catch (err: any) {
-                            (window as any).showToast?.(err.message || 'Failed to submit. Please try again.', 'error');
-                          } finally {
-                            setPartnerLoading(false);
+                            const freeDomains = [
+                              'gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 'aol.com',
+                              'mail.com', 'zoho.com', 'protonmail.com', 'yandex.com', 'icloud.com',
+                              'gmx.com', 'live.com', 'msn.com', 'proton.me'
+                            ];
+                            const emailDomain = partnerLeadData.email.split('@')[1]?.toLowerCase().trim();
+                            const isTestingException = partnerLeadData.email.toLowerCase().trim() === 'danieldnkansah@gmail.com';
+                            if (freeDomains.includes(emailDomain) && !isTestingException) {
+                              (window as any).showToast?.('Please use a business email address (personal accounts like Gmail, Yahoo, etc. are not allowed).', 'error');
+                              return;
+                            }
+                            setPartnerLoading(true);
+                            try {
+                              const res = await fetch(`${API_BASE_URL}/partner-leads/send-otp`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                  company_name: partnerLeadData.company_name,
+                                  email: partnerLeadData.email,
+                                  country: partnerLeadData.country,
+                                }),
+                              });
+                              if (!res.ok) {
+                                const err = await res.json();
+                                throw new Error(err.error || 'Failed to send verification code');
+                              }
+                              setOtpSent(true);
+                              (window as any).showToast?.('Verification code sent to your email.', 'success');
+                            } catch (err: any) {
+                              (window as any).showToast?.(err.message || 'Failed to send OTP. Please try again.', 'error');
+                            } finally {
+                              setPartnerLoading(false);
+                            }
+                          } else {
+                            if (!otpValue || otpValue.trim().length !== 6) {
+                              (window as any).showToast?.('Please enter the 6-digit verification code.', 'error');
+                              return;
+                            }
+                            setPartnerLoading(true);
+                            try {
+                              const res = await fetch(`${API_BASE_URL}/partner-leads/verify-otp`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                  company_name: partnerLeadData.company_name,
+                                  email: partnerLeadData.email,
+                                  country: partnerLeadData.country,
+                                  otp: otpValue.trim(),
+                                }),
+                              });
+                              if (!res.ok) {
+                                const err = await res.json();
+                                throw new Error(err.error || 'Verification failed');
+                              }
+                              setIsPartnerSubmitted(true);
+                            } catch (err: any) {
+                              (window as any).showToast?.(err.message || 'Verification failed. Please try again.', 'error');
+                            } finally {
+                              setPartnerLoading(false);
+                            }
                           }
                         }}
                       >
-                        <div>
-                          <label className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-3 md:ml-4 mb-1 block">{t('company_name')}</label>
-                          <input
-                            required
-                            type="text"
-                            value={partnerLeadData.company_name}
-                            onChange={e => setPartnerLeadData({ ...partnerLeadData, company_name: e.target.value })}
-                            className="w-full px-5 md:px-6 py-3 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
-                            placeholder="e.g. Acme Solutions"
-                          />
-                        </div>
-                        <div>
-                          <label className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-3 md:ml-4 mb-1 block">{t('business_email')}</label>
-                          <input
-                            required
-                            type="email"
-                            value={partnerLeadData.email}
-                            onChange={e => setPartnerLeadData({ ...partnerLeadData, email: e.target.value })}
-                            className="w-full px-5 md:px-6 py-3 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
-                            placeholder="partners@acme.com"
-                          />
-                        </div>
-                        <div>
-                          <label className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-3 md:ml-4 mb-1 block">{t('country')}</label>
-                          <input
-                            required
-                            type="text"
-                            value={partnerLeadData.country}
-                            onChange={e => setPartnerLeadData({ ...partnerLeadData, country: e.target.value })}
-                            className="w-full px-5 md:px-6 py-3 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
-                            placeholder="e.g. Ghana"
-                          />
-                        </div>
+                        {!otpSent ? (
+                          <>
+                            <div>
+                              <label className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-3 md:ml-4 mb-1 block">{t('company_name')}</label>
+                              <input
+                                required
+                                type="text"
+                                value={partnerLeadData.company_name}
+                                onChange={e => setPartnerLeadData({ ...partnerLeadData, company_name: e.target.value })}
+                                className="w-full px-5 md:px-6 py-3 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
+                                placeholder="e.g. Acme Solutions"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-3 md:ml-4 mb-1 block">{t('business_email')}</label>
+                              <input
+                                required
+                                type="email"
+                                value={partnerLeadData.email}
+                                onChange={e => setPartnerLeadData({ ...partnerLeadData, email: e.target.value })}
+                                className="w-full px-5 md:px-6 py-3 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
+                                placeholder="partners@acme.com"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-3 md:ml-4 mb-1 block">{t('country')}</label>
+                              <input
+                                required
+                                type="text"
+                                value={partnerLeadData.country}
+                                onChange={e => setPartnerLeadData({ ...partnerLeadData, country: e.target.value })}
+                                className="w-full px-5 md:px-6 py-3 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
+                                placeholder="e.g. Ghana"
+                              />
+                            </div>
 
-                        <div className="flex items-start gap-3 px-1 py-2">
-                          <input
-                            required
-                            type="checkbox"
-                            id="terms"
-                            checked={partnerLeadData.acceptedTerms}
-                            onChange={e => setPartnerLeadData({ ...partnerLeadData, acceptedTerms: e.target.checked })}
-                            className="mt-1 w-4 h-4 rounded border-zinc-300 text-emerald-600 focus:ring-emerald-500"
-                          />
-                          <label
-                            htmlFor="terms"
-                            onClick={handlePolicyClick}
-                            className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed font-medium cursor-pointer"
-                            dangerouslySetInnerHTML={{ __html: t('agree_terms').replace('{terms}', `<a href="#" class="policy-link text-emerald-600 font-bold hover:underline">${t('partner_terms')}</a>`).replace('{privacy}', `<a href="#" class="policy-link text-emerald-600 font-bold hover:underline">${t('privacy')}</a>`) }}
-                          />
+                            <div className="flex items-start gap-3 px-1 py-2">
+                              <input
+                                required
+                                type="checkbox"
+                                id="terms"
+                                checked={partnerLeadData.acceptedTerms}
+                                onChange={e => setPartnerLeadData({ ...partnerLeadData, acceptedTerms: e.target.checked })}
+                                className="mt-1 w-4 h-4 rounded border-zinc-300 text-emerald-600 focus:ring-emerald-500"
+                              />
+                              <label
+                                htmlFor="terms"
+                                onClick={handlePolicyClick}
+                                className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed font-medium cursor-pointer"
+                                dangerouslySetInnerHTML={{ __html: t('agree_terms').replace('{terms}', `<a href="#" class="policy-link text-emerald-600 font-bold hover:underline">${t('partner_terms')}</a>`).replace('{privacy}', `<a href="#" class="policy-link text-emerald-600 font-bold hover:underline">${t('privacy')}</a>`) }}
+                              />
+                            </div>
 
-                        </div>
+                            <button
+                              type="submit"
+                              disabled={partnerLoading}
+                              className="w-full py-4 bg-emerald-600 text-white rounded-xl font-bold text-sm hover:bg-emerald-700 transition-all shadow-xl shadow-emerald-200 dark:shadow-none disabled:opacity-50 disabled:cursor-not-allowed mt-2"
+                            >
+                              {partnerLoading ? 'Sending...' : 'Send Verification Code'}
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <div className="bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-800 rounded-2xl p-4 mb-4 text-center">
+                              <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
+                                A 6-digit verification code has been sent to
+                              </p>
+                              <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400 mt-1 break-all">
+                                {partnerLeadData.email}
+                              </p>
+                            </div>
 
-                        <button
-                          type="submit"
-                          disabled={partnerLoading}
-                          className="w-full py-4 bg-emerald-600 text-white rounded-xl font-bold text-sm hover:bg-emerald-700 transition-all shadow-xl shadow-emerald-200 dark:shadow-none disabled:opacity-50 disabled:cursor-not-allowed mt-2"
-                        >
-                          {partnerLoading ? t('submitting') : t('apply_partnership')}
-                        </button>
+                            <div>
+                              <label className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-3 md:ml-4 mb-1 block">Verification Code</label>
+                              <input
+                                required
+                                type="text"
+                                maxLength={6}
+                                pattern="\d{6}"
+                                value={otpValue}
+                                onChange={e => setOtpValue(e.target.value.replace(/\D/g, ''))}
+                                className="w-full px-5 md:px-6 py-4 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-center font-mono text-2xl tracking-[0.5em] pl-[0.25em] transition-all"
+                                placeholder="123456"
+                                autoFocus
+                              />
+                            </div>
+
+                            <div className="flex justify-between items-center px-1 text-xs text-zinc-500 dark:text-zinc-400 mt-2">
+                              <button
+                                type="button"
+                                onClick={() => setOtpSent(false)}
+                                className="hover:text-emerald-600 font-semibold transition-colors flex items-center gap-1 cursor-pointer"
+                              >
+                                &larr; Edit Details
+                              </button>
+                              <button
+                                type="button"
+                                disabled={resendLoading}
+                                onClick={async () => {
+                                  setResendLoading(true);
+                                  try {
+                                    const res = await fetch(`${API_BASE_URL}/partner-leads/send-otp`, {
+                                      method: 'POST',
+                                      headers: { 'Content-Type': 'application/json' },
+                                      body: JSON.stringify({
+                                        company_name: partnerLeadData.company_name,
+                                        email: partnerLeadData.email,
+                                        country: partnerLeadData.country,
+                                      }),
+                                    });
+                                    if (!res.ok) {
+                                      const err = await res.json();
+                                      throw new Error(err.error || 'Failed to resend code');
+                                    }
+                                    (window as any).showToast?.('Verification code resent successfully.', 'success');
+                                  } catch (err: any) {
+                                    (window as any).showToast?.(err.message || 'Failed to resend code.', 'error');
+                                  } finally {
+                                    setResendLoading(false);
+                                  }
+                                }}
+                                className="hover:text-emerald-600 font-semibold transition-colors disabled:opacity-50 cursor-pointer"
+                              >
+                                {resendLoading ? 'Resending...' : 'Resend Code'}
+                              </button>
+                            </div>
+
+                            <button
+                              type="submit"
+                              disabled={partnerLoading}
+                              className="w-full py-4 bg-emerald-600 text-white rounded-xl font-bold text-sm hover:bg-emerald-700 transition-all shadow-xl shadow-emerald-200 dark:shadow-none disabled:opacity-50 disabled:cursor-not-allowed mt-4"
+                            >
+                              {partnerLoading ? 'Submitting...' : 'Verify & Submit'}
+                            </button>
+                          </>
+                        )}
                       </form>
                     </motion.div>
                   ) : (
