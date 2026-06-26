@@ -543,7 +543,7 @@ export default function LandingPage({ onGetStarted, onLogin, onPartnerLogin }: L
               >
                 {t('terms')}
               </button>
-              <a href="mailto:hello@bytzforge.com" className="hidden sm:block hover:text-indigo-600 transition-colors">{t('support')}</a>
+              <a href="mailto:support@skoola.online" className="hidden sm:block hover:text-indigo-600 transition-colors">{t('support')}</a>
             </div>
           </div>
         </div>
@@ -863,7 +863,7 @@ export default function LandingPage({ onGetStarted, onLogin, onPartnerLogin }: L
               <div className="flex flex-wrap justify-center gap-8 text-xs font-bold uppercase tracking-widest text-zinc-400">
                 <button onClick={() => { setPolicyType('privacy'); setShowPolicyModal(true); }} className="hover:text-indigo-600 transition-colors">{t('privacy_policy_title')}</button>
                 <button onClick={() => { setPolicyType('terms'); setShowPolicyModal(true); }} className="hover:text-indigo-600 transition-colors">{t('partner_terms_title')}</button>
-                <a href="mailto:hello@bytzforge.com" className="hover:text-indigo-600 transition-colors">{t('support')}</a>
+                <a href="mailto:support@skoola.online" className="hover:text-indigo-600 transition-colors">{t('support')}</a>
               </div>
 
               <p className="text-[10px] md:text-xs text-zinc-400 font-medium">
