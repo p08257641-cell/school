@@ -46,6 +46,15 @@ router.post('/partner-leads', async (req: any, res: any) => {
   if (!company_name || !email || !country) {
     return res.status(400).json({ error: 'company_name, email, and country are required.' });
   }
+  const freeDomains = [
+    'gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 'aol.com',
+    'mail.com', 'zoho.com', 'protonmail.com', 'yandex.com', 'icloud.com',
+    'gmx.com', 'live.com', 'msn.com', 'proton.me'
+  ];
+  const emailDomain = email.split('@')[1]?.toLowerCase().trim();
+  if (freeDomains.includes(emailDomain)) {
+    return res.status(400).json({ error: 'Please use a business email address (personal accounts like Gmail, Yahoo, etc. are not allowed).' });
+  }
   try {
     await pool.query(
       'INSERT INTO partner_leads (company_name, email, country) VALUES ($1, $2, $3)',

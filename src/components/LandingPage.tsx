@@ -604,6 +604,16 @@ export default function LandingPage({ onGetStarted, onLogin, onPartnerLogin }: L
                             (window as any).showToast?.('Please accept the terms and conditions', 'error');
                             return;
                           }
+                          const freeDomains = [
+                            'gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 'aol.com',
+                            'mail.com', 'zoho.com', 'protonmail.com', 'yandex.com', 'icloud.com',
+                            'gmx.com', 'live.com', 'msn.com', 'proton.me'
+                          ];
+                          const emailDomain = partnerLeadData.email.split('@')[1]?.toLowerCase().trim();
+                          if (freeDomains.includes(emailDomain)) {
+                            (window as any).showToast?.('Please use a business email address (personal accounts like Gmail, Yahoo, etc. are not allowed).', 'error');
+                            return;
+                          }
                           setPartnerLoading(true);
                           try {
                             const res = await fetch(`${API_BASE_URL}/partner-leads`, {
