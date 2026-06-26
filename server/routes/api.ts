@@ -65,16 +65,7 @@ router.post('/partner-leads/send-otp', async (req: any, res: any) => {
   if (!company_name || !email || !country) {
     return res.status(400).json({ error: 'company_name, email, and country are required.' });
   }
-  const freeDomains = [
-    'gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 'aol.com',
-    'mail.com', 'zoho.com', 'protonmail.com', 'yandex.com', 'icloud.com',
-    'gmx.com', 'live.com', 'msn.com', 'proton.me'
-  ];
-  const emailDomain = email.split('@')[1]?.toLowerCase().trim();
-  const isTestingException = email.toLowerCase().trim() === 'danieldnkansah@gmail.com';
-  if (freeDomains.includes(emailDomain) && !isTestingException) {
-    return res.status(400).json({ error: 'Please use a business email address (personal accounts like Gmail, Yahoo, etc. are not allowed).' });
-  }
+
 
   try {
     // Generate a 6-digit numeric OTP code
