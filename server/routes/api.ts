@@ -129,6 +129,7 @@ router.get('/public/report-card/:token', ExamController.getPublicReportCardData)
 router.get('/public/fee-history/:token', FinanceController.getPublicFeeHistoryData);
 router.post('/public/inquiries', AdmissionsController.createPublicInquiry);
 router.get('/public/school-admin-contact/:orgId', OrganizationController.getPublicAdminContact);
+router.get('/public/school-gallery/:orgId', AcademicController.getPublicPortfolioItems);
 
 
 // PROTECTED ROUTES

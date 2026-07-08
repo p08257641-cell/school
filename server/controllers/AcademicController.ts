@@ -1109,3 +1109,33 @@ export const deletePortfolioItem = async (req: AuthRequest, res: Response) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+// Public (no-auth) — returns school-wide gallery items for the public website
+export const getPublicPortfolioItems = async (req: express.Request, res: express.Response) => {
+  const { orgId } = req.params;
+  try {
+    // Verify the organization exists and has landing page enabled
+    const orgCheck = await pool.query(
+      'SELECT id, landing_page_enabled FROM organizations WHERE id = $1',
+      [orgId]
+    );
+    if (orgCheck.rows.length === 0) {
+      return res.status(404).json({ error: 'School not found.' });
+    }
+    if (!orgCheck.rows[0].landing_page_enabled) {
+      return res.status(403).json({ error: 'Public landing page is not enabled for this school.' });
+    }
+
+    const result = await pool.query(
+      `SELECT id, title, description, file_url, created_at
+       FROM student_portfolio
+       WHERE org_id = $1 AND student_id IS NULL
+       ORDER BY created_at DESC`,
+      [orgId]
+    );
+
+    res.json(result.rows);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+};

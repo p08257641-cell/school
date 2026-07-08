@@ -58,6 +58,50 @@ export default function PublicSchoolSite({ organization, onGoToLogin }: PublicSc
       .catch(() => {});
   }, [organization?.id]);
 
+  const [galleryItems, setGalleryItems] = useState<any[]>([]);
+
+  // Fetch school gallery items
+  useEffect(() => {
+    if (!organization?.id) return;
+    fetch(`${API_BASE_URL}/public/school-gallery/${organization.id}`)
+      .then(r => r.ok ? r.json() : [])
+      .then(data => {
+        if (Array.isArray(data)) {
+          const parsedImages: any[] = [];
+          data.forEach(item => {
+            if (item.file_url) {
+              if (item.file_url.startsWith('[')) {
+                try {
+                  const urls = JSON.parse(item.file_url);
+                  if (Array.isArray(urls)) {
+                    urls.forEach((url, idx) => {
+                      parsedImages.push({
+                        id: `${item.id}-${idx}`,
+                        url,
+                        title: item.title,
+                        description: item.description
+                      });
+                    });
+                  }
+                } catch (e) {
+                  console.error('Failed to parse file_url JSON:', e);
+                }
+              } else {
+                parsedImages.push({
+                  id: item.id,
+                  url: item.file_url,
+                  title: item.title,
+                  description: item.description
+                });
+              }
+            }
+          });
+          setGalleryItems(parsedImages);
+        }
+      })
+      .catch(err => console.error('Failed to fetch school gallery:', err));
+  }, [organization?.id]);
+
   const scrollTo = (id: string) => {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
     setMenuOpen(false);
@@ -137,7 +181,7 @@ export default function PublicSchoolSite({ organization, onGoToLogin }: PublicSc
 
           <div className="hidden md:flex items-center gap-6 text-sm font-semibold text-zinc-500">
             <button onClick={() => scrollTo('about')} className="hover:text-zinc-900 transition-colors">About</button>
-            {bgImages.length > 0 && (
+            {(galleryItems.length > 0 || bgImages.length > 0) && (
               <button onClick={() => scrollTo('gallery')} className="hover:text-zinc-900 transition-colors">Gallery</button>
             )}
             <button onClick={() => scrollTo('apply')} className="hover:text-zinc-900 transition-colors">Admissions</button>
@@ -171,7 +215,7 @@ export default function PublicSchoolSite({ organization, onGoToLogin }: PublicSc
               className="md:hidden bg-white border-t border-zinc-100 px-5 py-4 flex flex-col gap-4 text-sm font-semibold text-zinc-600"
             >
               <button onClick={() => scrollTo('about')} className="text-left hover:text-zinc-900">About</button>
-              {bgImages.length > 0 && (
+              {(galleryItems.length > 0 || bgImages.length > 0) && (
                 <button onClick={() => scrollTo('gallery')} className="text-left hover:text-zinc-900">Gallery</button>
               )}
               <button onClick={() => scrollTo('apply')} className="text-left hover:text-zinc-900">Admissions</button>
@@ -318,7 +362,7 @@ export default function PublicSchoolSite({ organization, onGoToLogin }: PublicSc
       </section>
 
       {/* ── GALLERY ─────────────────────────────────────────── */}
-      {bgImages.length > 0 && (
+      {(galleryItems.length > 0 || bgImages.length > 0) && (
         <section id="gallery" className="py-24 bg-white">
           <div className="max-w-6xl mx-auto px-6">
             <div className="text-center mb-12">
@@ -330,31 +374,56 @@ export default function PublicSchoolSite({ organization, onGoToLogin }: PublicSc
             </div>
 
             <div className="columns-2 sm:columns-3 lg:columns-4 gap-3 space-y-3">
-              {bgImages.map((img, idx) => (
-                <motion.div
-                  key={idx}
-                  initial={{ opacity: 0, y: 16 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.4, delay: idx * 0.07 }}
-                  className="break-inside-avoid cursor-pointer overflow-hidden rounded-2xl shadow-md hover:shadow-xl transition-shadow group"
-                  onClick={() => setLightboxImg(img)}
-                >
-                  <img
-                    src={img}
-                    alt={`${schoolName} gallery ${idx + 1}`}
-                    className="w-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    loading="lazy"
-                  />
-                </motion.div>
-              ))}
+              {galleryItems.length > 0 ? (
+                galleryItems.map((item, idx) => (
+                  <motion.div
+                    key={item.id}
+                    initial={{ opacity: 0, y: 16 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.4, delay: idx * 0.07 }}
+                    className="break-inside-avoid cursor-pointer overflow-hidden rounded-2xl shadow-md hover:shadow-xl transition-shadow group relative bg-zinc-900"
+                    onClick={() => setLightboxImg(item.url)}
+                  >
+                    <img
+                      src={item.url}
+                      alt={item.title || schoolName}
+                      className="w-full object-cover group-hover:scale-105 group-hover:opacity-40 transition-all duration-500"
+                      loading="lazy"
+                    />
+                    <div className="absolute inset-0 p-4 flex flex-col justify-end opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none bg-gradient-to-t from-black/80 via-black/35 to-transparent text-white">
+                      {item.title && <h4 className="font-bold text-sm tracking-tight">{item.title}</h4>}
+                      {item.description && <p className="text-xs text-zinc-300 mt-1 line-clamp-2">{item.description}</p>}
+                    </div>
+                  </motion.div>
+                ))
+              ) : (
+                bgImages.map((img, idx) => (
+                  <motion.div
+                    key={idx}
+                    initial={{ opacity: 0, y: 16 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.4, delay: idx * 0.07 }}
+                    className="break-inside-avoid cursor-pointer overflow-hidden rounded-2xl shadow-md hover:shadow-xl transition-shadow group"
+                    onClick={() => setLightboxImg(img)}
+                  >
+                    <img
+                      src={img}
+                      alt={`${schoolName} gallery ${idx + 1}`}
+                      className="w-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      loading="lazy"
+                    />
+                  </motion.div>
+                ))
+              )}
             </div>
           </div>
         </section>
       )}
 
       {/* ── ADMISSION FORM ──────────────────────────────────── */}
-      <section id="apply" className={`py-24 ${bgImages.length > 0 ? 'bg-zinc-50' : 'bg-white'}`}>
+      <section id="apply" className={`py-24 ${(galleryItems.length > 0 || bgImages.length > 0) ? 'bg-zinc-50' : 'bg-white'}`}>
         <div className="max-w-2xl mx-auto px-6">
           <div className="text-center mb-12">
             <span className="text-xs font-black uppercase tracking-widest text-indigo-600 mb-3 block">Admissions</span>
