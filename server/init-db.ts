@@ -59,6 +59,7 @@ export async function init() {
         organogram_head_title VARCHAR(255) DEFAULT 'School Admin',
         demo_requested BOOLEAN DEFAULT FALSE,
         landing_page_enabled BOOLEAN DEFAULT FALSE,
+        brand_color VARCHAR(20) DEFAULT '#4f46e5',
         expiry_date DATE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
@@ -108,6 +109,9 @@ export async function init() {
         END IF;
         IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'organizations' AND column_name = 'landing_page_enabled') THEN
           ALTER TABLE organizations ADD COLUMN landing_page_enabled BOOLEAN DEFAULT FALSE;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'organizations' AND column_name = 'brand_color') THEN
+          ALTER TABLE organizations ADD COLUMN brand_color VARCHAR(20) DEFAULT '#4f46e5';
         END IF;
         IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'partners' AND column_name = 'company_name') THEN
           ALTER TABLE partners ADD COLUMN company_name VARCHAR(255);

@@ -113,7 +113,7 @@ export const getOrganizationByDomain = async (req: Request, res: Response) => {
 
   try {
     const result = await pool.query(
-      `SELECT id, name, logo, logo_url, background_image, background_images, plan, custom_domain, status, timezone, language, signature, landing_page_enabled
+      `SELECT id, name, logo, logo_url, background_image, background_images, plan, custom_domain, status, timezone, language, signature, landing_page_enabled, brand_color
        FROM organizations
        WHERE LOWER(custom_domain) = LOWER($1) LIMIT 1`,
       [domain.trim()]
@@ -233,7 +233,7 @@ export const updateOrganization = async (req: AuthRequest, res: Response) => {
     'contact_number', 'address', 'custom_domain', 'logo_url', 'logo', 'background_image', 'background_images',
     'signature', 'default_leave_limit', 'default_leave_limit_unit', 'gemini_api_key',
     'academic_year', 'current_term', 'admission_no_prefix', 'admission_no_suffix', 'admission_no_start_from', 'currency', 'attendance_total_days', 'attendance_include_weekends', 'country_code', 'term_start_date', 'term_end_date', 'sms_sender_id', 'transport_sms_enabled',
-    'late_time', 'attendance_api_url', 'attendance_api_key', 'promotion_trigger_term', 'landing_page_enabled'
+    'late_time', 'attendance_api_url', 'attendance_api_key', 'promotion_trigger_term', 'landing_page_enabled', 'brand_color'
   ];
 
 

@@ -133,8 +133,22 @@ export default function PublicSchoolSite({ organization, onGoToLogin }: PublicSc
   const contactAddress = adminContact?.address || organization?.address || null;
   const adminName = adminContact?.admin_name || null;
 
+  // Brand colour helpers
+  const brandColor = organization?.brand_color || '#4f46e5';
+  const hexToRgb = (hex: string) => {
+    const r = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return r ? [parseInt(r[1], 16), parseInt(r[2], 16), parseInt(r[3], 16)] : [79, 70, 229];
+  };
+  const [br, bg, bb] = hexToRgb(brandColor);
+  const brandDark = `rgb(${Math.max(0,br-25)},${Math.max(0,bg-25)},${Math.max(0,bb-25)})`;
+  const brandLight = `rgba(${br},${bg},${bb},0.1)`;
+  const brandShadow = `rgba(${br},${bg},${bb},0.35)`;
+
   return (
-    <div className="min-h-screen bg-white font-sans antialiased">
+    <div
+      className="min-h-screen bg-white font-sans antialiased"
+      style={{ '--brand': brandColor, '--brand-dark': brandDark, '--brand-light': brandLight } as React.CSSProperties}
+    >
 
       {/* ── LIGHTBOX ─────────────────────────────────────────── */}
       <AnimatePresence>
@@ -192,7 +206,10 @@ export default function PublicSchoolSite({ organization, onGoToLogin }: PublicSc
             <button
               id="portal-login-btn"
               onClick={onGoToLogin}
-              className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold rounded-xl transition-all shadow-md shadow-indigo-200 active:scale-95"
+              className="flex items-center gap-2 px-4 py-2 text-white text-sm font-bold rounded-xl transition-all shadow-md active:scale-95"
+              style={{ backgroundColor: brandColor, boxShadow: `0 4px 14px ${brandShadow}` }}
+              onMouseEnter={e => (e.currentTarget.style.backgroundColor = brandDark)}
+              onMouseLeave={e => (e.currentTarget.style.backgroundColor = brandColor)}
             >
               <LogIn className="w-4 h-4" />
               <span className="hidden sm:inline">Portal Login</span>
@@ -277,7 +294,10 @@ export default function PublicSchoolSite({ organization, onGoToLogin }: PublicSc
             <button
               id="apply-now-hero-btn"
               onClick={() => scrollTo('apply')}
-              className="flex items-center gap-2 px-8 py-4 bg-indigo-600 hover:bg-indigo-500 text-white font-black rounded-2xl text-base shadow-2xl shadow-indigo-900/50 transition-all hover:scale-105 active:scale-95"
+              className="flex items-center gap-2 px-8 py-4 text-white font-black rounded-2xl text-base transition-all hover:scale-105 active:scale-95"
+              style={{ backgroundColor: brandColor, boxShadow: `0 8px 30px ${brandShadow}` }}
+              onMouseEnter={e => (e.currentTarget.style.backgroundColor = brandDark)}
+              onMouseLeave={e => (e.currentTarget.style.backgroundColor = brandColor)}
             >
               Apply for Admission <ArrowRight className="w-5 h-5" />
             </button>
@@ -300,7 +320,7 @@ export default function PublicSchoolSite({ organization, onGoToLogin }: PublicSc
       </section>
 
       {/* ── STATS STRIP ─────────────────────────────────────── */}
-      <section className="bg-indigo-600 py-8">
+      <section className="py-8" style={{ backgroundColor: brandColor }}>
         <div className="max-w-5xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-6 text-center text-white">
           {[
             { icon: Users, label: 'Students', value: '500+' },
@@ -322,7 +342,7 @@ export default function PublicSchoolSite({ organization, onGoToLogin }: PublicSc
         <div className="max-w-5xl mx-auto px-6">
           <div className="grid md:grid-cols-2 gap-14 items-center">
             <div>
-              <span className="text-xs font-black uppercase tracking-widest text-indigo-600 mb-3 block">Who We Are</span>
+              <span className="text-xs font-black uppercase tracking-widest mb-3 block" style={{ color: brandColor }}>Who We Are</span>
               <h2 className="text-3xl md:text-4xl font-black text-zinc-900 tracking-tight mb-5 leading-tight">
                 About {schoolName}
               </h2>
@@ -349,8 +369,8 @@ export default function PublicSchoolSite({ organization, onGoToLogin }: PublicSc
                 { title: 'Modern Facilities', desc: 'Labs, libraries, and tech-enabled classrooms.' },
               ].map(card => (
                 <div key={card.title} className="bg-white rounded-2xl p-5 shadow-sm border border-zinc-100">
-                  <div className="w-8 h-8 bg-indigo-50 rounded-lg flex items-center justify-center mb-3">
-                    <GraduationCap className="w-4 h-4 text-indigo-600" />
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center mb-3" style={{ backgroundColor: brandLight }}>
+                    <GraduationCap className="w-4 h-4" style={{ color: brandColor }} />
                   </div>
                   <h4 className="font-bold text-zinc-900 text-sm mb-1">{card.title}</h4>
                   <p className="text-zinc-400 text-xs leading-relaxed">{card.desc}</p>
@@ -366,9 +386,9 @@ export default function PublicSchoolSite({ organization, onGoToLogin }: PublicSc
         <section id="gallery" className="py-24 bg-white">
           <div className="max-w-6xl mx-auto px-6">
             <div className="text-center mb-12">
-              <span className="text-xs font-black uppercase tracking-widest text-indigo-600 mb-3 block">Our Campus</span>
+              <span className="text-xs font-black uppercase tracking-widest mb-3 block" style={{ color: brandColor }}>Our Campus</span>
               <h2 className="text-3xl md:text-4xl font-black text-zinc-900 tracking-tight mb-4 flex items-center justify-center gap-3">
-                <Images className="w-8 h-8 text-indigo-500" /> Photo Gallery
+                <Images className="w-8 h-8" style={{ color: brandColor }} /> Photo Gallery
               </h2>
               <p className="text-zinc-500 text-base">A glimpse into life at {schoolName}.</p>
             </div>
@@ -426,7 +446,7 @@ export default function PublicSchoolSite({ organization, onGoToLogin }: PublicSc
       <section id="apply" className={`py-24 ${(galleryItems.length > 0 || bgImages.length > 0) ? 'bg-zinc-50' : 'bg-white'}`}>
         <div className="max-w-2xl mx-auto px-6">
           <div className="text-center mb-12">
-            <span className="text-xs font-black uppercase tracking-widest text-indigo-600 mb-3 block">Admissions</span>
+            <span className="text-xs font-black uppercase tracking-widest mb-3 block" style={{ color: brandColor }}>Admissions</span>
             <h2 className="text-3xl md:text-4xl font-black text-zinc-900 tracking-tight mb-4">Apply for Admission</h2>
             <p className="text-zinc-500 text-base">Fill out the form below and our admissions team will be in touch shortly.</p>
           </div>
@@ -464,38 +484,41 @@ export default function PublicSchoolSite({ organization, onGoToLogin }: PublicSc
                 <div className="space-y-1.5">
                   <label className="text-xs font-black uppercase tracking-widest text-zinc-400">Student Full Name *</label>
                   <input type="text" name="name" value={form.name} onChange={handleChange} required placeholder="e.g. John Doe"
-                    className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500 transition-all" />
+                    className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl text-sm outline-none focus:ring-2 transition-all" style={{ '--tw-ring-color': brandColor }} />
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-xs font-black uppercase tracking-widest text-zinc-400">Grade / Class Applying For</label>
                   <input type="text" name="grade" value={form.grade} onChange={handleChange} placeholder="e.g. Grade 7, JHS 1"
-                    className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500 transition-all" />
+                    className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl text-sm outline-none focus:ring-2 transition-all" style={{ '--tw-ring-color': brandColor }} />
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-xs font-black uppercase tracking-widest text-zinc-400">Parent / Guardian Name</label>
                   <input type="text" name="parent_name" value={form.parent_name} onChange={handleChange} placeholder="e.g. Mr. James Doe"
-                    className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500 transition-all" />
+                    className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl text-sm outline-none focus:ring-2 transition-all" style={{ '--tw-ring-color': brandColor }} />
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-xs font-black uppercase tracking-widest text-zinc-400">Parent Phone *</label>
                   <input type="tel" name="contact" value={form.contact} onChange={handleChange} required placeholder="e.g. +233 24 000 0000"
-                    className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500 transition-all" />
+                    className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl text-sm outline-none focus:ring-2 transition-all" style={{ '--tw-ring-color': brandColor }} />
                 </div>
                 <div className="sm:col-span-2 space-y-1.5">
                   <label className="text-xs font-black uppercase tracking-widest text-zinc-400">Parent Email</label>
                   <input type="email" name="email" value={form.email} onChange={handleChange} placeholder="parent@email.com"
-                    className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500 transition-all" />
+                    className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl text-sm outline-none focus:ring-2 transition-all" style={{ '--tw-ring-color': brandColor }} />
                 </div>
                 <div className="sm:col-span-2 space-y-1.5">
                   <label className="text-xs font-black uppercase tracking-widest text-zinc-400">Message (Optional)</label>
                   <textarea name="message" rows={3} value={form.message} onChange={handleChange} placeholder="Any additional information or questions..."
-                    className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500 resize-none transition-all" />
+                    className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl text-sm outline-none focus:ring-2 transition-all resize-none" style={{ '--tw-ring-color': brandColor }} />
                 </div>
               </div>
               <button
                 type="submit"
                 disabled={submitting}
-                className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-2xl text-sm flex items-center justify-center gap-2 shadow-lg shadow-indigo-100 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-60 disabled:hover:scale-100"
+                className="w-full py-4 text-white font-black rounded-2xl text-sm flex items-center justify-center gap-2 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-60 disabled:hover:scale-100"
+              style={{ backgroundColor: brandColor, boxShadow: `0 4px 20px ${brandShadow}` }}
+              onMouseEnter={e => !submitting && (e.currentTarget.style.backgroundColor = brandDark)}
+              onMouseLeave={e => !submitting && (e.currentTarget.style.backgroundColor = brandColor)}
               >
                 {submitting ? (
                   <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -512,7 +535,7 @@ export default function PublicSchoolSite({ organization, onGoToLogin }: PublicSc
       <section id="contact" className="py-20 bg-zinc-900 text-white">
         <div className="max-w-5xl mx-auto px-6">
           <div className="text-center mb-12">
-            <span className="text-xs font-black uppercase tracking-widest text-indigo-400 mb-3 block">Get In Touch</span>
+            <span className="text-xs font-black uppercase tracking-widest mb-3 block" style={{ color: brandColor }}>Get In Touch</span>
             <h2 className="text-3xl font-black tracking-tight">Contact Us</h2>
           </div>
 
@@ -520,11 +543,11 @@ export default function PublicSchoolSite({ organization, onGoToLogin }: PublicSc
             {/* Admin contact card */}
             <div className="bg-white/5 border border-white/10 rounded-3xl p-8 space-y-5">
               <div className="flex items-center gap-3 mb-2">
-                <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center">
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: brandColor }}>
                   <UserCircle className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <p className="text-xs font-black uppercase tracking-widest text-indigo-400">School Contact</p>
+                  <p className="text-xs font-black uppercase tracking-widest" style={{ color: brandColor }}>School Contact</p>
                   {adminName && (
                     <p className="text-base font-black text-white">{adminName}</p>
                   )}
@@ -533,8 +556,11 @@ export default function PublicSchoolSite({ organization, onGoToLogin }: PublicSc
 
               {contactPhone && (
                 <a href={`tel:${contactPhone}`} className="flex items-center gap-4 group">
-                  <div className="w-10 h-10 bg-white/10 group-hover:bg-indigo-600 rounded-xl flex items-center justify-center transition-colors">
-                    <Phone className="w-4 h-4 text-indigo-400 group-hover:text-white transition-colors" />
+                  <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center transition-colors group-hover:opacity-90" style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
+                    onMouseEnter={e => (e.currentTarget.style.backgroundColor = brandColor)}
+                    onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)')}
+                  >
+                    <Phone className="w-4 h-4 text-white/60 group-hover:text-white transition-colors" style={{ color: brandColor }} />
                   </div>
                   <div>
                     <p className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Phone</p>
@@ -545,8 +571,11 @@ export default function PublicSchoolSite({ organization, onGoToLogin }: PublicSc
 
               {contactEmail && (
                 <a href={`mailto:${contactEmail}`} className="flex items-center gap-4 group">
-                  <div className="w-10 h-10 bg-white/10 group-hover:bg-indigo-600 rounded-xl flex items-center justify-center transition-colors">
-                    <Mail className="w-4 h-4 text-indigo-400 group-hover:text-white transition-colors" />
+                  <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center transition-colors"
+                    onMouseEnter={e => (e.currentTarget.style.backgroundColor = brandColor)}
+                    onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)')}
+                  >
+                    <Mail className="w-4 h-4" style={{ color: brandColor }} />
                   </div>
                   <div>
                     <p className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Email</p>
@@ -558,7 +587,7 @@ export default function PublicSchoolSite({ organization, onGoToLogin }: PublicSc
               {contactAddress && (
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center">
-                    <MapPin className="w-4 h-4 text-indigo-400" />
+                    <MapPin className="w-4 h-4" style={{ color: brandColor }} />
                   </div>
                   <div>
                     <p className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Address</p>
@@ -573,7 +602,7 @@ export default function PublicSchoolSite({ organization, onGoToLogin }: PublicSc
             </div>
 
             {/* CTA box */}
-            <div className="bg-indigo-600 rounded-3xl p-8 flex flex-col items-start justify-between gap-8 h-full">
+            <div className="rounded-3xl p-8 flex flex-col items-start justify-between gap-8 h-full" style={{ backgroundColor: brandColor }}>
               <div>
                 <h3 className="text-2xl font-black text-white mb-3">Ready to join {schoolName}?</h3>
                 <p className="text-indigo-200 text-sm leading-relaxed">
@@ -582,7 +611,8 @@ export default function PublicSchoolSite({ organization, onGoToLogin }: PublicSc
               </div>
               <button
                 onClick={() => scrollTo('apply')}
-                className="flex items-center gap-2 px-6 py-3 bg-white text-indigo-600 font-black rounded-xl text-sm hover:bg-indigo-50 transition-all shadow-lg"
+                className="flex items-center gap-2 px-6 py-3 bg-white font-black rounded-xl text-sm hover:opacity-90 transition-all shadow-lg"
+                style={{ color: brandColor }}
               >
                 Apply Now <ArrowRight className="w-4 h-4" />
               </button>
@@ -605,7 +635,7 @@ export default function PublicSchoolSite({ organization, onGoToLogin }: PublicSc
           <p className="text-zinc-600 text-xs">© {new Date().getFullYear()} {schoolName}. All rights reserved.</p>
           <div className="flex items-center gap-2">
             <span className="text-zinc-600 text-xs">Powered by</span>
-            <span className="text-indigo-400 font-black text-xs tracking-wide">Skoola</span>
+            <span className="font-black text-xs tracking-wide" style={{ color: brandColor }}>Skoola</span>
           </div>
         </div>
       </footer>

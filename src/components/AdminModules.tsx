@@ -479,6 +479,7 @@ function OrganizationForm({ initialData, isEdit = false, onRefresh, onBack }: { 
     attendance_total_days: initialData?.attendance_total_days || 0,
     late_time: initialData?.late_time || '08:00:00',
     landing_page_enabled: initialData?.landing_page_enabled || false,
+    brand_color: initialData?.brand_color || '#4f46e5',
   });
 
   const [hasManuallyEditedSlug, setHasManuallyEditedSlug] = useState(false);
@@ -547,6 +548,7 @@ function OrganizationForm({ initialData, isEdit = false, onRefresh, onBack }: { 
           attendance_total_days: 0,
           late_time: '08:00:00',
           landing_page_enabled: false,
+          brand_color: '#4f46e5',
         });
       }
       onRefresh?.();
@@ -844,6 +846,65 @@ function OrganizationForm({ initialData, isEdit = false, onRefresh, onBack }: { 
                 </p>
               </div>
             </label>
+
+            {/* Brand color picker — only shown when public site is enabled */}
+            {formData.landing_page_enabled && (
+              <div className="mt-5 flex flex-col gap-3">
+                <div>
+                  <p className="text-sm font-bold text-zinc-800 dark:text-zinc-200 mb-1">Brand Accent Colour</p>
+                  <p className="text-xs text-zinc-400 mb-3">This colour replaces the default blue on the public school website — buttons, headings, highlights.</p>
+                </div>
+                <div className="flex items-center gap-4">
+                  <input
+                    type="color"
+                    id="brand_color"
+                    value={formData.brand_color}
+                    onChange={(e) => setFormData({ ...formData, brand_color: e.target.value })}
+                    className="w-12 h-10 rounded-xl border-2 border-zinc-200 dark:border-zinc-700 cursor-pointer bg-transparent p-0.5"
+                    title="Pick brand colour"
+                  />
+                  <div className="flex items-center gap-3 flex-1">
+                    <div
+                      className="w-8 h-8 rounded-lg shadow-sm border border-zinc-200 flex-shrink-0"
+                      style={{ backgroundColor: formData.brand_color }}
+                    />
+                    <input
+                      type="text"
+                      value={formData.brand_color}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (/^#[0-9A-Fa-f]{0,6}$/.test(val)) setFormData({ ...formData, brand_color: val });
+                      }}
+                      className="flex-1 px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm font-mono outline-none focus:ring-2 focus:ring-indigo-500"
+                      placeholder="#4f46e5"
+                      maxLength={7}
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, brand_color: '#4f46e5' })}
+                    className="text-xs font-bold text-zinc-400 hover:text-zinc-600 transition-colors whitespace-nowrap"
+                  >
+                    Reset
+                  </button>
+                </div>
+                {/* Quick presets */}
+                <div className="flex flex-wrap gap-2 mt-1">
+                  {['#4f46e5','#7c3aed','#db2777','#dc2626','#ea580c','#16a34a','#0891b2','#0284c7','#374151'].map(color => (
+                    <button
+                      key={color}
+                      type="button"
+                      onClick={() => setFormData({ ...formData, brand_color: color })}
+                      title={color}
+                      className={`w-7 h-7 rounded-lg border-2 transition-all ${
+                        formData.brand_color === color ? 'border-zinc-800 scale-110' : 'border-transparent hover:scale-105'
+                      }`}
+                      style={{ backgroundColor: color }}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="pt-4 flex items-center justify-end gap-4">
