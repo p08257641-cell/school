@@ -19,7 +19,7 @@ class RefundPDF(FPDF):
         self.set_y(6)
         self.set_font("Helvetica", "I", 7.5)
         self.set_text_color(160, 160, 170)
-        self.cell(0, 5, "Skoola Refund & Cancellation Policy  |  Decorum IT Solutions", align="R")
+        self.cell(0, 5, "Skoola Refund & Cancellation Policy  |  Oheneba Media", align="R")
         self.ln(10)
 
     def footer(self):
@@ -28,7 +28,7 @@ class RefundPDF(FPDF):
         self.set_y(-14)
         self.set_font("Helvetica", "", 7)
         self.set_text_color(170, 170, 180)
-        self.cell(95, 5, "Confidential  -  Decorum IT Solutions", align="L")
+        self.cell(95, 5, "Confidential  -  Oheneba Media", align="L")
         self.cell(95, 5, f"Page {self.page_no()} of {{nb}}", align="R")
 
 
@@ -193,7 +193,7 @@ def build_pdf():
     pdf.set_y(250)
     pdf.set_font("Helvetica", "B", 9)
     pdf.set_text_color(17, 24, 39)
-    pdf.cell(0, 5, "PUBLISHED & MAINTAINED BY DECORUM IT SOLUTIONS", align="C", new_x="LMARGIN", new_y="NEXT")
+    pdf.cell(0, 5, "PUBLISHED & MAINTAINED BY OHENEBA MEDIA", align="C", new_x="LMARGIN", new_y="NEXT")
     pdf.set_font("Helvetica", "", 8)
     pdf.set_text_color(156, 163, 175)
     pdf.cell(0, 5, "Official Operational Policy  |  Version 2026.1", align="C")
@@ -219,7 +219,7 @@ def build_pdf():
     _body(pdf, (
         "This Refund & Cancellation Policy (\"Policy\") outlines the rules governing the cancelation "
         "of subscriptions, billing adjustments, and refund options for the Skoola School Management platform. "
-        "The software is owned by Mr. Oheneba Michael Baah and operated under Decorum IT Solutions."
+        "The software is owned by Mr. Oheneba Michael Baah and operated under Oheneba Media."
     ))
     _body(pdf, (
         "By subscribing to Skoola or participating in its Pilot Program, the School (\"Client\") agrees "
@@ -231,7 +231,7 @@ def build_pdf():
     _bullet(pdf, (
         "1.1  NOTICE PERIOD: The Client may cancel their Skoola subscription at any time. To prevent renewal "
         "and subsequent billing, the Client must provide a minimum of thirty (30) days written notice of "
-        "cancellation to Decorum IT Solutions via email at info@decorumit.com or billing@skoola.com."
+        "cancellation to Oheneba Media via email at info@decorumit.com or billing@skoola.com."
     ))
     _bullet(pdf, (
         "1.2  EFFECTIVE DATE OF CANCELLATION: Cancellations submitted mid-billing cycle will become effective "
@@ -251,7 +251,7 @@ def build_pdf():
         "allocated during this setup phase are fully consumed upon account initialization."
     ))
     _bullet(pdf, (
-        "2.2  STANDARD FEES: All subscription payments (monthly, termly, and annual) are non-refundable. Decorum IT "
+        "2.2  STANDARD FEES: All subscription payments (monthly, termly, and annual) are non-refundable. Oheneba Media "
         "Solutions does not offer partial refunds or pro-rated adjustments for unused days in a cancelled billing cycle."
     ))
     _bullet(pdf, (
@@ -268,7 +268,7 @@ def build_pdf():
     ))
     _bullet(pdf, (
         "3.2  GRACE PERIOD & SUSPENSION: If subscription fees remain unpaid for more than fourteen (14) days past the "
-        "due date, Decorum IT Solutions reserves the right to suspend Client portal access, restricting both administrator "
+        "due date, Oheneba Media reserves the right to suspend Client portal access, restricting both administrator "
         "and staff access."
     ))
     _bullet(pdf, (
@@ -287,14 +287,14 @@ def build_pdf():
         "can be downloaded by the administrator in Microsoft Excel (.xlsx) or CSV format directly from the Skoola interface."
     ))
     _bullet(pdf, (
-        "4.3  CUSTOM MIGRATION ASSISTANCE: If the Client requires Decorum IT Solutions to compile a custom relational "
+        "4.3  CUSTOM MIGRATION ASSISTANCE: If the Client requires Oheneba Media to compile a custom relational "
         "SQL database backup or export, such assistance will be billed as professional IT services at a rate agreed upon in writing."
     ))
 
     # ── SECTION 5 ──
     _section_title(pdf, "5", "Data Purging & Account Deletion")
     _bullet(pdf, (
-        "5.1  PERMANENT DELETION: Thirty (30) days after the effective date of cancellation, Decorum IT Solutions "
+        "5.1  PERMANENT DELETION: Thirty (30) days after the effective date of cancellation, Oheneba Media "
         "will permanently delete and purge all school records, student databases, grades, and associated media files "
         "from the primary live servers."
     ))
@@ -304,14 +304,14 @@ def build_pdf():
         "standard disaster recovery cycles."
     ))
     _bullet(pdf, (
-        "5.3  NO RECOVERY: Once data has been purged under Section 5.1 and 5.2, it is completely unrecoverable. Decorum IT "
+        "5.3  NO RECOVERY: Once data has been purged under Section 5.1 and 5.2, it is completely unrecoverable. Oheneba Media "
         "Solutions accepts no liability for loss of historical school records resulting from cancellation."
     ))
 
     # ── SECTION 6 ──
     _section_title(pdf, "6", "Policy Amendments")
     _bullet(pdf, (
-        "6.1  Decorum IT Solutions reserves the right to amend this Policy. Notice of any updates will be provided "
+        "6.1  Oheneba Media reserves the right to amend this Policy. Notice of any updates will be provided "
         "via the admin dashboard or emailed directly to the primary school administrator thirty (30) days before "
         "the changes take effect."
     ))
@@ -338,7 +338,7 @@ def build_pdf():
     # Provider signature
     _signature_block(
         pdf,
-        "FOR DECORUM IT SOLUTIONS",
+        "FOR OHENEBA MEDIA",
         "Mr. Oheneba Michael Baah  (Owner & Software Proprietor)",
         extra_lines=[]
     )

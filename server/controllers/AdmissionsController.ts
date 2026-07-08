@@ -88,6 +88,46 @@ export const deleteInquiry = async (req: AuthRequest, res: Response) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+// Public (no-auth) — called from the school landing page by anonymous visitors
+export const createPublicInquiry = async (req: express.Request, res: express.Response) => {
+  const {
+    org_id, name, parent_name, email, contact, grade, message
+  } = req.body;
+
+  // Basic validation
+  if (!org_id || !name || !contact) {
+    return res.status(400).json({ error: 'org_id, name, and contact are required.' });
+  }
+
+  try {
+    // Verify the org exists and has landing_page_enabled
+    const orgCheck = await pool.query(
+      'SELECT id, landing_page_enabled FROM organizations WHERE id = $1',
+      [org_id]
+    );
+    if (orgCheck.rows.length === 0) {
+      return res.status(404).json({ error: 'School not found.' });
+    }
+    if (!orgCheck.rows[0].landing_page_enabled) {
+      return res.status(403).json({ error: 'Public admissions are not enabled for this school.' });
+    }
+
+    const comments = message
+      ? JSON.stringify([{ text: message, author: 'Applicant (Online Form)', date: new Date().toISOString() }])
+      : JSON.stringify([]);
+
+    const result = await pool.query(
+      'INSERT INTO inquiries (org_id, name, parent_name, email, contact, grade, status, comments, date) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id',
+      [org_id, name, parent_name || null, email || null, contact, grade || null, 'New', comments, new Date()]
+    );
+
+    res.status(201).json({ success: true, id: result.rows[0].id });
+  } catch (err: any) {
+    console.error('[Public Inquiry] Error:', err.message);
+    res.status(500).json({ error: 'Failed to submit inquiry. Please try again.' });
+  }
+};
 export const getApplications = async (req: AuthRequest, res: Response) => {
   try {
     const orgId = req.user.org_id;

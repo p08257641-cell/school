@@ -19,7 +19,7 @@ class DPAPDF(FPDF):
         self.set_y(6)
         self.set_font("Helvetica", "I", 7.5)
         self.set_text_color(160, 160, 170)
-        self.cell(0, 5, "Skoola Data Processing Agreement  |  Decorum IT Solutions", align="R")
+        self.cell(0, 5, "Skoola Data Processing Agreement  |  Oheneba Media", align="R")
         self.ln(10)
 
     def footer(self):
@@ -28,7 +28,7 @@ class DPAPDF(FPDF):
         self.set_y(-14)
         self.set_font("Helvetica", "", 7)
         self.set_text_color(170, 170, 180)
-        self.cell(95, 5, "Confidential  -  Decorum IT Solutions", align="L")
+        self.cell(95, 5, "Confidential  -  Oheneba Media", align="L")
         self.cell(95, 5, f"Page {self.page_no()} of {{nb}}", align="R")
 
 
@@ -194,7 +194,7 @@ def build_pdf():
     pdf.set_y(250)
     pdf.set_font("Helvetica", "B", 9)
     pdf.set_text_color(17, 24, 39)
-    pdf.cell(0, 5, "PUBLISHED & MAINTAINED BY DECORUM IT SOLUTIONS", align="C", new_x="LMARGIN", new_y="NEXT")
+    pdf.cell(0, 5, "PUBLISHED & MAINTAINED BY OHENEBA MEDIA", align="C", new_x="LMARGIN", new_y="NEXT")
     pdf.set_font("Helvetica", "", 8)
     pdf.set_text_color(156, 163, 175)
     pdf.cell(0, 5, "Official Compliance Document  |  Version 2026.1", align="C")
@@ -219,7 +219,7 @@ def build_pdf():
 
     _body(pdf, (
         "This Data Processing Agreement (\"DPA\") is entered into by and between the Client School "
-        "(hereinafter referred to as the \"Controller\") and Decorum IT Solutions, represented by its "
+        "(hereinafter referred to as the \"Controller\") and Oheneba Media, represented by its "
         "proprietor Mr. Oheneba Michael Baah (hereinafter referred to as the \"Processor\")."
     ))
     _body(pdf, (
@@ -368,7 +368,7 @@ def build_pdf():
     # Processor signature
     _signature_block(
         pdf,
-        "FOR THE PROCESSOR  -  DECORUM IT SOLUTIONS",
+        "FOR THE PROCESSOR  -  OHENEBA MEDIA",
         "Mr. Oheneba Michael Baah  (Owner & Software Proprietor)",
         extra_lines=[]
     )

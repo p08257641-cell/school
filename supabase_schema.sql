@@ -111,6 +111,9 @@ DO $$
         IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'organizations' AND column_name = 'demo_requested') THEN
           ALTER TABLE organizations ADD COLUMN demo_requested BOOLEAN DEFAULT FALSE;
         END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'organizations' AND column_name = 'landing_page_enabled') THEN
+          ALTER TABLE organizations ADD COLUMN landing_page_enabled BOOLEAN DEFAULT FALSE;
+        END IF;
       END $$;
 
 CREATE TABLE IF NOT EXISTS users (

@@ -19,7 +19,7 @@ class TermsOfServicePDF(FPDF):
         self.set_y(6)
         self.set_font("Helvetica", "I", 7.5)
         self.set_text_color(160, 160, 170)
-        self.cell(0, 5, "Skoola Terms of Service  |  Decorum IT Solutions", align="R")
+        self.cell(0, 5, "Skoola Terms of Service  |  Oheneba Media", align="R")
         self.ln(10)
 
     def footer(self):
@@ -28,7 +28,7 @@ class TermsOfServicePDF(FPDF):
         self.set_y(-14)
         self.set_font("Helvetica", "", 7)
         self.set_text_color(170, 170, 180)
-        self.cell(95, 5, "Confidential  -  Decorum IT Solutions", align="L")
+        self.cell(95, 5, "Confidential  -  Oheneba Media", align="L")
         self.cell(95, 5, f"Page {self.page_no()} of {{nb}}", align="R")
 
 
@@ -134,7 +134,7 @@ def build_pdf():
     pdf.set_y(250)
     pdf.set_font("Helvetica", "B", 9)
     pdf.set_text_color(17, 24, 39)
-    pdf.cell(0, 5, "PUBLISHED & MAINTAINED BY DECORUM IT SOLUTIONS", align="C", new_x="LMARGIN", new_y="NEXT")
+    pdf.cell(0, 5, "PUBLISHED & MAINTAINED BY OHENEBA MEDIA", align="C", new_x="LMARGIN", new_y="NEXT")
     pdf.set_font("Helvetica", "", 8)
     pdf.set_text_color(156, 163, 175)
     pdf.cell(0, 5, "Official Legal Document  |  Version 2026.1", align="C")
@@ -159,7 +159,7 @@ def build_pdf():
 
     _body(pdf, (
         "Welcome to Skoola, a role-based SaaS school management platform designed and owned by "
-        "Mr. Oheneba Michael Baah and published by Decorum IT Solutions (hereinafter referred to "
+        "Mr. Oheneba Michael Baah and published by Oheneba Media (hereinafter referred to "
         "as the \"Service Provider\")."
     ))
     _body(pdf, (
@@ -200,7 +200,7 @@ def build_pdf():
         "(d) upload malicious software or code onto the Platform."
     ))
     _bullet(pdf, (
-        "2.3  Decorum IT Solutions reserves the right to immediately suspend any individual account that violates "
+        "2.3  Oheneba Media reserves the right to immediately suspend any individual account that violates "
         "these conditions or threatens platform-wide data security."
     ))
 
@@ -223,7 +223,7 @@ def build_pdf():
     # ── SECTION 4 ──
     _section_title(pdf, "4", "System Uptime, SLA & Maintenance")
     _bullet(pdf, (
-        "4.1  UPTIME TARGET: Decorum IT Solutions targets a ninety-nine point five percent (99.5%) system uptime "
+        "4.1  UPTIME TARGET: Oheneba Media targets a ninety-nine point five percent (99.5%) system uptime "
         "for Skoola services during normal school hours."
     ))
     _bullet(pdf, (
@@ -242,11 +242,11 @@ def build_pdf():
     _bullet(pdf, (
         "5.1  PROPRIETARY RIGHTS: All code, user interfaces, branding assets, logos, graphic elements, "
         "compiled databases, and structural designs associated with Skoola are owned solely and exclusively "
-        "by Mr. Oheneba Michael Baah and Decorum IT Solutions."
+        "by Mr. Oheneba Michael Baah and Oheneba Media."
     ))
     _bullet(pdf, (
         "5.2  TRADEMARK USE: The School agrees not to display or use the 'Skoola' trademarks, logos, or "
-        "Decorum IT Solutions branding elements without prior written consent from the Service Provider."
+        "Oheneba Media branding elements without prior written consent from the Service Provider."
     ))
 
     # ── SECTION 6 ──
@@ -256,7 +256,7 @@ def build_pdf():
         "student profiles, payroll documents, and student data entered onto the Skoola platform."
     ))
     _bullet(pdf, (
-        "6.2  PROCESSING LICENSE: The School grants Decorum IT Solutions a non-exclusive, worldwide, royalty-free "
+        "6.2  PROCESSING LICENSE: The School grants Oheneba Media a non-exclusive, worldwide, royalty-free "
         "license to host, transmit, copy, format, and display the Client Data strictly to provide, maintain, "
         "and support the subscription services."
     ))
@@ -277,7 +277,7 @@ def build_pdf():
     ))
     _bullet(pdf, (
         "7.3  PERMANENT DELETION: If the School fails to clear outstanding invoices or reach a written compromise "
-        "within the 30-day grace period, Decorum IT Solutions reserves the right to terminate the account "
+        "within the 30-day grace period, Oheneba Media reserves the right to terminate the account "
         "permanently and wipe all databases, backups, and configurations without liability."
     ))
 

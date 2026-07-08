@@ -58,7 +58,7 @@ def build_pdf():
     
     pdf.set_font("Helvetica", "B", 10.5)
     pdf.set_text_color(17, 24, 39)
-    pdf.cell(85, 5.5, "Decorum IT Solutions", new_x="LMARGIN", new_y="NEXT")
+    pdf.cell(85, 5.5, "Oheneba Media", new_x="LMARGIN", new_y="NEXT")
     
     pdf.set_font("Helvetica", "", 9)
     pdf.set_text_color(75, 85, 99)
@@ -235,7 +235,7 @@ def build_pdf():
     pdf.ln(1)
     
     bank_fields = [
-        ("Account Name:", "Decorum IT Solutions"),
+        ("Account Name:", "Oheneba Media"),
         ("Bank Name:", "________________________________________"),
         ("Branch Name:", "________________________________________"),
         ("Account Number:", "________________________________________"),
@@ -309,12 +309,12 @@ def build_pdf():
     y_r = pdf.get_y()
     pdf.line(90, y_r + 4, 115, y_r + 4)
 
-    # Right: Decorum IT Solutions authorized signature
+    # Right: Oheneba Media authorized signature
     pdf.set_y(y_sig)
     pdf.set_x(120)
     pdf.set_font("Helvetica", "B", 8.5)
     pdf.set_text_color(17, 24, 39)
-    pdf.cell(70, 5, "FOR DECORUM IT SOLUTIONS", align="R", new_x="LMARGIN", new_y="NEXT")
+    pdf.cell(70, 5, "FOR OHENEBA MEDIA", align="R", new_x="LMARGIN", new_y="NEXT")
     
     pdf.ln(8)
     pdf.set_x(120)
@@ -341,7 +341,7 @@ def build_pdf():
     
     pdf.set_font("Helvetica", "I", 7.5)
     pdf.set_text_color(156, 163, 175)
-    pdf.cell(0, 5, "Thank you for choosing Skoola. Decorum IT Solutions, Accra, Ghana.", align="C")
+    pdf.cell(0, 5, "Thank you for choosing Skoola. Oheneba Media, Accra, Ghana.", align="C")
 
     # ── OUTPUT ──
     out_path = os.path.join(

@@ -168,6 +168,12 @@ export const deleteInquiry = async (id: string) => {
   return response.data;
 };
 
+// Public — no auth token attached
+export const submitPublicInquiry = async (data: any) => {
+  const response = await axios.post(`${API_BASE_URL}/public/inquiries`, data);
+  return response.data;
+};
+
 export const fetchApplications = async () => {
   const response = await api.get('/admissions/applications');
   return response.data;

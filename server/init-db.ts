@@ -58,6 +58,7 @@ export async function init() {
         current_term VARCHAR(20) DEFAULT 'Term 1',
         organogram_head_title VARCHAR(255) DEFAULT 'School Admin',
         demo_requested BOOLEAN DEFAULT FALSE,
+        landing_page_enabled BOOLEAN DEFAULT FALSE,
         expiry_date DATE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
@@ -104,6 +105,9 @@ export async function init() {
         END IF;
         IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'organizations' AND column_name = 'signature') THEN
           ALTER TABLE organizations ADD COLUMN signature TEXT;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'organizations' AND column_name = 'landing_page_enabled') THEN
+          ALTER TABLE organizations ADD COLUMN landing_page_enabled BOOLEAN DEFAULT FALSE;
         END IF;
         IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'partners' AND column_name = 'company_name') THEN
           ALTER TABLE partners ADD COLUMN company_name VARCHAR(255);

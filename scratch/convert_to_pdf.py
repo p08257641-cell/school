@@ -14,7 +14,7 @@ class SkoolaPDF(FPDF):
             self.set_y(8)
             self.set_font('Helvetica', 'I', 8)
             self.set_text_color(156, 163, 175)
-            self.cell(0, 10, 'Skoola by Decorum IT Solutions - Reference Guide', align='R')
+            self.cell(0, 10, 'Skoola by Oheneba Media - Reference Guide', align='R')
             self.ln(12)
 
     def footer(self):
@@ -119,7 +119,7 @@ def compile_pdf(md_filepath, pdf_filepath, doc_title, doc_subtitle):
     pdf.set_y(245)
     pdf.set_font('Helvetica', 'B', 9)
     pdf.set_text_color(31, 41, 55)
-    pdf.cell(0, 5, "PUBLISHED BY DECORUM IT SOLUTIONS", align='C')
+    pdf.cell(0, 5, "PUBLISHED BY OHENEBA MEDIA", align='C')
     pdf.ln(5)
     pdf.set_font('Helvetica', '', 8)
     pdf.set_text_color(156, 163, 175)

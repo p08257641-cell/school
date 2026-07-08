@@ -127,6 +127,7 @@ router.post('/partner-leads/verify-otp', async (req: any, res: any) => {
 router.get('/public/organization-by-domain', OrganizationController.getOrganizationByDomain);
 router.get('/public/report-card/:token', ExamController.getPublicReportCardData);
 router.get('/public/fee-history/:token', FinanceController.getPublicFeeHistoryData);
+router.post('/public/inquiries', AdmissionsController.createPublicInquiry);
 
 
 // PROTECTED ROUTES

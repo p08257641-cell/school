@@ -1,0 +1,2238 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skoola Strategic Blueprint - Dual-Mode Acquisition Dashboard</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- HTML2PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- Google Fonts: Inter & Space Grotesk -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Space Grotesk', 'sans-serif'],
+                    },
+                    colors: {
+                        slate: {
+                            950: '#06080F',
+                            900: '#0E111A',
+                            800: '#1C2333',
+                            750: '#1E293B',
+                        },
+                        boss: {
+                            gold: '#D97706',
+                            amber: '#F59E0B',
+                            purple: '#8B5CF6',
+                            emerald: '#10B981',
+                            indigo: '#4F46E5',
+                            pink: '#EC4899',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #06080F;
+            transition: background-image 0.5s ease-in-out;
+        }
+        /* Theme-dependent background radial gradients */
+        body.theme-boss {
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(245, 158, 11, 0.12) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(139, 92, 246, 0.1) 0px, transparent 50%);
+        }
+        body.theme-partner {
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(79, 70, 229, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(236, 72, 153, 0.1) 0px, transparent 50%);
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #06080F;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1C2333;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #F59E0B;
+        }
+        /* Glow animations */
+        .glow-hover {
+            transition: all 0.3s ease-in-out;
+        }
+        /* Style range inputs */
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            background: transparent;
+            cursor: pointer;
+        }
+        input[type="range"]::-webkit-slider-runnable-track {
+            background: #1C2333;
+            height: 6px;
+            border-radius: 3px;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            margin-top: -5px;
+            height: 16px;
+            width: 16px;
+            border-radius: 50%;
+            transition: transform 0.1s ease;
+        }
+        .theme-boss input[type="range"]::-webkit-slider-thumb {
+            background-color: #F59E0B;
+            box-shadow: 0 0 10px rgba(245, 158, 11, 0.8);
+        }
+        .theme-partner input[type="range"]::-webkit-slider-thumb {
+            background-color: #4F46E5;
+            box-shadow: 0 0 10px rgba(79, 70, 229, 0.8);
+        }
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+    </style>
+</head>
+<body class="theme-boss text-slate-100 font-sans antialiased min-height-screen">
+
+    <!-- Sticky Navigation Header -->
+    <header class="sticky top-0 z-50 bg-slate-950/85 backdrop-blur-md border-b border-slate-800/80 px-6 py-4 transition-all">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div id="header-icon-box" class="h-10 w-10 rounded-xl bg-gradient-to-tr from-boss-gold to-boss-purple flex items-center justify-center shadow-lg shadow-boss-gold/20 transition-all duration-500">
+                    <i id="header-icon" data-lucide="crown" class="text-white h-6 w-6"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold font-display tracking-tight text-white flex items-center gap-2">
+                        Skoola <span id="header-badge" class="text-xs bg-boss-gold/20 text-boss-amber border border-boss-gold/30 px-2 py-0.5 rounded-full font-mono transition-all">DIRECT SALES BLUEPRINT</span>
+                    </h1>
+                    <p id="header-subtitle" class="text-xs text-slate-400">Direct Acquisition Strategy for the Founder</p>
+                </div>
+            </div>
+
+            <!-- Mode Toggle Switch (Center) -->
+            <div class="flex items-center bg-slate-950 p-1.5 rounded-xl border border-slate-800/80 gap-1.5 shadow-inner">
+                <button onclick="setDashboardMode('boss')" id="btn-mode-boss" class="px-4 py-2 text-xs font-bold rounded-lg bg-boss-gold text-white shadow-md transition duration-300 flex items-center gap-1.5">
+                    <i data-lucide="crown" class="h-3.5 w-3.5"></i> Direct (Boss)
+                </button>
+                <button onclick="setDashboardMode('partner')" id="btn-mode-partner" class="px-4 py-2 text-xs font-bold rounded-lg text-slate-400 hover:text-slate-200 transition duration-300 flex items-center gap-1.5">
+                    <i data-lucide="handshake" class="h-3.5 w-3.5"></i> Partner Network
+                </button>
+            </div>
+            
+            <div class="flex items-center gap-3">
+                <a href="#simulator" class="text-xs font-semibold px-4 py-2 rounded-lg bg-slate-900 border border-slate-800 text-slate-300 hover:border-boss-gold/50 transition">
+                    Sandbox
+                </a>
+                <a href="#segmentation" class="text-xs font-semibold px-4 py-2 rounded-lg bg-slate-900 border border-slate-800 text-slate-300 hover:border-boss-gold/50 transition">
+                    Segments
+                </a>
+                <a href="#pipeline" class="text-xs font-semibold px-4 py-2 rounded-lg bg-slate-900 border border-slate-800 text-slate-300 hover:border-boss-gold/50 transition">
+                    Process Map
+                </a>
+                <button onclick="downloadPDF()" class="text-xs font-bold px-4 py-2.5 rounded-lg bg-gradient-to-r from-boss-gold to-boss-purple hover:from-boss-purple hover:to-boss-gold text-white shadow-lg shadow-boss-gold/20 flex items-center gap-2 transition transform active:scale-95">
+                    <i data-lucide="download" class="h-4 w-4"></i> Export PDF
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+        
+        <!-- Welcome banner -->
+        <div class="relative overflow-hidden bg-gradient-to-r from-slate-900 via-slate-950 to-slate-900 border border-slate-800/80 rounded-3xl p-8 sm:p-10 shadow-2xl">
+            <div id="banner-gradient" class="absolute inset-0 bg-[radial-gradient(circle_at_70%_120%,rgba(245,158,11,0.1),transparent_60%)] transition-all duration-500"></div>
+            <div class="relative z-10 max-w-3xl space-y-4">
+                <span id="banner-tag" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-boss-gold/15 text-boss-amber border border-boss-gold/35">
+                    <span class="h-1.5 w-1.5 rounded-full bg-boss-amber animate-pulse"></span>
+                    Direct B2B Sales Blueprint
+                </span>
+                <h2 id="banner-title" class="text-3xl sm:text-4xl font-extrabold font-display tracking-tight text-white leading-tight">
+                    Directly Convert <span class="text-transparent bg-clip-text bg-gradient-to-r from-boss-amber via-boss-purple to-boss-indigo">2,000+ Schools</span> to Keep 100% Revenue
+                </h2>
+                <p id="banner-desc" class="text-slate-300 text-sm sm:text-base leading-relaxed">
+                    A streamlined, high-efficiency outbound sales strategy built for you to acquire educational clients directly. By bypassing intermediaries, you capture the entire subscription margin, maintain strict brand control, and build direct partnerships.
+                </p>
+                <div class="flex flex-wrap gap-4 pt-2">
+                    <div class="flex items-center gap-2 text-slate-400 text-xs bg-slate-900/80 px-3 py-1.5 rounded-lg border border-slate-800">
+                        <i data-lucide="database" class="h-4 w-4 text-boss-amber"></i>
+                        <span>2000+ Total Contacts</span>
+                    </div>
+                    <div id="banner-feature-2" class="flex items-center gap-2 text-slate-400 text-xs bg-slate-900/80 px-3 py-1.5 rounded-lg border border-slate-800">
+                        <i data-lucide="percent" class="h-4 w-4 text-boss-purple"></i>
+                        <span>100% Founder Equity Retention</span>
+                    </div>
+                    <div id="banner-feature-3" class="flex items-center gap-2 text-slate-400 text-xs bg-slate-900/80 px-3 py-1.5 rounded-lg border border-slate-800">
+                        <i data-lucide="trending-up" class="h-4 w-4 text-boss-emerald"></i>
+                        <span>Direct Support & Upgrades Control</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- KPI SUMMARY WIDGETS -->
+        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <!-- Card 1 -->
+            <div class="bg-slate-900/60 backdrop-blur-md border border-slate-800/80 rounded-2xl p-6 flex items-center justify-between shadow-lg hover:border-boss-gold/40 transition duration-300">
+                <div class="space-y-1">
+                    <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Prospects</p>
+                    <h3 id="kpi-contacts" class="text-3xl font-bold font-display text-white">2,000</h3>
+                    <p class="text-[10px] text-slate-400">Total school pool</p>
+                </div>
+                <div id="kpi-icon-1" class="h-12 w-12 rounded-xl bg-boss-gold/10 border border-boss-gold/20 flex items-center justify-center text-boss-amber shadow-inner">
+                    <i data-lucide="database" class="h-6 w-6"></i>
+                </div>
+            </div>
+            <!-- Card 2 -->
+            <div class="bg-slate-900/60 backdrop-blur-md border border-slate-800/80 rounded-2xl p-6 flex items-center justify-between shadow-lg hover:border-boss-purple/40 transition duration-300">
+                <div class="space-y-1">
+                    <p id="kpi-label-2" class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Demos Booked</p>
+                    <h3 id="kpi-demos" class="text-3xl font-bold font-display text-white">150</h3>
+                    <p id="kpi-sub-2" class="text-[10px] text-slate-400">Expected bookings (7.5%)</p>
+                </div>
+                <div id="kpi-icon-2" class="h-12 w-12 rounded-xl bg-boss-purple/10 border border-boss-purple/20 flex items-center justify-center text-boss-purple shadow-inner">
+                    <i data-lucide="presentation" class="h-6 w-6"></i>
+                </div>
+            </div>
+            <!-- Card 3 -->
+            <div class="bg-slate-900/60 backdrop-blur-md border border-slate-800/80 rounded-2xl p-6 flex items-center justify-between shadow-lg hover:border-boss-emerald/40 transition duration-300">
+                <div class="space-y-1">
+                    <p id="kpi-label-3" class="text-xs font-semibold text-slate-400 uppercase tracking-wider">paying customers</p>
+                    <h3 id="kpi-schools" class="text-3xl font-bold font-display text-white">45</h3>
+                    <p id="kpi-sub-3" class="text-[10px] text-slate-400">Closed schools (30% rate)</p>
+                </div>
+                <div id="kpi-icon-3" class="h-12 w-12 rounded-xl bg-boss-emerald/10 border border-boss-emerald/20 flex items-center justify-center text-boss-emerald shadow-inner">
+                    <i data-lucide="graduation-cap" class="h-6 w-6"></i>
+                </div>
+            </div>
+            <!-- Card 4 -->
+            <div class="bg-slate-900/60 backdrop-blur-md border border-slate-800/80 rounded-2xl p-6 flex items-center justify-between shadow-lg hover:border-boss-gold/40 transition duration-300">
+                <div class="space-y-1">
+                    <p id="kpi-label-4" class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Monthly MRR (100%)</p>
+                    <h3 id="kpi-net-mrr" class="text-3xl font-bold font-display text-white">$22,500</h3>
+                    <p id="kpi-sub-4" class="text-[10px] text-slate-400">100% retained by the Founder</p>
+                </div>
+                <div id="kpi-icon-4" class="h-12 w-12 rounded-xl bg-boss-gold/15 border border-boss-gold/30 flex items-center justify-center text-boss-amber shadow-inner">
+                    <i data-lucide="dollar-sign" class="h-6 w-6"></i>
+                </div>
+            </div>
+        </section>
+
+        <!-- WIDGET COLUMN GRID -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            <!-- LEFT COLUMN: SIMULATOR & CHARTS (7 cols) -->
+            <div class="lg:col-span-7 space-y-8">
+                
+                <!-- Interactive Simulator -->
+                <section id="simulator" class="bg-slate-900/80 border border-slate-800/80 rounded-2xl p-6 shadow-xl space-y-6 glow-hover">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+                        <div class="flex items-center gap-2">
+                            <i id="sim-icon" data-lucide="sliders" class="text-boss-amber h-5 w-5"></i>
+                            <h3 id="sim-title" class="text-lg font-bold font-display text-white">Direct Sales Simulator</h3>
+                        </div>
+                        <span id="sim-badge" class="text-xs text-boss-amber bg-boss-gold/10 border border-boss-gold/30 px-2 py-0.5 rounded-full font-mono font-medium">Founder Sandbox</span>
+                    </div>
+
+                    <!-- Sliders Grid -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <!-- Contacts Database -->
+                        <div class="space-y-2">
+                            <div class="flex justify-between text-xs font-medium">
+                                <span class="text-slate-300">Total Contacts Pool</span>
+                                <span id="val-contacts" class="font-mono font-bold">2,000</span>
+                            </div>
+                            <input id="slide-contacts" type="range" min="500" max="5000" step="100" value="2000" class="w-full">
+                        </div>
+
+                        <!-- Variable Slider 1 (Response vs Partner Sign-ups) -->
+                        <div class="space-y-2">
+                            <div class="flex justify-between text-xs font-medium">
+                                <span id="label-slider-1" class="text-slate-300">Direct Response / Interest Rate</span>
+                                <span id="val-slider-1" class="font-mono font-bold">15%</span>
+                            </div>
+                            <input id="slide-slider-1" type="range" min="5" max="50" step="1" value="15" class="w-full">
+                        </div>
+
+                        <!-- Variable Slider 2 (Demo Booking vs School Referral Rate) -->
+                        <div class="space-y-2">
+                            <div class="flex justify-between text-xs font-medium">
+                                <span id="label-slider-2" class="text-slate-300">Demo Booking Rate</span>
+                                <span id="val-slider-2" class="font-mono font-bold">50%</span>
+                            </div>
+                            <input id="slide-slider-2" type="range" min="10" max="90" step="1" value="50" class="w-full">
+                        </div>
+
+                        <!-- Variable Slider 3 (Sales Close Rate vs Commission Rate) -->
+                        <div class="space-y-2">
+                            <div class="flex justify-between text-xs font-medium">
+                                <span id="label-slider-3" class="text-slate-300">Sales Closing Rate</span>
+                                <span id="val-slider-3" class="font-mono font-bold">30%</span>
+                            </div>
+                            <input id="slide-slider-3" type="range" min="5" max="80" step="1" value="30" class="w-full">
+                        </div>
+
+                        <!-- Average School Fee -->
+                        <div class="space-y-2 sm:col-span-2">
+                            <div class="flex justify-between text-xs font-medium">
+                                <span class="text-slate-300">Average School Fee / Month</span>
+                                <span id="val-fee" class="font-mono font-bold">$500</span>
+                            </div>
+                            <input id="slide-fee" type="range" min="100" max="2000" step="50" value="500" class="w-full">
+                        </div>
+                    </div>
+
+                    <!-- Output Grid -->
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 bg-slate-950/60 p-4 rounded-xl border border-slate-800/80">
+                        <div class="text-center p-2 border-r border-slate-800">
+                            <span id="output-label-1" class="text-[10px] uppercase font-bold text-slate-400">Total Demos</span>
+                            <p id="calc-output-1" class="text-xl font-bold font-display text-white mt-1">150</p>
+                        </div>
+                        <div class="text-center p-2 sm:border-r border-slate-800">
+                            <span id="output-label-2" class="text-[10px] uppercase font-bold text-slate-400">Paying Clients</span>
+                            <p id="calc-output-2" class="text-xl font-bold font-display text-white mt-1">45</p>
+                        </div>
+                        <div class="text-center p-2 col-span-2 sm:col-span-1">
+                            <span id="output-label-3" class="text-[10px] uppercase font-bold text-slate-400">Founder Annual ARR</span>
+                            <p id="calc-arr" class="text-xl font-bold font-display text-boss-emerald mt-1">$270,000</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Data Visualizations -->
+                <section class="bg-slate-900/80 border border-slate-800/80 rounded-2xl p-6 shadow-xl space-y-6 glow-hover">
+                    <div class="flex items-center gap-2 border-b border-slate-800 pb-4">
+                        <i id="chart-icon" class="text-boss-amber h-5 w-5" data-lucide="bar-chart-2"></i>
+                        <h3 class="text-lg font-bold font-display text-white">Projections & Funnel Visualizers</h3>
+                    </div>
+
+                    <!-- Chart Selector -->
+                    <div class="flex border-b border-slate-800">
+                        <button onclick="switchChart('growth')" id="btn-chart-growth" class="border-b-2 border-boss-gold px-4 py-2 text-xs font-semibold text-white transition">
+                            12-Month Projections
+                        </button>
+                        <button onclick="switchChart('funnel')" id="btn-chart-funnel" class="border-b-2 border-transparent px-4 py-2 text-xs font-semibold text-slate-400 hover:text-white transition">
+                            Acquisition Funnel
+                        </button>
+                    </div>
+
+                    <!-- Chart Container -->
+                    <div class="relative min-h-[300px]">
+                        <div id="container-chart-growth" class="block w-full">
+                            <canvas id="chart-growth" class="max-h-[320px]"></canvas>
+                        </div>
+                        <div id="container-chart-funnel" class="hidden w-full">
+                            <canvas id="chart-funnel" class="max-h-[320px]"></canvas>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+
+            <!-- RIGHT COLUMN: OUTBOUND HUB & TIMELINE (5 cols) -->
+            <div class="lg:col-span-5 space-y-8">
+                
+                <!-- Segmentation Hub -->
+                <section id="segmentation" class="bg-slate-900/80 border border-slate-800/80 rounded-2xl p-6 shadow-xl space-y-6 glow-hover">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+                        <div class="flex items-center gap-2">
+                            <i id="seg-icon" class="text-boss-amber h-5 w-5" data-lucide="layers"></i>
+                            <h3 class="text-lg font-bold font-display text-white">Outbound Target Segments</h3>
+                        </div>
+                    </div>
+
+                    <!-- Tabs -->
+                    <div class="grid grid-cols-3 gap-2 p-1 bg-slate-950 rounded-xl border border-slate-850">
+                        <button onclick="switchSegment('A')" id="btn-seg-A" class="py-2 text-xs font-bold rounded-lg bg-boss-gold text-white transition duration-200">
+                            Segment A
+                        </button>
+                        <button onclick="switchSegment('B')" id="btn-seg-B" class="py-2 text-xs font-bold rounded-lg text-slate-400 hover:text-slate-200 transition duration-200">
+                            Segment B
+                        </button>
+                        <button onclick="switchSegment('C')" id="btn-seg-C" class="py-2 text-xs font-bold rounded-lg text-slate-400 hover:text-slate-200 transition duration-200">
+                            Segment C
+                        </button>
+                    </div>
+
+                    <!-- Content Panel -->
+                    <div id="segment-panel" class="space-y-4">
+                        <!-- Loaded dynamically -->
+                    </div>
+                </section>
+
+                <!-- Action Timeline Planner -->
+                <section id="timeline" class="bg-slate-900/80 border border-slate-800/80 rounded-2xl p-6 shadow-xl space-y-6 glow-hover">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+                        <div class="flex items-center gap-2">
+                            <i id="time-icon" class="text-boss-amber h-5 w-5" data-lucide="calendar"></i>
+                            <h3 class="text-lg font-bold font-display text-white">Strategic Growth Timeline</h3>
+                        </div>
+                    </div>
+
+                    <div id="timeline-list" class="space-y-4 max-h-[460px] overflow-y-auto pr-2">
+                        <!-- Loaded dynamically -->
+                    </div>
+                </section>
+
+            </div>
+
+        </div>
+
+        <!-- STRATEGIC PROCESS FLOWCHARTS SECTION -->
+        <section id="pipeline" class="bg-slate-900/80 border border-slate-800/80 rounded-2xl p-6 shadow-xl space-y-6 glow-hover">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-800 pb-4 gap-4">
+                <div class="flex items-center gap-2">
+                    <i id="vis-icon" class="text-boss-amber h-5 w-5" data-lucide="git-branch"></i>
+                    <h3 class="text-lg font-bold font-display text-white">Strategic Process Maps</h3>
+                </div>
+                <!-- Interactive Tabs -->
+                <div class="flex bg-slate-950 p-1 rounded-xl border border-slate-800/80 self-start sm:self-auto shadow-inner">
+                    <button onclick="switchVisualFlow('pipeline')" id="btn-flow-pipeline" class="px-4 py-1.5 text-xs font-bold rounded-lg bg-boss-gold text-white transition duration-200">
+                        Acquisition Pipeline
+                    </button>
+                    <button onclick="switchVisualFlow('funnel')" id="btn-flow-funnel" class="px-4 py-1.5 text-xs font-bold rounded-lg text-slate-400 hover:text-slate-200 transition duration-200">
+                        Outbound Funnel
+                    </button>
+                    <button onclick="switchVisualFlow('roadmap')" id="btn-flow-roadmap" class="px-4 py-1.5 text-xs font-bold rounded-lg text-slate-400 hover:text-slate-200 transition duration-200">
+                        Monthly Roadmaps
+                    </button>
+                </div>
+            </div>
+
+            <!-- CONTAINER 1: INTERACTIVE ACQUISITION PIPELINE -->
+            <div id="vis-flow-pipeline" class="space-y-6 block">
+                <!-- Connected Pipeline Stages -->
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-4 relative">
+                    <!-- Stage 1 -->
+                    <button onclick="selectPipelineStage(1)" id="pipe-stage-1" class="p-4 rounded-xl border border-boss-gold bg-slate-900/90 text-left transition duration-300 hover:border-boss-gold hover:scale-[1.02] shadow-lg flex flex-col justify-between min-h-[110px]">
+                        <div class="flex justify-between items-start">
+                            <span id="pipe-badge-1" class="text-[10px] font-bold text-boss-amber font-mono bg-boss-gold/15 px-2 py-0.5 rounded">STAGE 01</span>
+                            <i id="pipe-icon-1" data-lucide="database" class="h-4 w-4 text-boss-amber"></i>
+                        </div>
+                        <h4 id="pipe-title-1" class="text-xs font-extrabold text-white mt-4 font-display">Data Enrichment</h4>
+                    </button>
+                    <!-- Stage 2 -->
+                    <button onclick="selectPipelineStage(2)" id="pipe-stage-2" class="p-4 rounded-xl border border-slate-800 bg-slate-900/40 text-left transition duration-300 hover:border-boss-gold hover:scale-[1.02] shadow-lg flex flex-col justify-between min-h-[110px]">
+                        <div class="flex justify-between items-start">
+                            <span id="pipe-badge-2" class="text-[10px] font-bold text-slate-400 font-mono bg-slate-800 px-2 py-0.5 rounded">STAGE 02</span>
+                            <i id="pipe-icon-2" data-lucide="message-square" class="h-4 w-4 text-slate-400"></i>
+                        </div>
+                        <h4 id="pipe-title-2" class="text-xs font-extrabold text-slate-400 mt-4 font-display">Direct Outbound</h4>
+                    </button>
+                    <!-- Stage 3 -->
+                    <button onclick="selectPipelineStage(3)" id="pipe-stage-3" class="p-4 rounded-xl border border-slate-800 bg-slate-900/40 text-left transition duration-300 hover:border-boss-gold hover:scale-[1.02] shadow-lg flex flex-col justify-between min-h-[110px]">
+                        <div class="flex justify-between items-start">
+                            <span id="pipe-badge-3" class="text-[10px] font-bold text-slate-400 font-mono bg-slate-800 px-2 py-0.5 rounded">STAGE 03</span>
+                            <i id="pipe-icon-3" data-lucide="monitor-play" class="h-4 w-4 text-slate-400"></i>
+                        </div>
+                        <h4 id="pipe-title-3" class="text-xs font-extrabold text-slate-400 mt-4 font-display">Bespoke Demo</h4>
+                    </button>
+                    <!-- Stage 4 -->
+                    <button onclick="selectPipelineStage(4)" id="pipe-stage-4" class="p-4 rounded-xl border border-slate-800 bg-slate-900/40 text-left transition duration-300 hover:border-boss-gold hover:scale-[1.02] shadow-lg flex flex-col justify-between min-h-[110px]">
+                        <div class="flex justify-between items-start">
+                            <span id="pipe-badge-4" class="text-[10px] font-bold text-slate-400 font-mono bg-slate-800 px-2 py-0.5 rounded">STAGE 04</span>
+                            <i id="pipe-icon-4" data-lucide="file-check" class="h-4 w-4 text-slate-400"></i>
+                        </div>
+                        <h4 id="pipe-title-4" class="text-xs font-extrabold text-slate-400 mt-4 font-display">Closing Sign-off</h4>
+                    </button>
+                    <!-- Stage 5 -->
+                    <button onclick="selectPipelineStage(5)" id="pipe-stage-5" class="p-4 rounded-xl border border-slate-800 bg-slate-900/40 text-left transition duration-300 hover:border-boss-gold hover:scale-[1.02] shadow-lg flex flex-col justify-between min-h-[110px]">
+                        <div class="flex justify-between items-start">
+                            <span id="pipe-badge-5" class="text-[10px] font-bold text-slate-400 font-mono bg-slate-800 px-2 py-0.5 rounded">STAGE 05</span>
+                            <i id="pipe-icon-5" data-lucide="check-circle-2" class="h-4 w-4 text-slate-400"></i>
+                        </div>
+                        <h4 id="pipe-title-5" class="text-xs font-extrabold text-slate-400 mt-4 font-display">Deployment</h4>
+                    </button>
+                </div>
+
+                <!-- Active Pipeline Stage Detail Panel -->
+                <div id="pipeline-detail-card" class="bg-slate-950 p-6 rounded-2xl border border-slate-800/80 space-y-4">
+                    <!-- Updated dynamically -->
+                </div>
+            </div>
+
+            <!-- CONTAINER 2: CSS SEGMENTATION FUNNEL -->
+            <div id="vis-flow-funnel" class="space-y-6 hidden">
+                <div class="flex flex-col md:flex-row items-center gap-8">
+                    <!-- Funnel Shape Visualizer -->
+                    <div class="w-full md:w-1/2 flex flex-col items-center space-y-2">
+                        <!-- Funnel Block 1 -->
+                        <div id="fun-block-1" class="w-full bg-gradient-to-r from-boss-gold to-boss-purple p-4 text-center rounded-xl border border-slate-700/50 shadow-lg transition duration-300 hover:scale-[1.01] cursor-pointer" onclick="showFunnelDetails('pool')">
+                            <span id="fun-label-1" class="text-[10px] font-bold tracking-widest text-slate-200 uppercase">1. DATABASE POOL</span>
+                            <h4 id="funnel-val-contacts" class="text-lg font-bold font-display text-white">2,000 Contacts</h4>
+                        </div>
+                        <!-- Funnel Block 2 -->
+                        <div id="fun-block-2" class="w-[85%] bg-gradient-to-r from-boss-purple to-boss-pink p-4 text-center rounded-xl border border-slate-700/50 shadow-lg transition duration-300 hover:scale-[1.02] cursor-pointer" onclick="showFunnelDetails('interest')">
+                            <span id="fun-label-2" class="text-[10px] font-bold tracking-widest text-slate-200 uppercase">2. INTERESTED LEADS</span>
+                            <h4 id="funnel-val-interest" class="text-lg font-bold font-display text-white">300 Leads</h4>
+                        </div>
+                        <!-- Funnel Block 3 -->
+                        <div id="fun-block-3" class="w-[70%] bg-gradient-to-r from-boss-pink to-boss-gold p-4 text-center rounded-xl border border-slate-700/50 shadow-lg transition duration-300 hover:scale-[1.02] cursor-pointer" onclick="showFunnelDetails('demos')">
+                            <span id="fun-label-3" class="text-[10px] font-bold tracking-widest text-slate-200 uppercase">3. PITCH DEMOS BOOKED</span>
+                            <h4 id="funnel-val-demos" class="text-lg font-bold font-display text-white">150 Demos</h4>
+                        </div>
+                        <!-- Funnel Block 4 -->
+                        <div id="fun-block-4" class="w-[50%] bg-gradient-to-r from-boss-gold to-boss-emerald p-4 text-center rounded-xl border border-slate-700/50 shadow-lg transition duration-300 hover:scale-[1.03] cursor-pointer" onclick="showFunnelDetails('closed')">
+                            <span id="fun-label-4" class="text-[10px] font-bold tracking-widest text-slate-200 uppercase">4. CLOSED CLIENTS</span>
+                            <h4 id="funnel-val-closed" class="text-lg font-bold font-display text-white">45 Schools</h4>
+                        </div>
+                    </div>
+
+                    <!-- Funnel Info Panel -->
+                    <div id="funnel-info-panel" class="w-full md:w-1/2 p-6 bg-slate-950 rounded-2xl border border-slate-800/80 space-y-4 self-stretch flex flex-col justify-center">
+                        <!-- Loaded dynamically -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- CONTAINER 3: MONTHLY ROADMAP EXPLORER -->
+            <div id="vis-flow-roadmap" class="space-y-6 hidden">
+                <!-- Roadmap Slider / Navigation -->
+                <div class="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-thin">
+                    <script>
+                        for(let m = 1; m <= 12; m++) {
+                            document.write(`
+                                <button onclick="selectRoadmapMonth(${m})" id="road-month-${m}" class="px-4 py-2 rounded-xl border ${m === 1 ? 'border-boss-gold bg-slate-900/90 text-white font-bold' : 'border-slate-800 bg-slate-900/40 text-slate-400'} text-xs min-w-[95px] text-center transition hover:border-boss-gold">
+                                    Month ${m.toString().padStart(2, '0')}
+                                </button>
+                            `);
+                        }
+                    </script>
+                </div>
+
+                <!-- Monthly Tasks & Volume Estimator -->
+                <div id="roadmap-detail-card" class="bg-slate-950 p-6 rounded-2xl border border-slate-800/80 grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+                    <!-- Updated dynamically -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Risk Matrix & Support -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <div class="lg:col-span-8">
+                <!-- Support Deck & Technical SLA -->
+                <section class="bg-slate-900/80 border border-slate-800/80 rounded-2xl p-6 shadow-xl space-y-4 glow-hover h-full">
+                    <div class="flex items-center gap-2 border-b border-slate-800 pb-4">
+                        <i id="sla-icon" class="text-boss-amber h-5 w-5" data-lucide="shield-check"></i>
+                        <h3 id="sla-title" class="text-lg font-bold font-display text-white">Direct Service SLAs & Technical Delivery</h3>
+                    </div>
+                    <p id="sla-desc" class="text-xs text-slate-400 leading-relaxed">
+                        To maintain high client retention rates and secure recurring subscription revenue, we deploy a standardized **Core Technical Delivery Model** directly managed by Oheneba Media.
+                    </p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                        <div class="p-4 bg-slate-950/60 border border-slate-800 rounded-xl space-y-2">
+                            <h4 class="text-xs font-bold text-white flex items-center gap-1.5">
+                                <i data-lucide="badge-check" class="h-4 w-4 text-boss-emerald"></i> Data Import Standards
+                            </h4>
+                            <p id="sla-card-1-text" class="text-[11px] text-slate-400 leading-relaxed">
+                                Bulk imports of rosters, fee balances, and timetable settings completed within 48 hours of obtaining the school records database.
+                            </p>
+                        </div>
+                        <div class="p-4 bg-slate-950/60 border border-slate-800 rounded-xl space-y-2">
+                            <h4 class="text-xs font-bold text-white flex items-center gap-1.5">
+                                <i data-lucide="badge-check" class="h-4 w-4 text-boss-emerald"></i> Live Support Desk
+                            </h4>
+                            <p id="sla-card-2-text" class="text-[11px] text-slate-400 leading-relaxed">
+                                Standard email and WhatsApp technical tickets answered within 2 hours during normal business operation schedules.
+                            </p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Risk Controls -->
+            <div class="lg:col-span-4">
+                <section class="bg-slate-900/80 border border-slate-800/80 rounded-2xl p-6 shadow-xl space-y-6 glow-hover h-full">
+                    <div class="flex items-center gap-2 border-b border-slate-800 pb-4">
+                        <i id="risk-icon" class="text-boss-amber h-5 w-5" data-lucide="shield-alert"></i>
+                        <h3 class="text-lg font-bold font-display text-white">Direct Risk Controls</h3>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div class="p-4 bg-slate-950/60 border border-slate-800 rounded-xl space-y-2">
+                            <span id="risk-badge-1" class="text-[9px] font-bold text-boss-amber bg-boss-gold/15 border border-boss-gold/30 px-2 py-0.5 rounded-md uppercase font-mono">
+                                Competing Software
+                            </span>
+                            <h4 id="risk-title-1" class="text-xs font-bold text-white">Replacing active software contracts</h4>
+                            <p id="risk-desc-1" class="text-[11px] text-slate-400 leading-relaxed">
+                                Emphasize custom integrations, paperless automated reports, parent/student portals, and free data-migration assistance.
+                            </p>
+                        </div>
+                        
+                        <div class="p-4 bg-slate-950/60 border border-slate-800 rounded-xl space-y-2">
+                            <span id="risk-badge-2" class="text-[9px] font-bold text-boss-purple bg-boss-purple/15 border border-boss-purple/30 px-2 py-0.5 rounded-md uppercase font-mono">
+                                Customer Friction
+                            </span>
+                            <h4 id="risk-title-2" class="text-xs font-bold text-white">Onboarding delays and migration lag</h4>
+                            <p id="risk-desc-2" class="text-[11px] text-slate-400 leading-relaxed">
+                                Deliver standard relational database templates (Excel format) for schools to fill, and host interactive support calls.
+                            </p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-950 border-t border-slate-800/80 mt-16 py-8 text-center text-xs text-slate-500 space-y-2">
+        <p class="font-medium">© 2026 Skoola System & Oheneba Media. All Rights Reserved.</p>
+        <p id="footer-text" class="text-[10px] text-slate-600">Designed for direct outbound acquisition of 2,000+ targeted schools by the Founder.</p>
+    </footer>
+
+    <!-- Interactive JS logic -->
+    <script>
+        // State management
+        let currentMode = 'boss'; // 'boss' or 'partner'
+
+        // Database specifications for Segments - Boss Mode
+        const segmentsBoss = {
+            'A': {
+                title: 'Segment A: Premium Private & International Schools',
+                badge: 'Top 20% | High Revenue Impact',
+                profile: 'Enrollments of 500+ students, private financing, dedicated administrative assistants. Demands custom portal subdomains and highly secure, reliable grading metrics.',
+                strategy: 'Exclusive outbound scheduling directly with Mr. Oheneba Michael Baah (Owner & Author) for an executive presentation containing preloaded school structures.',
+                deliverable: 'Custom domain and database setups, signed Pilot Agreement, SLA technical support contract.',
+                outreach_subject: 'Secure, Unified School Management System Setup for {School Name}',
+                outreach_body: `Dear {Administrator Name},\n\nI hope this email finds you well.\n\nMy name is Oheneba Michael Baah, and I am the owner and software architect of Skoola—a unified, cloud-based school management platform built to centralize school administration, secure student transcripts, and automate fee tracking.\n\nWe have analyzed {School Name}'s operational scale, and I would like to offer a direct, personalized technical demonstration. We can set up a dedicated testing subdomain (e.g. {schoolname}.skoola.com) with mock student files to showcase exactly how your team can save up to 60% in administrative overhead.\n\nAs the owner, I will be personally overseeing the onboarding, database migrations, and teacher training sessions for our Segment A institutions.\n\nWould you be available for a brief, 10-minute web presentation this week to explore this?\n\nSincerely,\n\nOheneba Michael Baah\nOwner & Software Author, Skoola\ninfo@ohenebamedia.com | billing@skoola.com`,
+                whatsapp_text: `Hi {Administrator Name}, this is Oheneba Michael Baah from Skoola. I have configured a custom digital portal mockup for {School Name} to streamline fee management and grades recording. Can I send you the login details for a quick review?`
+            },
+            'B': {
+                title: 'Segment B: Medium-Scale Growing Schools',
+                badge: 'Middle 50% | Core Scaling Base',
+                profile: 'Enrollments of 200-500 pupils, growing staff count, transitioning from paper records to digital transcripts. Needs quick onboarding templates.',
+                strategy: 'Structured email automation sequence, warm calls to school registrars, and booking standard product walkthroughs with our support desk.',
+                deliverable: 'Standard onboarding checklist, predefined excel import spreadsheets, standard fee schedule.',
+                outreach_subject: 'Digitize {School Name} records and fee tracking in 2 weeks',
+                outreach_body: `Dear School Principal,\n\nIs your administration spending too many hours compiling grade spreadsheets, issuing manual invoice cards, and chasing fee payments?\n\nSkoola is a secure, cloud-based platform built to bring all your student files, fee records, grade reports, and parent alerts under one simple, modern dashboard.\n\nWe provide standard Excel migration sheets, making it easy to import your existing student records and go live in less than 14 days, with full customer success assistance.\n\nWould you like us to schedule a product demo or set up a standard test account for your staff?\n\nBest regards,\n\nSkoola Sales Team\nsupport@skoola.com | www.decorumit.com`,
+                whatsapp_text: `Hi there! Simplify your school's administrative operations with Skoola. We help you automate report cards and invoice tracking easily. Reply "DEMO" to schedule a 10-minute call.`
+            },
+            'C': {
+                title: 'Segment C: Small Community & Budget Schools',
+                badge: 'Bottom 30% | High-Volume Inbound',
+                profile: 'Enrollments under 200 pupils, minimal local technical infrastructure. Relies heavily on self-guided software setups.',
+                strategy: 'Automated email newsletter campaigns, invitations to group webinars on educational technology, self-service setup videos.',
+                deliverable: 'Standard free-tier portal sandbox, video setup guides, self-service import guides.',
+                outreach_subject: 'Affordable, Cloud-Based School Software for {School Name}',
+                outreach_body: `Hello,\n\nAdministrative efficiency shouldn't be locked behind high prices. We created Skoola with a flexible, budget-friendly tier specifically to help community schools transition to digital records without high setup fees.\n\nWith Skoola, you can track student grades, issue clear fee cards, and send parent notices via SMS easily. Our self-service guides allow your staff to set up the school portal in a single afternoon.\n\nTry our free evaluation sandbox today and see how easy it is.\n\nWarm regards,\n\nSkoola Support Team\nsupport@skoola.com`,
+                whatsapp_text: `Hello! Discover Skoola—the easiest and most affordable way to manage student records and report cards. Try it for free today! Reply "START" for details.`
+            }
+        };
+
+        // Database specifications for Segments - Partner Mode
+        const segmentsPartner = {
+            'A': {
+                title: 'Segment A: High-Priority Consulting Partners',
+                badge: 'Top 20% | Large Education Consultants',
+                profile: 'Retired school principals, educational hardware vendors, or independent school IT consultants with direct access to school boards.',
+                strategy: 'Personalized meetings, higher tier commission splits, direct custom subdomain templates to demonstrate.',
+                deliverable: 'Ambassador marketing kit, co-branded demonstration portal, direct contract sign-off templates.',
+                outreach_subject: 'Earn Recurring Revenues as a Skoola Ambassador',
+                outreach_body: `Dear Partner,\n\nYou have built a strong network of relationships with regional educational institutions. Now, you can convert those relationships into a passive, recurring revenue stream.\n\nSkoola is a premium school management platform. By introducing Skoola to school boards, you receive a recurring 10% commission on all subscription fees paid by your referred schools, for as long as they stay active.\n\nWe provide full onboarding assistance, database migration, and customer success, meaning you simply make the introduction and we handle the technical delivery.\n\nLet's schedule a brief coffee discussion to review your custom partner earning chart.\n\nBest regards,\n\nMr. Oheneba Michael Baah\nOwner, Skoola / Oheneba Media`,
+                whatsapp_text: `Hi! Introduce Skoola to your school contacts and earn a recurring 10% monthly commission. We do all the migrations and training. Reply "PARTNER" for details.`
+            },
+            'B': {
+                title: 'Segment B: Freelance Sales & Tech Advocates',
+                badge: 'Middle 50% | Local Tech Advocates',
+                profile: 'Freelance sales agents, technology advocates, and active school teachers interested in earning additional income by pitching tools.',
+                strategy: 'Automated partner webinars, self-guided partner setup materials, and sharing digital marketing media kits.',
+                deliverable: 'Standard referral links, product documentation decks, standard commission schedules.',
+                outreach_subject: 'Join the Skoola School Ambassador Network',
+                outreach_body: `Hello,\n\nAre you looking to boost your earnings by recommending top-tier educational software? Skoola is looking for passionate ambassadors to help schools go paperless and upgrade their operations.\n\nOur program offers standard marketing slides, sandbox logins, and a reliable 10% commission on monthly subscriptions for every school you refer.\n\nSign up today to access your affiliate dashboard and start scheduling previews.\n\nSincerely,\n\nSkoola Partnership Desk\nsupport@skoola.com`,
+                whatsapp_text: `Hi there! Join our School Ambassador Network. Refer schools to Skoola and secure a recurring 10% monthly commission. Reply "JOIN" to get started.`
+            },
+            'C': {
+                title: 'Segment C: Client School Peer Referrals',
+                badge: 'Bottom 30% | Peer Advocacy',
+                profile: 'Currently active client schools who introduce surrounding schools to the platform.',
+                strategy: 'Peer referral programs, subscription credits, and community awards.',
+                deliverable: 'Referral coupon codes, automated client dashboard tracking panels.',
+                outreach_subject: 'Refer a School and Earn Subscription Credits',
+                outreach_body: `Dear Skoola Client,\n\nWe appreciate having you in our education community. If you refer a peer school to the Skoola platform, both schools will receive a 1-month subscription credit once the new school completes its onboarding process.\n\nTrack referrals directly inside your administrative dashboard.\n\nBest regards,\n\nSkoola Success Desk\nsupport@skoola.com`,
+                whatsapp_text: `Hello! Refer a peer school to Skoola and get a 1-month subscription credit applied to your school account! Details in your dashboard.`
+            }
+        };
+
+        // Data for Interactive Process Maps - Boss Mode
+        const pipelineBoss = {
+            1: {
+                title: 'Data Enrichment & Profiling',
+                badge: 'Stage 01 | Direct Qualification',
+                owner: 'Sales Support Rep',
+                duration: '1–2 weeks',
+                icon: 'database',
+                overview: 'Before any outreach begins, your 2,000+ raw school contacts must be transformed into a clean, segmented, actionable CRM database. This stage is about intelligence gathering — knowing exactly who you are calling, their school size, their current pain points, and whether they are a Segment A, B, or C target. Without this foundation, all outreach is guesswork.',
+                entry: 'Raw contact list of 2,000+ schools with basic names and phone numbers.',
+                tools: ['Google Sheets / Excel for initial sorting', 'CRM system (e.g. HubSpot / Notion database)', 'WhatsApp & Email to verify contacts', 'LinkedIn for administrator name lookups'],
+                steps: [
+                    'Export all 2,000 contacts from historical files into a master spreadsheet.',
+                    'For each school, locate the correct name and direct contact (Head Teacher / Administrator / Proprietor — not gatekeepers).',
+                    'Record the school\'s estimated student enrollment (under 200, 200–500, or 500+).',
+                    'Note any existing software the school uses (school fees apps, Excel sheets, nothing — these are buying signals).',
+                    'Classify each contact as Segment A (Premium), B (Growing), or C (Community).',
+                    'Import the cleaned, classified list into the CRM with proper tags and pipeline stage set to "Stage 01".',
+                    'Remove or archive any duplicate, closed, or unreachable contacts.'
+                ],
+                exit: 'A fully tagged CRM with ≥95% verified contacts, segmented and ready for campaign assignment.',
+                failures: ['Using gatekeeper phone numbers instead of decision-maker contacts.', 'Skipping school-size profiling, causing wrong pitch materials to be sent.', 'Not removing dead contacts — wasting campaign budget on bounced emails.'],
+                nextStep: 'Launch multi-channel outbound campaigns (Stage 02) with segment-specific messaging.',
+                metric: 'Target 95% verified contact accuracy before running any outbound campaign.'
+            },
+            2: {
+                title: 'Multi-Channel Direct Outbound',
+                badge: 'Stage 02 | Direct Pitching',
+                owner: 'Founder / Account Reps',
+                duration: '4–8 weeks (ongoing)',
+                icon: 'send',
+                overview: 'This is where you make first contact with every qualified school in the database. The goal is not to sell immediately — it is to spark curiosity and earn a demo booking. You use three channels simultaneously: personalised email sequences, WhatsApp voice-note or text introductions, and LinkedIn connection requests. Each segment receives a tailored message that addresses their exact pain point.',
+                entry: 'Clean CRM database from Stage 01, with segment tags and verified contact details.',
+                tools: ['Email automation tool (Mailchimp / Gmail sequences)', 'WhatsApp Business for direct 1-on-1 pitch messages', 'LinkedIn Sales Navigator for Segment A executives', 'Call script for warm follow-up calls'],
+                steps: [
+                    'For Segment B & C: Launch a 3-email automated sequence (Day 1 intro, Day 4 value offer, Day 8 follow-up with a case study).',
+                    'For Segment A: Send a fully personalised email from Mr. Baah directly — reference the school by name and specific challenge.',
+                    'Within 24 hours of the email: send a short, friendly WhatsApp text or voice note introducing Skoola.',
+                    'Connect with the school principal/administrator on LinkedIn with a professional message.',
+                    'For contacts who open the email but don\'t reply: call the school directly — ask for the Head Teacher by name.',
+                    'Log every interaction in the CRM — note opens, replies, rejections, and callback requests.',
+                    'Move interested prospects to Stage 03. Move uninterested to a 90-day nurture sequence.'
+                ],
+                exit: 'School administrator confirms interest and agrees to a product walkthrough / demo call.',
+                failures: ['Sending generic mass emails with no personalisation — low open rates.', 'Giving up after one email with no follow-up touch points.', 'Pitching the full product price before building any curiosity.'],
+                nextStep: 'Book and prepare bespoke product demonstrations for interested leads (Stage 03).',
+                metric: 'Target email open rate >30%, WhatsApp response rate >20%, demo booking rate >50% of interested leads.'
+            },
+            3: {
+                title: 'Bespoke Mockup Demonstration',
+                badge: 'Stage 03 | Tailored Previews',
+                owner: 'Founder / Mr. Baah',
+                duration: '1–2 days per school',
+                icon: 'monitor-play',
+                overview: 'The product demonstration is the most powerful conversion moment in the entire pipeline. You are not showing a generic software walkthrough — you are showing the school a version of Skoola that already looks like their school. Before the call, you set up a custom subdomain (e.g. stmarys.skoola.com) loaded with their school name, mock teachers, sample fee invoices, and a report card. When the administrator sees their own school\'s name on the screen, the sale is 70% done.',
+                entry: 'Confirmed demo appointment with the school\'s Head Teacher or senior administrator.',
+                tools: ['Skoola admin panel for subdomain setup', 'Google Meet / Zoom for video walkthrough', 'Screen-share with live data demonstration', 'Demo prep checklist and objection handling script'],
+                steps: [
+                    'At least 1 day before: set up a dedicated testing subdomain (schoolname.skoola.com).',
+                    'Preload 5–10 mock teacher accounts, sample student names, 3 grade reports, and 5 fee invoice records.',
+                    'Open the call by asking 2 questions: "What is your biggest administration headache right now?" and "How are you currently tracking fee payments?"',
+                    'Walk through only the 3 features that match their stated pain points — do not overload with every feature.',
+                    'Show the Parent Portal — let them imagine parents receiving auto-alerts on school fees.',
+                    'Show the automated term report generator — let them feel the time savings.',
+                    'Close the demo by asking: "Does this look like it could work for [School Name]?" — then go quiet and let them speak.',
+                    'If positive: immediately invite them to begin a 30-day pilot. Hand them a sandbox admin login on the spot.'
+                ],
+                exit: 'School accepts a trial admin account or asks to proceed with a Pilot Program agreement.',
+                failures: ['Showing a blank or generic demo — no school data preloaded.', 'Talking too much and not listening to what the administrator actually needs.', 'Failing to handle price objections before ending the call.'],
+                nextStep: 'Prepare and send the pricing proposal and Pilot Agreement for the school to sign (Stage 04).',
+                metric: 'Convert >50% of conducted demos into active evaluation trial accounts.'
+            },
+            4: {
+                title: 'Proposal & Closing Sign-off',
+                badge: 'Stage 04 | Contract Execution',
+                owner: 'Founder / Mr. Baah',
+                duration: '3–7 days',
+                icon: 'file-check',
+                overview: 'The administrator has seen the demo and is interested — now you move them from "this looks good" to a signed contract and first payment. This stage is about removing every remaining friction point: pricing uncertainty, commitment fear, and technical migration anxiety. You present a clear, fair pricing proposal, a structured 3-month Pilot Agreement (low risk for the school), and a concrete onboarding timeline.',
+                entry: 'School expressed interest after the demo and is considering signing up.',
+                tools: ['Skoola Pilot Program Agreement PDF', 'Custom pricing proposal template (Word/Google Doc)', 'E-signature tool (DocuSign / simple PDF sign)', 'WhatsApp for informal follow-ups between formal emails'],
+                steps: [
+                    'Within 24 hours of the demo: send a personalised Thank You email recapping the 3 key features they liked.',
+                    'Attach the custom Pricing Proposal — tier the price by student volume (e.g. under 200 students = $200/month, 200–500 = $400/month, 500+ = $600/month).',
+                    'Attach the Pilot Program Agreement — highlight the 3-month trial clause with no long-term lock-in.',
+                    'Offer a free data migration service as a sweetener: "We will import all your existing student records at no extra charge."',
+                    'Follow up by WhatsApp on Day 3 if no reply: "Just checking if you received the proposal, happy to answer any questions."',
+                    'If they hesitate on price: offer a 1-month free trial to reduce the perceived risk.',
+                    'Once they agree: collect the signed agreement via email scan or e-signature, and issue a Proforma Invoice for the first month.',
+                    'Move the school to Stage 05 and hand off to the Onboarding Specialist.'
+                ],
+                exit: 'Signed Pilot Agreement received and first-month invoice acknowledged by the school.',
+                failures: ['Sending a generic pricing sheet with no personalisation.', 'Waiting more than 24 hours after the demo to follow up — interest goes cold.', 'Not addressing the "what if we don\'t like it?" objection upfront.'],
+                nextStep: 'Begin full database migration and school onboarding process (Stage 05).',
+                metric: 'Achieve a >30% close rate from all conducted product demonstrations.'
+            },
+            5: {
+                title: 'Deployment & Migration',
+                badge: 'Stage 05 | Onboarding Delivery',
+                owner: 'Onboarding Specialist',
+                duration: '7–14 days',
+                icon: 'check-circle-2',
+                overview: 'This is where the school officially comes live on Skoola. The signed contract is in hand, and now the technical team executes the full database migration, staff training, and parent portal setup. Speed and precision here are critical — a school that goes live confidently in 10 days becomes a reference client. A school that waits 30 days with problems becomes a churn risk. The goal is to make the first 14 days feel effortless.',
+                entry: 'Signed Pilot Agreement and first-month invoice confirmed. School contact point identified.',
+                tools: ['Skoola Bulk Import Utility (Excel template)', 'Google Meet / Zoom for staff training webinar', 'WhatsApp group for real-time onboarding support', 'Skoola admin dashboard for live configuration'],
+                steps: [
+                    'Day 1: Send the school a welcome email with a link to the official Skoola Excel import template.',
+                    'Day 1–2: The school fills in student names, class levels, guardian contacts, and fee schedules.',
+                    'Day 2–3: Onboarding Specialist runs the bulk import and validates all records in the admin panel.',
+                    'Day 3: Set up class structures, fee categories, and grading scale per the school\'s format.',
+                    'Day 4: Create admin accounts for the Head Teacher and up to 3 staff members.',
+                    'Day 5–6: Host a 45-minute live training webinar for all teachers — cover attendance recording, grade entry, and fee invoicing.',
+                    'Day 7: Send parents a welcome SMS and email with their portal login credentials.',
+                    'Day 8–14: Monitor the school\'s first live usage — resolve any data corrections or setup queries within 2 hours.',
+                    'Day 14: Conduct a 15-minute check-in call: "How is the team finding the system so far?"'
+                ],
+                exit: 'School is fully live — teachers logging grades, fees being tracked, parents accessing the portal.',
+                failures: ['School submits incomplete or wrongly formatted Excel data causing import errors.', 'Skipping the teacher training webinar — staff resistance to using the system.', 'Not following up during the first 14 days, leaving the school feeling abandoned.'],
+                nextStep: 'Monthly subscription billing begins. School enters the Customer Success retention programme.',
+                metric: 'Complete full deployment and go live in under 14 days from contract signing.'
+            }
+        };
+
+        // Data for Interactive Process Maps - Partner Mode
+        const pipelinePartner = {
+            1: {
+                title: 'Ambassador Identification & Profiling',
+                badge: 'Stage 01 | Partner Sourcing',
+                owner: 'Partnership Manager',
+                duration: '1–2 weeks',
+                icon: 'users',
+                overview: 'Before recruiting any ambassador, you must identify who in your 2,000+ contact database is best positioned to refer schools. These are people who already have trust and relationships with school administrators — retired head teachers, educational consultants, school hardware vendors, PTA leaders, or community teachers. Your goal in this stage is to segment your database and build a shortlist of high-quality ambassador candidates.',
+                entry: 'Raw contact database of 2,000+ school-related contacts.',
+                tools: ['CRM or spreadsheet for partner pipeline', 'LinkedIn for verifying professional backgrounds', 'Email for initial soft approach', 'Partner Agreement PDF and Commission Sheet'],
+                steps: [
+                    'Filter your 2,000 contacts for anyone tagged as: consultant, educator, vendor, technician, or retired administrator.',
+                    'Cross-check each candidate\'s LinkedIn profile — do they have active connections with school staff or post about education?',
+                    'Classify candidates into Tier 1 (Education Consultants with wide school networks), Tier 2 (Freelance tech advocates), and Tier 3 (Client school peers).',
+                    'Prepare a personalised Partner Interest Sheet showing exactly how the 10% commission works with real earning examples.',
+                    'Prepare the co-branded Ambassador Marketing Kit: slides, demo video, WhatsApp intro script, and sandbox login.',
+                    'Set up the partner tracking portal (dashboard for referral logging and commission visibility).',
+                    'Verify the legal Ambassador Agreement template is current and accurate.'
+                ],
+                exit: 'Shortlist of 500+ qualified ambassador candidates with profiles, tier classification, and contact details ready.',
+                failures: ['Targeting the wrong people — reaching out to school administrators instead of people who can refer schools.', 'Having no ready materials when an interested candidate asks for more details.', 'Not setting up the partner tracking system before recruits sign up.'],
+                nextStep: 'Launch targeted outreach campaigns to recruit ambassadors and onboard them (Stage 02).',
+                metric: 'Build a qualified ambassador prospect list of 500+ contacts before launching any recruiting campaigns.'
+            },
+            2: {
+                title: 'Ambassador Outreach & Onboarding',
+                badge: 'Stage 02 | Active Recruiting',
+                owner: 'Partnership Manager',
+                duration: '3–6 weeks',
+                icon: 'handshake',
+                overview: 'You now pitch the ambassador opportunity to your shortlist. The core message is simple: "You already know school administrators. Introduce them to Skoola and earn 10% of their monthly subscription — every single month — for as long as they stay active." This is a genuine passive income pitch. Your job is to make it as easy as possible for ambassadors to say yes by removing all friction: you provide the demo materials, you handle the technical setup, they just make the warm introduction.',
+                entry: 'Qualified ambassador shortlist from Stage 01, with contact details and tier classification.',
+                tools: ['Email for formal partner offer letters', 'WhatsApp for warm, informal recruiting messages', 'Video call (Zoom) for Tier 1 consultants', 'Partner Agreement e-signature system'],
+                steps: [
+                    'Send a personalised recruiting email to Tier 1 prospects — include their name, reference their background, and show a clear earning example (e.g. "Refer 5 schools at $300/month = $150/month recurring income for you").',
+                    'Follow up via WhatsApp within 48 hours if no reply.',
+                    'For Tier 1 premium prospects: schedule a 15-minute video call to walk through the opportunity and answer questions personally.',
+                    'For Tier 2 prospects: send a self-guided Ambassador Pack (slides + FAQ PDF + sandbox login).',
+                    'Once a prospect says yes: send the Ambassador Agreement for signature.',
+                    'On signing: create their personal referral tracking dashboard and set up their unique partner referral link/code.',
+                    'Send a Welcome Kit: co-branded presentation slides, Skoola product video, WhatsApp pitch script, and their unique sandbox demo login.',
+                    'Host a group onboarding webinar every 2 weeks for all new partners — walk through how to make their first referral.'
+                ],
+                exit: 'Ambassador Agreement signed, partner dashboard active, and welcome kit delivered.',
+                failures: ['Sending a generic mass email with no personalised earning example — feels like spam.', 'Not following up within 48 hours — warm interest goes cold quickly.', 'Signing up ambassadors but not giving them usable materials — they do nothing.'],
+                nextStep: 'Ambassadors begin distributing materials and logging school referrals into the portal (Stage 03).',
+                metric: 'Recruit and fully onboard at least 400 active ambassadors within 8 weeks.'
+            },
+            3: {
+                title: 'School Referral & Lead Submission',
+                badge: 'Stage 03 | Lead Generation',
+                owner: 'Ambassadors + Partnership Manager',
+                duration: 'Ongoing (Month 2 onwards)',
+                icon: 'share-2',
+                overview: 'Active ambassadors now use their personal school networks to introduce Skoola. They are not making a hard sales pitch — they are making a warm, trusted recommendation, the same way a friend recommends a good product. Because they already have a relationship with the school, the door opens much faster than a cold call. Their job is to spark interest and submit the school\'s details into the referral portal. Skoola\'s sales team takes it from there.',
+                entry: 'Signed ambassador, equipped with marketing materials and an active referral dashboard.',
+                tools: ['Skoola Partner Portal for lead submission', 'Co-branded WhatsApp / Email pitch materials', 'Sandbox demo account link for referred schools', 'Partner helpdesk for ambassador support queries'],
+                steps: [
+                    'Ambassador identifies a school in their network that could benefit from Skoola (disorganised fee tracking, paper report cards, etc.).',
+                    'Ambassador sends the school administrator the co-branded WhatsApp intro message or forwards the Skoola product video.',
+                    'If the administrator shows interest: ambassador logs the lead in the Partner Portal — enters school name, administrator contact, student estimate.',
+                    'Ambassador shares the sandbox demo link with the school: "Log in here and see how it works — it\'s already set up for a school like yours."',
+                    'Partnership Manager reviews every submitted lead within 24 hours and marks it "Qualified" or "Needs More Info".',
+                    'For qualified leads: Skoola sales team contacts the school administrator directly to book a formal product demonstration.',
+                    'Ambassador is notified when their referral books a demo — they receive a status update in their dashboard.'
+                ],
+                exit: 'School administrator confirms interest and a demo call is booked with Skoola sales.',
+                failures: ['Ambassadors who sign up but never submit a single referral — need follow-up motivation (leaderboard, bonus incentives).', 'Poor-quality referrals with no decision-maker contact — gatekeeper numbers only.', 'Ambassadors pitching the price before the school has seen the product.'],
+                nextStep: 'Skoola sales team conducts a bespoke product demonstration for the referred school (Stage 04).',
+                metric: 'Target a minimum average of 1–2 school referrals per active ambassador within 30 days of onboarding.'
+            },
+            4: {
+                title: 'Referred School Demo & Closing',
+                badge: 'Stage 04 | Sales Conversion',
+                owner: 'Skoola Core Sales Team',
+                duration: '3–7 days per school',
+                icon: 'presentation',
+                overview: 'A school lead has been submitted by an ambassador and the administrator has agreed to a product walkthrough. This is now handled entirely by Skoola\'s sales team — the ambassador\'s job is done for this school until commission time. The sales process mirrors the Boss Mode direct pipeline: personalised demo with the school\'s name preloaded, address their specific pain point, present the Pilot Agreement, and close with a low-risk trial offer. The key difference here is you credit the referring ambassador in the conversation — it validates the school\'s trust.',
+                entry: 'Qualified school referral logged in the portal, demo appointment confirmed.',
+                tools: ['Skoola admin panel for demo subdomain setup', 'Google Meet / Zoom for demo delivery', 'Pilot Program Agreement PDF', 'Commission tracking system (activate ambassador log upon signing)'],
+                steps: [
+                    'Set up a demo subdomain for the referred school at least 1 day before the call.',
+                    'Open the demo call by referencing the ambassador: "I understand [Ambassador Name] introduced us — they\'re one of our trusted partners." (Builds instant credibility.)',
+                    'Ask 2 discovery questions: "What\'s your current system for fee collection?" and "How do you generate end-of-term report cards?"',
+                    'Run a focused 10-minute product walkthrough targeting their stated pain points only.',
+                    'Present the Pilot Agreement — 3 months, no long-term lock-in, free data migration included.',
+                    'If they agree: collect the signed contract and generate a Proforma Invoice.',
+                    'Immediately activate the referring ambassador\'s commission log in the partner portal — their 10% begins from the first payment.',
+                    'Notify the ambassador by WhatsApp: "Great news — [School Name] just signed up! Your commission has been activated."'
+                ],
+                exit: 'Signed Pilot Agreement from the referred school and first-month invoice issued. Ambassador commission log activated.',
+                failures: ['Failing to pre-build the demo subdomain — bland generic walk-through loses trust.', 'Not mentioning the referring ambassador — wastes the trust advantage.', 'Delaying the proposal by more than 24 hours after a positive demo.'],
+                nextStep: 'Execute full school onboarding and database migration. Begin monthly commission payouts to ambassador (Stage 05).',
+                metric: 'Convert >40% of qualified referred school leads into signed paying customers.'
+            },
+            5: {
+                title: 'Deployment, Go-Live & Commission Release',
+                badge: 'Stage 05 | Delivery & Earnings',
+                owner: 'Onboarding Specialist + Finance',
+                duration: '7–14 days (then monthly)',
+                icon: 'badge-dollar-sign',
+                overview: 'The school signs the contract and the technical onboarding begins — student records migration, teacher training, parent portal setup, and go-live. In parallel, the ambassador\'s commission engine starts running. On the 1st of every month, 10% of that school\'s subscription fee is automatically calculated and deposited into the ambassador\'s payout wallet. As long as the school stays active and pays their subscription, the ambassador keeps earning — month after month — with no further effort required.',
+                entry: 'Signed agreement and invoice from referred school. Ambassador commission log activated in the portal.',
+                tools: ['Skoola Bulk Import Utility for student data', 'Google Meet for teacher training webinar', 'WhatsApp group for real-time onboarding support', 'Finance system for monthly commission calculation and payout'],
+                steps: [
+                    'Send the school the Skoola Welcome Kit and Excel data import template.',
+                    'School submits student records — Onboarding Specialist runs the bulk import within 48 hours.',
+                    'Configure class structures, fee categories, and grading format.',
+                    'Host a 45-minute teacher training webinar — cover grade entry, fee invoicing, and attendance.',
+                    'Activate parent portal access — send SMS + email to all guardians with login credentials.',
+                    'Monitor the school\'s first 14 days of live usage — resolve all setup queries within 2 hours.',
+                    'On the 1st of the following month: auto-calculate 10% of the school\'s subscription fee.',
+                    'Deposit the commission into the ambassador\'s dashboard wallet and send them a payment notification.',
+                    'Repeat every month the school remains an active subscriber.'
+                ],
+                exit: 'School fully live and using the platform. Ambassador\'s first commission payout deposited.',
+                failures: ['School submits incomplete import data — delays go-live by days.', 'Skipping teacher training — staff resistance causes low adoption.', 'Payout delays — ambassadors lose motivation if commissions arrive late.'],
+                nextStep: 'Monthly subscription billing continues. Ambassador earns recurring 10% every month. School enters the Customer Success retention programme.',
+                metric: 'Full school deployment in under 14 days. Ambassador commission deposited by the 1st of every month, without exception.'
+            }
+        };
+
+        const funnelBoss = {
+            'pool': {
+                title: '1. Database Contacts Pool',
+                volume: '2,000 Contacts',
+                color: 'text-boss-amber',
+                what: 'This is your entire starting universe — every school contact your business has collected. It includes school names, phone numbers, email addresses, and geographic locations across all segments (A, B, and C). At this point, contacts are unverified and unworked. They represent potential, not pipeline.',
+                howTheyEnter: 'Contacts arrive from historical records, referrals, publicly available directories, purchased education databases, and field collection. No outreach has been made yet.',
+                whatHappensHere: [
+                    'The raw contact list is exported into a master CRM spreadsheet.',
+                    'Each contact is validated — confirming names, email addresses, and phone numbers are accurate.',
+                    'Schools are profiled by student enrollment size and classified into Segment A, B, or C.',
+                    'Contacts are tagged with their existing software tools (if any) as a buying signal.',
+                    'Duplicates, closed schools, and unverifiable contacts are removed.'
+                ],
+                exitCriteria: 'A contact exits this stage when they have been fully verified and segmented — ready to receive the first outbound campaign message.',
+                dropoffReason: 'Approx. 5–10% of contacts are removed as dead leads (disconnected numbers, closed schools, duplicates).',
+                nextStep: 'Contacts enter the outbound email + WhatsApp campaign sequence as Interested Leads.',
+                kpi: 'Validation Target: 95% of contacts verified and tagged before launching any outreach campaign.'
+            },
+            'interest': {
+                title: '2. Interested Leads',
+                volume: '~300 Leads (15% response rate)',
+                color: 'text-boss-purple',
+                what: 'These are school contacts who have responded positively to an outbound campaign touchpoint. A response could be replying to an email, responding to a WhatsApp message, answering a follow-up call, or clicking a link in an email. They have shown enough curiosity to signal they are open to hearing more — but they have not yet committed to anything.',
+                howTheyEnter: 'A contact moves into this layer when they reply to an outbound email, respond to a WhatsApp intro message, answer a direct phone call, or click a link in a marketing message.',
+                whatHappensHere: [
+                    'The contact receives a personalised follow-up within 24 hours of their response.',
+                    'The sales rep qualifies the lead by asking 2 key questions: student enrollment size and current admin system.',
+                    'A bespoke demo is offered: "Can I show you a 10-minute walkthrough of how this would look for your school?"',
+                    'If interested in a demo: they are booked into a specific date and time slot.',
+                    'If not ready for a demo yet: they enter a 30-day nurture sequence with educational content.'
+                ],
+                exitCriteria: 'A lead exits this layer when they confirm a specific date and time for a product demonstration.',
+                dropoffReason: '~50% of initial respondents decline or go silent after the first follow-up — timing, budget cycle, or lack of urgency.',
+                nextStep: 'Confirmed demo appointments move into the Demos Booked funnel layer.',
+                kpi: 'Lead Speed: Every interested response must be followed up within 24 hours. Aim to convert 50% of interested leads into booked demos.'
+            },
+            'demos': {
+                title: '3. Product Demos Booked',
+                volume: '~150 Demos (7.5% of pool)',
+                color: 'text-boss-pink',
+                what: 'This layer represents school administrators who have committed to a live product walkthrough. A custom demonstration subdomain has been configured with the school\'s name, sample student records, and mock fee invoices. The demo is not a generic product tour — it is a tailored preview of what Skoola would look like if that specific school were already live on the platform.',
+                howTheyEnter: 'A lead confirms a specific date and time for a video call demonstration. A calendar invitation is sent and acknowledged.',
+                whatHappensHere: [
+                    'At least 24 hours before: a custom demo subdomain (schoolname.skoola.com) is configured.',
+                    'Mock teachers, sample grades, fee invoices, and report cards are preloaded.',
+                    'The demo call opens with 2 discovery questions — not a product pitch.',
+                    'Only the 3 most relevant features are shown — matching the administrator\'s stated pain points.',
+                    'The Parent Portal and automated Report Card generator are always shown — these are the highest-impact moments.',
+                    'The call closes with a direct invitation to start a Pilot Agreement.'
+                ],
+                exitCriteria: 'The school administrator verbally agrees to proceed with a Pilot Agreement, or requests time to review the pricing proposal.',
+                dropoffReason: '~50% of demos do not immediately convert — budget constraints, internal approval delays, or decision-making by committee.',
+                nextStep: 'A pricing proposal and Pilot Agreement are sent within 24 hours of a positive demo response.',
+                kpi: 'Demo Quality: Convert >50% of conducted demos into active trial or Pilot Agreement requests.'
+            },
+            'closed': {
+                title: '4. Closed Paying Customers',
+                volume: '~45 Schools (30% of demos)',
+                color: 'text-boss-emerald',
+                what: 'This is the final funnel layer — schools that have signed a Pilot Program Agreement and made their first subscription payment. They are now active Skoola clients generating 100% Founder-retained Monthly Recurring Revenue (MRR). The relationship shifts here from sales to customer success: onboarding, migration, and long-term retention become the priority.',
+                howTheyEnter: 'A school signs the Pilot Agreement, submits the signed copy (email scan or e-signature), and the first invoice is acknowledged.',
+                whatHappensHere: [
+                    'The signed agreement is filed and the school is moved to "Active Client" status in the CRM.',
+                    'A Proforma Invoice for Month 1 is issued and confirmed.',
+                    'The Onboarding Specialist is assigned and the school receives a Welcome Kit + data import template.',
+                    'Full database migration, teacher training, and parent portal activation are completed within 14 days.',
+                    'The school begins live usage — teachers logging grades, fees being tracked, parents receiving alerts.',
+                    'Monthly subscription billing is set up and recurring MRR is confirmed.'
+                ],
+                exitCriteria: 'A school exits this positive state (churn) only if they cancel their subscription — typically due to poor onboarding experience or budget cuts.',
+                dropoffReason: 'Churn risk is highest in Months 1–3 if the onboarding experience is slow, confusing, or poorly supported.',
+                nextStep: 'Monthly Customer Success check-ins, subscription renewals, and upsell opportunities (additional modules, more user seats).',
+                kpi: 'Direct Close Rate: >30% of demos convert to signed contracts. Churn Rate target: <5% monthly after go-live.'
+            }
+        };
+
+        const funnelPartner = {
+            'pool': {
+                title: '1. Total Database Prospects Pool',
+                volume: '2,000 Contacts',
+                color: 'text-boss-indigo',
+                what: 'Your entire starting universe of 2,000 contacts — a mix of potential ambassadors (consultants, retired educators, tech advocates) and school administrators. At this stage, no one has been approached. The pool is raw and unfiltered. Your first job is to identify who among these 2,000 people can refer schools — those become your ambassador recruits. The rest are archived or re-assigned.',
+                howTheyEnter: 'Contacts come from historical school databases, directory lookups, professional networks (LinkedIn), field collection, and referrals. Includes both potential ambassadors and school administrators.',
+                whatHappensHere: [
+                    'The entire list is exported into a master CRM or spreadsheet.',
+                    'Each contact is labelled: Ambassador Candidate (consultant, educator, vendor) OR School Contact (principal, administrator).',
+                    'Ambassador candidates are tiered: Tier 1 (senior consultants), Tier 2 (freelance advocates), Tier 3 (active client schools).',
+                    'School contacts are separated and queued for the direct Boss Mode pipeline instead.',
+                    'Duplicate entries and inactive contacts are archived.'
+                ],
+                exitCriteria: 'A contact exits this layer when they have been classified and assigned — either as an ambassador recruit (moves to Layer 2) or a school contact (goes to direct pipeline).',
+                dropoffReason: 'Approx. 10–15% of contacts are unclassifiable or unreachable and are archived at this stage.',
+                nextStep: 'Ambassador candidates receive personalised recruiting emails and WhatsApp messages to join the Skoola Partner Network.',
+                kpi: 'Classification Target: 100% of 2,000 contacts profiled and tagged within 2 weeks.'
+            },
+            'interest': {
+                title: '2. Ambassadors Recruited',
+                volume: '~400 Partners (20% sign-up rate)',
+                color: 'text-boss-purple',
+                what: 'These are people who have agreed to become Skoola School Ambassadors after receiving your recruiting pitch. They have signed the Ambassador Agreement, been given their personal referral tracking link, and received the full co-branded marketing kit. They are your sales force — people with existing school relationships who can open doors that cold outreach cannot.',
+                howTheyEnter: 'A prospect responds positively to the recruiting email or WhatsApp message, signs the Ambassador Agreement (digitally or via PDF scan), and their partner dashboard is activated.',
+                whatHappensHere: [
+                    'Partner dashboard is activated with a unique referral ID and commission tracker.',
+                    'Ambassador receives the Welcome Kit: co-branded slides, product video, WhatsApp pitch script, sandbox login.',
+                    'Ambassador attends the group onboarding webinar (hosted every 2 weeks).',
+                    'Ambassador is coached on how to identify a school in their network that needs Skoola.',
+                    'Ambassador begins approaching 2–5 schools in their personal network using the provided materials.'
+                ],
+                exitCriteria: 'An ambassador becomes active (exits this awareness layer) when they submit their first school referral into the Partner Portal.',
+                dropoffReason: '~20% of signed ambassadors never submit a referral — typically due to lack of follow-up, no ready school contacts, or loss of motivation after signing.',
+                nextStep: 'Active ambassadors begin submitting school referral leads into the Partner Portal for the Skoola sales team to follow up.',
+                kpi: 'Activation Rate: Target >80% of signed ambassadors submitting at least 1 referral within their first 30 days.'
+            },
+            'demos': {
+                title: '3. School Referrals Submitted',
+                volume: '~400 School Leads (1 per partner avg.)',
+                color: 'text-boss-pink',
+                what: 'School leads submitted by active ambassadors into the Partner Portal. Each lead represents a real school in the ambassador\'s personal network who has expressed some level of interest after a warm introduction. These are not cold leads — the trust has already been established by the referring ambassador. Skoola\'s sales team then takes over to run the formal product demonstration.',
+                howTheyEnter: 'An ambassador identifies an interested school in their network, sends them the co-branded WhatsApp intro or Skoola product video, and logs the school\'s details (name, administrator contact, student size) into the Partner Portal.',
+                whatHappensHere: [
+                    'Partnership Manager reviews the submitted lead within 24 hours and confirms its quality.',
+                    'Skoola sales team contacts the school administrator directly to book a product demonstration.',
+                    'A demo subdomain is set up for the referred school before the call.',
+                    'The sales rep opens the demo by crediting the referring ambassador — building immediate trust.',
+                    'The ambassador is updated in their dashboard when their referral books a demo.'
+                ],
+                exitCriteria: 'A school referral exits this layer when the school administrator signs the Pilot Agreement and makes their first payment.',
+                dropoffReason: '~60% of submitted referrals do not convert — due to administrator disinterest after demo, budget timing, or internal committee delays.',
+                nextStep: 'Converted schools are fully onboarded and go live. The referring ambassador\'s commission log is activated.',
+                kpi: 'Referral Quality: Target >90% of submitted leads having a verified decision-maker contact (not a gatekeeper).'
+            },
+            'closed': {
+                title: '4. Converted Paying Schools',
+                volume: '~160 Schools (40% close rate)',
+                color: 'text-boss-emerald',
+                what: 'Schools referred by ambassadors that have now signed a Pilot Agreement and made their first subscription payment. They are active Skoola clients. For every month these schools remain active subscribers, the referring ambassador automatically earns 10% of the subscription fee deposited directly to their wallet on the 1st of every month — without any further action required from them.',
+                howTheyEnter: 'The referred school signs the Pilot Agreement following a successful product demonstration. The first invoice is acknowledged and the school\'s subscription is activated in the system.',
+                whatHappensHere: [
+                    'The school is fully onboarded — student records migrated, teachers trained, parent portal activated.',
+                    'The school goes live within 14 days of signing.',
+                    'Monthly subscription billing begins from the 1st of the following month.',
+                    'On the 1st of every month: 10% of the school\'s subscription is auto-calculated and deposited into the referring ambassador\'s wallet.',
+                    'Ambassador receives a WhatsApp or email notification confirming their monthly commission deposit.',
+                    'As long as the school stays active, the ambassador keeps earning — no further effort needed.'
+                ],
+                exitCriteria: 'A school exits the active client layer only if they cancel their subscription (churn). If they churn, the ambassador\'s commission for that school stops.',
+                dropoffReason: 'Churn risk is highest in Months 1–3 if the school has a poor onboarding experience or budget cuts. Retention depends heavily on first-14-day go-live quality.',
+                nextStep: 'Monthly Customer Success check-ins maintain retention. Top ambassadors are rewarded with tiered commissions for referring 5+ active schools.',
+                kpi: 'Referral Close Rate: >40% of submitted school referrals convert to paying clients. Ambassador Churn Prevention: <5% monthly school churn.'
+            }
+        };
+
+        // Monthly Roadmaps - Boss Mode
+        const roadmapBoss = {
+            1: { title: 'Month 01: Preparation', target: '2,000 Contacts validated', mrr: '$0', checklist: ['Import contacts list into CRM', 'Write direct outbound templates', 'Load test mock databases', 'Verify support SLAs'] },
+            2: { title: 'Month 02: Initial Campaigns', target: '5 Demos scheduled', mrr: '$1,000', checklist: ['Launch automated emails for Segment B', 'Initiate WhatsApp pitches for Segment A', 'Run follow-up call scripts', 'Onboard first 2 testing accounts'] },
+            3: { title: 'Month 03: Outbound Scaling', target: '15 Demos, 5 Active trials', mrr: '$3,500', checklist: ['Scale email outreach to 1000 contacts', 'Schedule Segment A demos', 'Prepare bespoke test subdomains', 'Convert 5 paying schools'] },
+            4: { title: 'Month 04: Middle Pipeline', target: '30 Demos, 12 Clients', mrr: '$7,000', checklist: ['Follow up with trial accounts', 'Negotiate pricing details', 'Migrate student lists for Segment B', 'Close 7 new paying schools'] },
+            5: { title: 'Month 05: Core Expansion', target: '45 Demos, 22 Clients', mrr: '$12,500', checklist: ['Onboard Segment B school staffs', 'Run teacher grading webinars', 'Deliver Parent App guides', 'Achieve $12,500 Monthly MRR'] },
+            6: { title: 'Month 06: Halfway Milestone', target: '60 Demos, 30 Clients', mrr: '$16,500', checklist: ['Review client transaction databases', 'Optimize server database structures', 'Hold performance syncs with administrators', 'Close 8 new client schools'] },
+            7: { title: 'Month 07: Volume Deployments', target: '70 Demos, 38 Clients', mrr: '$20,000', checklist: ['Run bulk imports for self-service schools', 'Launch regional webinars', 'Onboard 8 new community schools', 'Verify payment card setups'] },
+            8: { title: 'Month 08: Support Optimization', target: '75 Demos, 45 Clients', mrr: '$24,500', checklist: ['Address support tickets', 'Update grading module workflows', 'Conduct administrative usage reviews', 'Sign 7 new client accounts'] },
+            9: { title: 'Month 09: Steady Progress', target: '80 Demos, 50 Clients', mrr: '$27,000', checklist: ['Analyze email marketing campaign drop-offs', 'Optimize WhatsApp follow-up schedules', 'Launch Month 9 B2B sales push', 'Close 5 new paying accounts'] },
+            10: { title: 'Month 10: Advocacy & Referrals', target: '85 Demos, 55 Clients', mrr: '$29,500', checklist: ['Introduce peer-school referral rewards', 'Deliver platform update previews', 'Train administrative teams on fee updates', 'Close 5 schools'] },
+            11: { title: 'Month 11: Late Pipeline', target: '90 Demos, 58 Clients', mrr: '$31,000', checklist: ['Conduct system reviews', 'Address grading reports feedback', 'Prepare year-end database archive strategies', 'Secure 3 new signups'] },
+            12: { title: 'Month 12: Year 01 Target', target: '100 Demos, 60 Clients', mrr: '$32,500', checklist: ['Deliver Year 1 performance evaluations', 'Introduce automated report upgrades', 'Secure contract renewals for Month 2 clients', 'Achieve target ARR benchmarks'] }
+        };
+
+        // Monthly Roadmaps - Partner Mode
+        const roadmapPartner = {
+            1: { title: 'Month 01: Partner Prep', target: '400 Partners targeted', mrr: '$0', checklist: ['Launch partner recruiting emails', 'Prepare partner training manual', 'Configure affiliate dashboards', 'Test commission payouts'] },
+            2: { title: 'Month 02: Onboarding', target: '50 Partners active', mrr: '$2,500', checklist: ['Train first 50 school ambassadors', 'Deliver co-branded marketing slides', 'Log first 10 school referrals', 'Convert first 5 schools'] },
+            3: { title: 'Month 03: Network Scaling', target: '150 Partners, 40 Referrals', mrr: '$7,500', checklist: ['Scale recruitment to freelance networks', 'Track referral conversion rates', 'Provide webinar demos for referrals', 'Release Month 2 partner payouts'] },
+            4: { title: 'Month 04: Growth Core', target: '250 Partners, 100 Referrals', mrr: '$15,000', checklist: ['Deploy Segment B school templates', 'Host partner community call', 'Provide bulk migration support', 'Close 15 schools'] },
+            5: { title: 'Month 05: Halfway Peak', target: '320 Partners, 180 Referrals', mrr: '$28,000', checklist: ['Verify Segment A school domains', 'Publish co-branded user guides', 'Release monthly payouts on time', 'Close 25 schools'] },
+            6: { title: 'Month 06: Review Phase', target: '350 Partners, 250 Referrals', mrr: '$40,000', checklist: ['Conduct usage checks on referred portals', 'Address teacher grading queries', 'Host regional administrator meetup', 'Close 30 schools'] },
+            7: { title: 'Month 07: Volume Phase', target: '380 Partners, 320 Referrals', mrr: '$52,000', checklist: ['Onboard self-setup referred schools', 'Distribute marketing video updates', 'Release monthly commission reports', 'Close 25 schools'] },
+            8: { title: 'Month 08: Optimizing desk', target: '390 Partners, 360 Referrals', mrr: '$65,000', checklist: ['Resolve onboarding lag reports', 'Address school payment logs', 'Conduct usage audits', 'Sign 20 referred schools'] },
+            9: { title: 'Month 09: Steady Growth', target: '400 Partners, 400 Referrals', mrr: '$78,000', checklist: ['Analyze inactive partner metrics', 'Provide additional marketing kits', 'Launch Month 9 B2B sales push', 'Close 20 referred schools'] },
+            10: { title: 'Month 10: Client Credits', target: '400 Partners, 440 Referrals', mrr: '$88,000', checklist: ['Launch client credit referral updates', 'Deliver Parent App guides', 'Train school billing administrators', 'Close 15 schools'] },
+            11: { title: 'Month 11: Final Outbound', target: '400 Partners, 470 Referrals', mrr: '$95,000', checklist: ['Run year-end school checks', 'Resolve teacher support tickets', 'Deposit partner payouts', 'Secure 10 new referred signups'] },
+            12: { title: 'Month 12: Year 1 Target', target: '400 Partners, 500 Referrals', mrr: '$100,000', checklist: ['Review Year 1 platform ARR', 'Introduce automated grades reports', 'Renew Month 2 school subscriptions', 'Achieve target MRR benchmarks'] }
+        };
+
+        // UI Toggling Logic
+        function setDashboardMode(mode) {
+            currentMode = mode;
+            const btnBoss = document.getElementById('btn-mode-boss');
+            const btnPartner = document.getElementById('btn-mode-partner');
+
+            // Header Elements
+            const hIconBox = document.getElementById('header-icon-box');
+            const hIcon = document.getElementById('header-icon');
+            const hBadge = document.getElementById('header-badge');
+            const hSubtitle = document.getElementById('header-subtitle');
+
+            // Banner Elements
+            const bGradient = document.getElementById('banner-gradient');
+            const bTag = document.getElementById('banner-tag');
+            const bTitle = document.getElementById('banner-title');
+            const bDesc = document.getElementById('banner-desc');
+            const bFeature2 = document.getElementById('banner-feature-2');
+            const bFeature3 = document.getElementById('banner-feature-3');
+
+            // Simulator Labels
+            const simBadge = document.getElementById('sim-badge');
+            const simTitle = document.getElementById('sim-title');
+            const simIcon = document.getElementById('sim-icon');
+            const labelSlider1 = document.getElementById('label-slider-1');
+            const labelSlider2 = document.getElementById('label-slider-2');
+            const labelSlider3 = document.getElementById('label-slider-3');
+            const outputLabel1 = document.getElementById('output-label-1');
+            const outputLabel2 = document.getElementById('output-label-2');
+            const outputLabel3 = document.getElementById('output-label-3');
+
+            // KPI Labels
+            const kpiLabel2 = document.getElementById('kpi-label-2');
+            const kpiLabel3 = document.getElementById('kpi-label-3');
+            const kpiLabel4 = document.getElementById('kpi-label-4');
+            const kpiSub2 = document.getElementById('kpi-sub-2');
+            const kpiSub3 = document.getElementById('kpi-sub-3');
+            const kpiSub4 = document.getElementById('kpi-sub-4');
+            const kpiIcon1 = document.getElementById('kpi-icon-1');
+            const kpiIcon2 = document.getElementById('kpi-icon-2');
+            const kpiIcon3 = document.getElementById('kpi-icon-3');
+            const kpiIcon4 = document.getElementById('kpi-icon-4');
+
+            // Timeline & SLA
+            const timeIcon = document.getElementById('time-icon');
+            const visIcon = document.getElementById('vis-icon');
+            const slaIcon = document.getElementById('sla-icon');
+            const slaTitle = document.getElementById('sla-title');
+            const slaDesc = document.getElementById('sla-desc');
+            const slaCard1Text = document.getElementById('sla-card-1-text');
+            const slaCard2Text = document.getElementById('sla-card-2-text');
+            const riskIcon = document.getElementById('risk-icon');
+            const riskBadge1 = document.getElementById('risk-badge-1');
+            const riskTitle1 = document.getElementById('risk-title-1');
+            const riskDesc1 = document.getElementById('risk-desc-1');
+            const riskBadge2 = document.getElementById('risk-badge-2');
+            const riskTitle2 = document.getElementById('risk-title-2');
+            const riskDesc2 = document.getElementById('risk-desc-2');
+            const footerText = document.getElementById('footer-text');
+
+            if (mode === 'boss') {
+                document.body.className = "theme-boss text-slate-100 font-sans antialiased min-height-screen";
+                
+                // Toggle Button styling
+                btnBoss.className = "px-4 py-2 text-xs font-bold rounded-lg bg-boss-gold text-white shadow-md transition duration-300 flex items-center gap-1.5";
+                btnPartner.className = "px-4 py-2 text-xs font-bold rounded-lg text-slate-400 hover:text-slate-200 transition duration-300 flex items-center gap-1.5";
+
+                // Header update
+                hIconBox.className = "h-10 w-10 rounded-xl bg-gradient-to-tr from-boss-gold to-boss-purple flex items-center justify-center shadow-lg shadow-boss-gold/20 transition-all duration-500";
+                hIcon.setAttribute('data-lucide', 'crown');
+                hBadge.className = "text-xs bg-boss-gold/20 text-boss-amber border border-boss-gold/30 px-2 py-0.5 rounded-full font-mono transition-all";
+                hBadge.innerText = "DIRECT SALES BLUEPRINT";
+                hSubtitle.innerText = "Direct Acquisition Strategy for the Founder";
+
+                // Banner update
+                bGradient.className = "absolute inset-0 bg-[radial-gradient(circle_at_70%_120%,rgba(245,158,11,0.1),transparent_60%)] transition-all duration-500";
+                bTag.className = "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-boss-gold/15 text-boss-amber border border-boss-gold/35";
+                bTag.innerHTML = `<span class="h-1.5 w-1.5 rounded-full bg-boss-amber animate-pulse"></span> Direct B2B Sales Blueprint`;
+                bTitle.innerHTML = `Directly Convert <span class="text-transparent bg-clip-text bg-gradient-to-r from-boss-amber via-boss-purple to-boss-indigo">2,000+ Schools</span> to Keep 100% Revenue`;
+                bDesc.innerText = "A streamlined, high-efficiency outbound sales strategy built for you to acquire educational clients directly. By bypassing intermediaries, you capture the entire subscription margin, maintain strict brand control, and build direct partnerships.";
+                bFeature2.innerHTML = `<i data-lucide="percent" class="h-4 w-4 text-boss-purple"></i> <span>100% Founder Equity Retention</span>`;
+                bFeature3.innerHTML = `<i data-lucide="trending-up" class="h-4 w-4 text-boss-emerald"></i> <span>Direct Support & Upgrades Control</span>`;
+
+                // Simulator update
+                simIcon.setAttribute('data-lucide', 'sliders');
+                simTitle.innerText = "Direct Sales Simulator";
+                simBadge.className = "text-xs text-boss-amber bg-boss-gold/10 border border-boss-gold/30 px-2 py-0.5 rounded-full font-mono font-medium";
+                simBadge.innerText = "Founder Sandbox";
+                labelSlider1.innerText = "Direct Response / Interest Rate";
+                labelSlider2.innerText = "Demo Booking Rate";
+                labelSlider3.innerText = "Sales Closing Rate";
+                outputLabel1.innerText = "Total Demos";
+                outputLabel2.innerText = "Paying Clients";
+                outputLabel3.innerText = "Founder Annual ARR";
+
+                // KPI update
+                kpiLabel2.innerText = "Demos Booked";
+                kpiSub2.innerText = "Expected bookings (7.5%)";
+                kpiLabel3.innerText = "paying customers";
+                kpiSub3.innerText = "Closed schools (30% rate)";
+                kpiLabel4.innerText = "Monthly MRR (100%)";
+                kpiSub4.innerText = "100% retained by the Founder";
+                
+                kpiIcon1.className = "h-12 w-12 rounded-xl bg-boss-gold/10 border border-boss-gold/20 flex items-center justify-center text-boss-amber shadow-inner";
+                kpiIcon2.className = "h-12 w-12 rounded-xl bg-boss-purple/10 border border-boss-purple/20 flex items-center justify-center text-boss-purple shadow-inner";
+                kpiIcon2.querySelector('i').setAttribute('data-lucide', 'presentation');
+                kpiIcon3.className = "h-12 w-12 rounded-xl bg-boss-emerald/10 border border-boss-emerald/20 flex items-center justify-center text-boss-emerald shadow-inner";
+                kpiIcon4.className = "h-12 w-12 rounded-xl bg-boss-gold/15 border border-boss-gold/30 flex items-center justify-center text-boss-amber shadow-inner";
+
+                // Outbound Pipeline details
+                document.getElementById('pipe-title-1').innerText = "Data Enrichment";
+                document.getElementById('pipe-title-2').innerText = "Direct Outbound";
+                document.getElementById('pipe-title-3').innerText = "Bespoke Demo";
+                document.getElementById('pipe-title-4').innerText = "Closing Sign-off";
+                document.getElementById('pipe-title-5').innerText = "Deployment";
+
+                document.getElementById('btn-flow-pipeline').innerText = "Acquisition Pipeline";
+                document.getElementById('btn-flow-funnel').innerText = "Outbound Funnel";
+                document.getElementById('btn-flow-roadmap').innerText = "Monthly Roadmaps";
+
+                // Funnel labels
+                document.getElementById('fun-label-1').innerText = "1. DATABASE POOL";
+                document.getElementById('fun-label-2').innerText = "2. INTERESTED LEADS";
+                document.getElementById('fun-label-3').innerText = "3. PITCH DEMOS BOOKED";
+                document.getElementById('fun-label-4').innerText = "4. CLOSED CLIENTS";
+
+                // SLA & risks
+                slaTitle.innerText = "Direct Service SLAs & Technical Delivery";
+                slaDesc.innerText = "To maintain high client retention rates and secure recurring subscription revenue, we deploy a standardized Core Technical Delivery Model directly managed by Oheneba Media.";
+                slaCard1Text.innerText = "Bulk imports of rosters, fee balances, and timetable settings completed within 48 hours of obtaining the school records database.";
+                slaCard2Text.innerText = "Standard email and WhatsApp technical tickets answered within 2 hours during normal business operation schedules.";
+                
+                riskBadge1.className = "text-[9px] font-bold text-boss-amber bg-boss-gold/15 border border-boss-gold/30 px-2 py-0.5 rounded-md uppercase font-mono";
+                riskBadge1.innerText = "Competing Software";
+                riskTitle1.innerText = "Replacing active software contracts";
+                riskDesc1.innerText = "Emphasize custom integrations, paperless automated reports, parent/student portals, and free data-migration assistance.";
+                
+                riskBadge2.className = "text-[9px] font-bold text-boss-purple bg-boss-purple/15 border border-boss-purple/30 px-2 py-0.5 rounded-md uppercase font-mono";
+                riskBadge2.innerText = "Customer Friction";
+                riskTitle2.innerText = "Onboarding delays and migration lag";
+                riskDesc2.innerText = "Deliver standard relational database templates (Excel format) for schools to fill, and host interactive support calls.";
+
+                footerText.innerText = "Designed for direct outbound acquisition of 2,000+ targeted schools by the Founder.";
+
+                // Set slider ranges and defaults for Boss Mode
+                document.getElementById('slide-slider-1').min = "5";
+                document.getElementById('slide-slider-1').max = "50";
+                document.getElementById('slide-slider-1').value = "15";
+
+                document.getElementById('slide-slider-2').min = "10";
+                document.getElementById('slide-slider-2').max = "90";
+                document.getElementById('slide-slider-2').value = "50";
+
+                document.getElementById('slide-slider-3').min = "10";
+                document.getElementById('slide-slider-3').max = "80";
+                document.getElementById('slide-slider-3').value = "30";
+
+            } else {
+                document.body.className = "theme-partner text-slate-100 font-sans antialiased min-height-screen";
+
+                // Toggle Button styling
+                btnPartner.className = "px-4 py-2 text-xs font-bold rounded-lg bg-boss-indigo text-white shadow-md transition duration-300 flex items-center gap-1.5";
+                btnBoss.className = "px-4 py-2 text-xs font-bold rounded-lg text-slate-400 hover:text-slate-200 transition duration-300 flex items-center gap-1.5";
+
+                // Header update
+                hIconBox.className = "h-10 w-10 rounded-xl bg-gradient-to-tr from-boss-indigo to-boss-purple flex items-center justify-center shadow-lg shadow-boss-indigo/20 transition-all duration-500";
+                hIcon.setAttribute('data-lucide', 'handshake');
+                hBadge.className = "text-xs bg-boss-indigo/20 text-boss-indigo border border-boss-indigo/30 px-2 py-0.5 rounded-full font-mono transition-all";
+                hBadge.innerText = "PARTNER NETWORK BLUEPRINT";
+                hSubtitle.innerText = "Ambassador Referral Strategy for Volume Scaling";
+
+                // Banner update
+                bGradient.className = "absolute inset-0 bg-[radial-gradient(circle_at_70%_120%,rgba(79,70,229,0.15),transparent_60%)] transition-all duration-500";
+                bTag.className = "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-boss-indigo/15 text-boss-indigo border border-boss-indigo/35";
+                bTag.innerHTML = `<span class="h-1.5 w-1.5 rounded-full bg-boss-indigo animate-pulse"></span> Ambassador Referral Blueprint`;
+                bTitle.innerHTML = `Leverage a <span class="text-transparent bg-clip-text bg-gradient-to-r from-boss-indigo via-boss-purple to-boss-pink">Partner Network</span> to Scale School sign-ups`;
+                bDesc.innerText = "A scalable B2B referral strategy designed to recruit local school consultants, technology advocates, and teachers as ambassadors. Pay a recurring 10% monthly commission on subscription revenues to drive viral, hands-off growth.";
+                bFeature2.innerHTML = `<i data-lucide="handshake" class="h-4 w-4 text-boss-purple"></i> <span>10% Recurring Partner Commission</span>`;
+                bFeature3.innerHTML = `<i data-lucide="users" class="h-4 w-4 text-boss-pink"></i> <span>Leverage Existing School Networks</span>`;
+
+                // Simulator update
+                simIcon.setAttribute('data-lucide', 'users');
+                simTitle.innerText = "Partner Network Simulator";
+                simBadge.className = "text-xs text-boss-indigo bg-boss-indigo/10 border border-boss-indigo/30 px-2 py-0.5 rounded-full font-mono font-medium";
+                simBadge.innerText = "Affiliate Sandbox";
+                labelSlider1.innerText = "Partner Sign-Up Rate";
+                labelSlider2.innerText = "Referral Conversion Rate";
+                labelSlider3.innerText = "Partner Commission Split";
+                outputLabel1.innerText = "Total Partners";
+                outputLabel2.innerText = "Schools Closed";
+                outputLabel3.innerText = "Commissions Paid";
+
+                // KPI update
+                kpiLabel2.innerText = "Ambassadors Signed";
+                kpiSub2.innerText = "Ambassadors recruited (20%)";
+                kpiLabel3.innerText = "Referred Schools";
+                kpiSub3.innerText = "Paying customers onboarding (40%)";
+                kpiLabel4.innerText = "Net Platform MRR";
+                kpiSub4.innerText = "Platform split after commissions";
+
+                kpiIcon1.className = "h-12 w-12 rounded-xl bg-boss-indigo/10 border border-boss-indigo/20 flex items-center justify-center text-boss-indigo shadow-inner";
+                kpiIcon2.className = "h-12 w-12 rounded-xl bg-boss-purple/10 border border-boss-purple/20 flex items-center justify-center text-boss-purple shadow-inner";
+                kpiIcon2.querySelector('i').setAttribute('data-lucide', 'users');
+                kpiIcon3.className = "h-12 w-12 rounded-xl bg-boss-emerald/10 border border-boss-emerald/20 flex items-center justify-center text-boss-emerald shadow-inner";
+                kpiIcon4.className = "h-12 w-12 rounded-xl bg-boss-pink/15 border border-boss-pink/30 flex items-center justify-center text-boss-pink shadow-inner";
+
+                // Outbound Pipeline details
+                document.getElementById('pipe-title-1').innerText = "Partner Profiling";
+                document.getElementById('pipe-title-2').innerText = "Partner Outreach";
+                document.getElementById('pipe-title-3').innerText = "Lead Referrals";
+                document.getElementById('pipe-title-4').innerText = "Demo & Closing";
+                document.getElementById('pipe-title-5').innerText = "Payout Release";
+
+                document.getElementById('btn-flow-pipeline').innerText = "Partner Pipeline";
+                document.getElementById('btn-flow-funnel').innerText = "Referral Funnel";
+                document.getElementById('btn-flow-roadmap').innerText = "Monthly Milestones";
+
+                // Funnel labels
+                document.getElementById('fun-label-1').innerText = "1. TOTAL PROSPECTS";
+                document.getElementById('fun-label-2').innerText = "2. PARTNERS SIGNED";
+                document.getElementById('fun-label-3').innerText = "3. SCHOOLS REFERRED";
+                document.getElementById('fun-label-4').innerText = "4. SCHOOLS ONBOARDED";
+
+                // SLA & risks
+                slaTitle.innerText = "Partner Enablement & Payout SLAs";
+                slaDesc.innerText = "To support and motivate your school ambassadors, Oheneba Media provides structured marketing kits and reliable recurring payouts.";
+                slaCard1Text.innerText = "Marketing collateral (slides, video guides, custom subdomains) prepared within 24 hours of partner onboarding.";
+                slaCard2Text.innerText = "Partner monthly recurring commissions processed and deposited on the 1st of every month.";
+                
+                riskBadge1.className = "text-[9px] font-bold text-boss-indigo bg-boss-indigo/15 border border-boss-indigo/30 px-2 py-0.5 rounded-md uppercase font-mono";
+                riskBadge1.innerText = "Ambassador Friction";
+                riskTitle1.innerText = "Low engagement or referral activity";
+                riskDesc1.innerText = "Empower referrers by delivering ready-to-share WhatsApp content and hosting onboarding Q&A calls.";
+                
+                riskBadge2.className = "text-[9px] font-bold text-boss-pink bg-boss-pink/15 border border-boss-pink/30 px-2 py-0.5 rounded-md uppercase font-mono";
+                riskBadge2.innerText = "Commission Dilution";
+                riskTitle2.innerText = "Lower platform subscription margins";
+                riskDesc2.innerText = "Mitigate by adjusting partner tiered structures (10% base, scaling up for high-volume accounts).";
+
+                footerText.innerText = "Designed for ambassador recruitment and school referral pipelines.";
+
+                // Set slider ranges and defaults for Partner Mode
+                document.getElementById('slide-slider-1').min = "5";
+                document.getElementById('slide-slider-1').max = "50";
+                document.getElementById('slide-slider-1').value = "20";
+
+                document.getElementById('slide-slider-2').min = "10";
+                document.getElementById('slide-slider-2').max = "80";
+                document.getElementById('slide-slider-2').value = "40";
+
+                document.getElementById('slide-slider-3').min = "5";
+                document.getElementById('slide-slider-3').max = "30";
+                document.getElementById('slide-slider-3').value = "10";
+            }
+
+            lucide.createIcons();
+            
+            // Re-render components for the selected mode
+            calculate();
+            renderTimelineList();
+            switchSegment('A');
+            selectPipelineStage(1);
+            showFunnelDetails('pool');
+            selectRoadmapMonth(1);
+        }
+
+        // Cached DOM references (set after DOMContentLoaded)
+        let slideContacts, slideFee, valContacts;
+        let kpiContacts, kpiSchools, kpiNetMrr;
+        let calcOutput1, calcOutput2, calcArr;
+        let growthChartInstance, funnelChartInstance;
+
+        // Update calculations based on Mode
+        function calculate() {
+            const contacts = parseInt(slideContacts.value);
+            const fee = parseInt(slideFee.value);
+
+            const s1Val = parseInt(document.getElementById('slide-slider-1').value);
+            const s2Val = parseInt(document.getElementById('slide-slider-2').value);
+            const s3Val = parseInt(document.getElementById('slide-slider-3').value);
+
+            // Update range slider text values
+            valContacts.innerText = contacts.toLocaleString();
+            document.getElementById('val-fee').innerText = `$${fee}`;
+            document.getElementById('val-slider-1').innerText = `${s1Val}%`;
+            document.getElementById('val-slider-2').innerText = `${s2Val}%`;
+            document.getElementById('val-slider-3').innerText = `${s3Val}%`;
+
+            if (currentMode === 'boss') {
+                const interestRate = s1Val / 100;
+                const demoRate = s2Val / 100;
+                const closeRate = s3Val / 100;
+
+                const interested = Math.round(contacts * interestRate);
+                const demos = Math.round(interested * demoRate);
+                const customers = Math.round(demos * closeRate);
+                const netMrr = customers * fee;
+                const netArr = netMrr * 12;
+
+                // Update KPI cards
+                kpiContacts.innerText = contacts.toLocaleString();
+                document.getElementById('kpi-demos').innerText = demos.toLocaleString();
+                kpiSchools.innerText = customers.toLocaleString();
+                kpiNetMrr.innerText = `$${Math.round(netMrr).toLocaleString()}`;
+
+                // Update simulator outputs
+                calcOutput1.innerText = demos.toLocaleString();
+                calcOutput2.innerText = customers.toLocaleString();
+                calcArr.innerText = `$${Math.round(netArr).toLocaleString()}`;
+
+                // Update Funnel Visualizer
+                document.getElementById('funnel-val-contacts').innerText = `${contacts.toLocaleString()} Contacts`;
+                document.getElementById('funnel-val-interest').innerText = `${interested.toLocaleString()} Leads (${s1Val}%)`;
+                document.getElementById('funnel-val-demos').innerText = `${demos.toLocaleString()} Demos (${Math.round((demos/contacts)*100)}%)`;
+                document.getElementById('funnel-val-closed').innerText = `${customers.toLocaleString()} Schools (${Math.round((customers/contacts)*100)}%)`;
+
+                updateCharts(interested, demos, customers, netMrr, 0);
+
+            } else {
+                // Partner Mode Calculations
+                const partnerRate = s1Val / 100;
+                const referralCloseRate = s2Val / 100;
+                const commissionRate = s3Val / 100;
+
+                const partners = Math.round(contacts * partnerRate);
+                const convertedSchools = Math.round(partners * referralCloseRate); // Assume 1 school referral/partner base for simplicity
+                const platformMrr = convertedSchools * fee;
+                const commissionPaid = platformMrr * commissionRate;
+                const netMrr = platformMrr - commissionPaid;
+                const netArr = netMrr * 12;
+
+                // Update KPI cards
+                kpiContacts.innerText = contacts.toLocaleString();
+                document.getElementById('kpi-demos').innerText = partners.toLocaleString();
+                kpiSchools.innerText = convertedSchools.toLocaleString();
+                kpiNetMrr.innerText = `$${Math.round(netMrr).toLocaleString()}`;
+
+                // Update simulator outputs
+                calcOutput1.innerText = partners.toLocaleString();
+                calcOutput2.innerText = convertedSchools.toLocaleString();
+                calcArr.innerText = `$${Math.round(commissionPaid * 12).toLocaleString()}`;
+
+                // Update Funnel Visualizer
+                document.getElementById('funnel-val-contacts').innerText = `${contacts.toLocaleString()} Prospects`;
+                document.getElementById('funnel-val-interest').innerText = `${partners.toLocaleString()} Partners (${s1Val}%)`;
+                document.getElementById('funnel-val-demos').innerText = `${partners.toLocaleString()} Referrals (1 referral/partner)`;
+                document.getElementById('funnel-val-closed').innerText = `${convertedSchools.toLocaleString()} Schools (${Math.round((convertedSchools/contacts)*100)}%)`;
+
+                updateCharts(partners, partners, convertedSchools, netMrr, commissionPaid);
+            }
+        }
+
+        // Initialize and Update Charts (Updates datasets depending on active mode)
+        function updateCharts(s1Val, s2Val, s3Val, netMrr, commissionPaid) {
+            // Update Funnel Chart
+            if (funnelChartInstance) {
+                if (currentMode === 'boss') {
+                    funnelChartInstance.data.labels = ['Contacts Base', 'Interested Leads', 'Demos Booked', 'Paying Clients'];
+                    funnelChartInstance.data.datasets[0].data = [
+                        parseInt(slideContacts.value),
+                        s1Val,
+                        s2Val,
+                        s3Val
+                    ];
+                } else {
+                    funnelChartInstance.data.labels = ['Total Prospects', 'Partners Signed', 'School Referrals', 'Schools Converted'];
+                    funnelChartInstance.data.datasets[0].data = [
+                        parseInt(slideContacts.value),
+                        s1Val,
+                        s2Val,
+                        s3Val
+                    ];
+                }
+                funnelChartInstance.update();
+            }
+
+            // Update Growth Chart Over 12 Months
+            if (growthChartInstance) {
+                const multipliers = [0, 0.04, 0.10, 0.22, 0.40, 0.58, 0.72, 0.83, 0.90, 0.95, 0.98, 1.0];
+                const cumulativeNetMrr = multipliers.map(m => m * netMrr);
+                
+                if (currentMode === 'boss') {
+                    growthChartInstance.data.datasets[0].label = 'Direct Net MRR ($)';
+                    growthChartInstance.data.datasets[0].data = cumulativeNetMrr;
+                    
+                    growthChartInstance.data.datasets[1].label = 'Annualized Run-Rate ($)';
+                    growthChartInstance.data.datasets[1].data = multipliers.map(m => m * netMrr * 12);
+                    growthChartInstance.data.datasets[1].borderColor = '#8B5CF6';
+                    growthChartInstance.data.datasets[1].borderDash = [5, 5];
+                } else {
+                    growthChartInstance.data.datasets[0].label = 'Net Platform Split MRR ($)';
+                    growthChartInstance.data.datasets[0].data = cumulativeNetMrr;
+                    
+                    growthChartInstance.data.datasets[1].label = 'Ambassador Commissions Paid ($)';
+                    growthChartInstance.data.datasets[1].data = multipliers.map(m => m * commissionPaid);
+                    growthChartInstance.data.datasets[1].borderColor = '#EC4899';
+                    growthChartInstance.data.datasets[1].borderDash = [];
+                }
+                growthChartInstance.update();
+            }
+        }
+
+        // Switch Chart tab
+        function switchChart(type) {
+            const btnGrowth = document.getElementById('btn-chart-growth');
+            const btnFunnel = document.getElementById('btn-chart-funnel');
+            const conGrowth = document.getElementById('container-chart-growth');
+            const conFunnel = document.getElementById('container-chart-funnel');
+
+            let activeColor = currentMode === 'boss' ? 'border-boss-amber' : 'border-boss-indigo';
+
+            if (type === 'growth') {
+                btnGrowth.className = `border-b-2 ${activeColor} px-4 py-2 text-xs font-semibold text-white transition`;
+                btnFunnel.className = "border-b-2 border-transparent px-4 py-2 text-xs font-semibold text-slate-400 hover:text-white transition";
+                conGrowth.classList.remove('hidden');
+                conFunnel.classList.add('hidden');
+            } else {
+                btnFunnel.className = `border-b-2 ${activeColor} px-4 py-2 text-xs font-semibold text-white transition`;
+                btnGrowth.className = "border-b-2 border-transparent px-4 py-2 text-xs font-semibold text-slate-400 hover:text-white transition";
+                conFunnel.classList.remove('hidden');
+                conGrowth.classList.add('hidden');
+            }
+        }
+
+        // Switch Segmentation Tab
+        function switchSegment(seg) {
+            let activeColor = currentMode === 'boss' ? 'bg-boss-gold' : 'bg-boss-indigo';
+
+            ['A', 'B', 'C'].forEach(s => {
+                const btn = document.getElementById(`btn-seg-${s}`);
+                if (s === seg) {
+                    btn.className = `py-2 text-xs font-bold rounded-lg ${activeColor} text-white shadow-md transition duration-200`;
+                } else {
+                    btn.className = "py-2 text-xs font-bold rounded-lg text-slate-400 hover:text-slate-200 transition duration-200";
+                }
+            });
+
+            renderSegmentDetails(seg);
+        }
+
+        function renderSegmentDetails(seg) {
+            const data = currentMode === 'boss' ? segmentsBoss[seg] : segmentsPartner[seg];
+            const panel = document.getElementById('segment-panel');
+            let colorTheme = currentMode === 'boss' ? 'text-boss-amber bg-boss-gold/15 border-boss-gold/20' : 'text-boss-indigo bg-boss-indigo/15 border-boss-indigo/20';
+            let copyBtnTheme = currentMode === 'boss' ? 'text-boss-amber hover:text-boss-gold' : 'text-boss-indigo hover:text-boss-purple';
+
+            panel.innerHTML = `
+                <div class="space-y-4 animate-fadeIn">
+                    <div class="flex items-start justify-between gap-3">
+                        <div class="space-y-1">
+                            <h4 class="text-sm font-bold text-white font-display">${data.title}</h4>
+                            <span class="inline-block text-[10px] ${colorTheme} px-2 py-0.5 rounded-full font-semibold border">
+                                ${data.badge}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="space-y-3 text-xs">
+                        <div class="p-3 bg-slate-950/60 border border-slate-800/80 rounded-xl">
+                            <strong class="text-slate-200 block mb-1">Target Profile:</strong>
+                            <span class="text-slate-400">${data.profile}</span>
+                        </div>
+                        <div class="p-3 bg-slate-950/60 border border-slate-800/80 rounded-xl">
+                            <strong class="text-slate-200 block mb-1">Acquisition Strategy:</strong>
+                            <span class="text-slate-400">${data.strategy}</span>
+                        </div>
+                        <div class="p-3 bg-slate-950/60 border border-slate-800/80 rounded-xl">
+                            <strong class="text-slate-200 block mb-1">Key Deliverables:</strong>
+                            <span class="text-slate-400">${data.deliverable}</span>
+                        </div>
+                    </div>
+
+                    <!-- Copyable Templates -->
+                    <div class="space-y-3 pt-2">
+                        <div class="border-t border-slate-800 pt-3">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-xs font-bold text-white">Outbound Email Template</span>
+                                <button onclick="copyToClipboard('email-body')" class="text-[10px] flex items-center gap-1 ${copyBtnTheme} font-bold transition">
+                                    <i data-lucide="copy" class="h-3 w-3"></i> Copy Template
+                                </button>
+                            </div>
+                            <div class="bg-slate-950 p-3 rounded-lg border border-slate-800/60 font-mono text-[10px] text-slate-400 max-h-[140px] overflow-y-auto whitespace-pre-line" id="email-body">
+                                <strong>Subject:</strong> ${data.outreach_subject}\n\n${data.outreach_body}
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-xs font-bold text-white">WhatsApp Outreach Template</span>
+                                <button onclick="copyToClipboard('whatsapp-body')" class="text-[10px] flex items-center gap-1 ${copyBtnTheme} font-bold transition">
+                                    <i data-lucide="copy" class="h-3 w-3"></i> Copy Pitch
+                                </button>
+                            </div>
+                            <div class="bg-slate-950 p-3 rounded-lg border border-slate-800/60 font-mono text-[10px] text-slate-400 whitespace-pre-line" id="whatsapp-body">${data.whatsapp_text}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            lucide.createIcons();
+        }
+
+        // Switch Visual Flowchart Tabs
+        function switchVisualFlow(flowType) {
+            let activeColor = currentMode === 'boss' ? 'bg-boss-gold' : 'bg-boss-indigo';
+            const types = ['pipeline', 'funnel', 'roadmap'];
+            types.forEach(t => {
+                const btn = document.getElementById(`btn-flow-${t}`);
+                const container = document.getElementById(`vis-flow-${t}`);
+                if (t === flowType) {
+                    btn.className = `px-4 py-1.5 text-xs font-bold rounded-lg ${activeColor} text-white transition duration-200`;
+                    container.classList.remove('hidden');
+                } else {
+                    btn.className = "px-4 py-1.5 text-xs font-bold rounded-lg text-slate-400 hover:text-slate-200 transition duration-200";
+                    container.classList.add('hidden');
+                }
+            });
+        }
+
+        // Stage details selector for Pipeline
+        function selectPipelineStage(stageNum) {
+            let activeBorder = currentMode === 'boss' ? 'border-boss-gold' : 'border-boss-indigo';
+            let activeBadge = currentMode === 'boss' ? 'text-boss-amber bg-boss-gold/15' : 'text-boss-indigo bg-boss-indigo/15';
+            let activeIcon = currentMode === 'boss' ? 'text-boss-amber' : 'text-boss-indigo';
+
+            for (let i = 1; i <= 5; i++) {
+                const stageBtn = document.getElementById(`pipe-stage-${i}`);
+                if (i === stageNum) {
+                    stageBtn.className = `p-4 rounded-xl border ${activeBorder} bg-slate-900/90 text-left transition duration-300 hover:scale-[1.02] shadow-lg flex flex-col justify-between min-h-[110px]`;
+                    stageBtn.querySelector('h4').className = "text-xs font-extrabold text-white mt-4 font-display";
+                    stageBtn.querySelector('span').className = `text-[10px] font-bold ${activeBadge} font-mono px-2 py-0.5 rounded`;
+                    stageBtn.querySelector('i').className = `h-4 w-4 ${activeIcon}`;
+                } else {
+                    stageBtn.className = "p-4 rounded-xl border border-slate-800 bg-slate-900/40 text-left transition duration-300 hover:scale-[1.02] shadow-lg flex flex-col justify-between min-h-[110px]";
+                    stageBtn.querySelector('h4').className = "text-xs font-extrabold text-slate-400 mt-4 font-display";
+                    stageBtn.querySelector('span').className = "text-[10px] font-bold text-slate-400 font-mono bg-slate-800 px-2 py-0.5 rounded";
+                    stageBtn.querySelector('i').className = "h-4 w-4 text-slate-400";
+                }
+            }
+            renderPipelineStageDetails(stageNum);
+        }
+
+        function renderPipelineStageDetails(stageNum) {
+            const data = currentMode === 'boss' ? pipelineBoss[stageNum] : pipelinePartner[stageNum];
+            const card = document.getElementById('pipeline-detail-card');
+
+            const accent  = currentMode === 'boss' ? 'boss-gold'   : 'boss-indigo';
+            const accent2 = currentMode === 'boss' ? 'boss-amber'  : 'boss-indigo';
+            const colorBadge = currentMode === 'boss'
+                ? 'text-boss-amber bg-boss-gold/10 border border-boss-gold/25'
+                : 'text-boss-indigo bg-boss-indigo/10 border border-boss-indigo/25';
+            const accentText = currentMode === 'boss' ? 'text-boss-amber' : 'text-boss-indigo';
+            const accentBg   = currentMode === 'boss' ? 'bg-boss-gold/8 border-boss-gold/20'  : 'bg-boss-indigo/8 border-boss-indigo/20';
+            const accentBg2  = currentMode === 'boss' ? 'bg-red-900/20 border-red-800/30'      : 'bg-red-900/20 border-red-800/30';
+
+            const stepsHtml = data.steps.map((s, i) => `
+                <div class="flex gap-3 items-start">
+                    <span class="flex-shrink-0 h-5 w-5 rounded-full ${currentMode==='boss'?'bg-boss-gold/20 text-boss-amber':'bg-boss-indigo/20 text-boss-indigo'} text-[10px] font-bold flex items-center justify-center mt-0.5">${i+1}</span>
+                    <span class="text-xs text-slate-300 leading-relaxed">${s}</span>
+                </div>`).join('');
+
+            const toolsHtml = data.tools.map(t => `
+                <div class="flex items-center gap-2 text-xs text-slate-400 bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-lg">
+                    <i data-lucide="wrench" class="h-3 w-3 ${accentText} flex-shrink-0"></i>${t}
+                </div>`).join('');
+
+            const failHtml = data.failures.map(f => `
+                <div class="flex items-start gap-2 text-xs text-slate-400">
+                    <i data-lucide="alert-triangle" class="h-3.5 w-3.5 text-red-400 flex-shrink-0 mt-0.5"></i><span>${f}</span>
+                </div>`).join('');
+
+            card.innerHTML = `
+                <!-- Header -->
+                <div class="flex flex-wrap items-start justify-between gap-3 border-b border-slate-800/80 pb-4">
+                    <div class="space-y-1.5">
+                        <span class="inline-block text-[9px] font-bold ${colorBadge} px-2 py-0.5 rounded uppercase font-mono">${data.badge}</span>
+                        <h4 class="text-lg font-bold text-white font-display">${data.title}</h4>
+                    </div>
+                    <div class="flex flex-wrap gap-3 text-xs">
+                        <div class="flex items-center gap-1.5 bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-lg">
+                            <i data-lucide="user" class="h-3.5 w-3.5 ${accentText}"></i>
+                            <span class="text-slate-300 font-medium">${data.owner}</span>
+                        </div>
+                        <div class="flex items-center gap-1.5 bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-lg">
+                            <i data-lucide="clock" class="h-3.5 w-3.5 ${accentText}"></i>
+                            <span class="text-slate-300 font-medium">${data.duration}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Overview -->
+                <div class="p-4 ${accentBg} border rounded-xl">
+                    <h5 class="text-[10px] font-bold ${accentText} uppercase font-mono mb-1.5 flex items-center gap-1.5">
+                        <i data-lucide="info" class="h-3.5 w-3.5"></i> What Happens at This Stage
+                    </h5>
+                    <p class="text-xs text-slate-300 leading-relaxed">${data.overview}</p>
+                </div>
+
+                <!-- Main 2-col grid -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+
+                    <!-- Left col: Steps + Entry -->
+                    <div class="space-y-4">
+                        <div class="space-y-1">
+                            <h5 class="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+                                <i data-lucide="list-ordered" class="h-4 w-4 ${accentText}"></i> Step-by-Step Actions
+                            </h5>
+                            <div class="space-y-2.5 pl-1 pt-1">${stepsHtml}</div>
+                        </div>
+
+                        <div class="p-3.5 bg-slate-950 border border-slate-800 rounded-xl space-y-1.5">
+                            <h5 class="text-[10px] font-bold text-slate-400 uppercase font-mono flex items-center gap-1.5">
+                                <i data-lucide="log-in" class="h-3.5 w-3.5 ${accentText}"></i> Entry Requirement
+                            </h5>
+                            <p class="text-xs text-slate-300">${data.entry}</p>
+                        </div>
+                    </div>
+
+                    <!-- Right col: Tools + Exit + Failures + KPI -->
+                    <div class="space-y-4">
+                        <div class="space-y-2">
+                            <h5 class="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+                                <i data-lucide="tool" class="h-4 w-4 ${accentText}"></i> Tools & Channels
+                            </h5>
+                            <div class="flex flex-wrap gap-2">${toolsHtml}</div>
+                        </div>
+
+                        <div class="p-3.5 bg-slate-950 border border-slate-800 rounded-xl space-y-1.5">
+                            <h5 class="text-[10px] font-bold text-slate-400 uppercase font-mono flex items-center gap-1.5">
+                                <i data-lucide="log-out" class="h-3.5 w-3.5 text-boss-emerald"></i> Exit Criteria (When to Advance)
+                            </h5>
+                            <p class="text-xs text-slate-300">${data.exit}</p>
+                        </div>
+
+                        <div class="p-3.5 ${accentBg2} border rounded-xl space-y-2">
+                            <h5 class="text-[10px] font-bold text-red-400 uppercase font-mono flex items-center gap-1.5">
+                                <i data-lucide="alert-triangle" class="h-3.5 w-3.5"></i> Common Failure Points
+                            </h5>
+                            <div class="space-y-1.5">${failHtml}</div>
+                        </div>
+
+                        <div class="p-3.5 bg-slate-950 border ${currentMode==='boss'?'border-boss-gold/20':'border-boss-indigo/20'} rounded-xl space-y-2">
+                            <div class="flex items-center gap-2">
+                                <i data-lucide="target" class="h-4 w-4 ${accentText}"></i>
+                                <h5 class="text-[10px] font-bold text-slate-400 uppercase font-mono">Success KPI</h5>
+                            </div>
+                            <p class="text-xs text-slate-200 font-medium">${data.metric}</p>
+                            <div class="flex items-center gap-1.5 pt-1">
+                                <i data-lucide="arrow-right" class="h-3.5 w-3.5 ${accentText}"></i>
+                                <span class="text-xs text-slate-400">${data.nextStep}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            lucide.createIcons();
+        }
+
+        // Funnel details show/hide
+        function showFunnelDetails(layerKey) {
+            const data = currentMode === 'boss' ? funnelBoss[layerKey] : funnelPartner[layerKey];
+            const panel = document.getElementById('funnel-info-panel');
+
+            const accentText = currentMode === 'boss' ? 'text-boss-amber' : 'text-boss-indigo';
+            const colorBadge = currentMode === 'boss'
+                ? 'text-boss-amber bg-boss-gold/15 border border-boss-gold/25'
+                : 'text-boss-indigo bg-boss-indigo/15 border border-boss-indigo/25';
+            const accentBg  = currentMode === 'boss' ? 'bg-boss-gold/5 border-boss-gold/20'   : 'bg-boss-indigo/5 border-boss-indigo/20';
+            const accentBg2 = currentMode === 'boss' ? 'bg-red-900/15 border-red-800/25'       : 'bg-red-900/15 border-red-800/25';
+
+            const actionsHtml = data.whatHappensHere.map(a => `
+                <div class="flex items-start gap-2 text-xs text-slate-300">
+                    <i data-lucide="chevron-right" class="h-3.5 w-3.5 ${accentText} flex-shrink-0 mt-0.5"></i>
+                    <span>${a}</span>
+                </div>`).join('');
+
+            panel.innerHTML = `
+                <div class="space-y-4 overflow-y-auto max-h-[520px] pr-1">
+
+                    <!-- Title & Volume -->
+                    <div class="flex flex-wrap items-start justify-between gap-2 border-b border-slate-800/60 pb-3">
+                        <div class="space-y-1">
+                            <span class="text-[9px] font-bold ${colorBadge} px-2 py-0.5 rounded uppercase font-mono">Funnel Layer</span>
+                            <h4 class="text-base font-bold text-white font-display">${data.title}</h4>
+                        </div>
+                        <span class="text-xs font-bold ${accentText} bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-lg font-mono">${data.volume}</span>
+                    </div>
+
+                    <!-- What is this layer -->
+                    <div class="p-3.5 ${accentBg} border rounded-xl space-y-1">
+                        <h5 class="text-[10px] font-bold ${accentText} uppercase font-mono">What Is This Layer?</h5>
+                        <p class="text-xs text-slate-300 leading-relaxed">${data.what}</p>
+                    </div>
+
+                    <!-- How they enter -->
+                    <div class="p-3.5 bg-slate-950 border border-slate-800 rounded-xl space-y-1">
+                        <h5 class="text-[10px] font-bold text-slate-400 uppercase font-mono flex items-center gap-1.5">
+                            <i data-lucide="log-in" class="h-3 w-3 ${accentText}"></i> How Contacts Enter
+                        </h5>
+                        <p class="text-xs text-slate-300 leading-relaxed">${data.howTheyEnter}</p>
+                    </div>
+
+                    <!-- What happens here -->
+                    <div class="space-y-2">
+                        <h5 class="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+                            <i data-lucide="activity" class="h-4 w-4 ${accentText}"></i> What Happens Here
+                        </h5>
+                        <div class="space-y-2">${actionsHtml}</div>
+                    </div>
+
+                    <!-- Exit criteria -->
+                    <div class="p-3.5 bg-slate-950 border border-boss-emerald/20 rounded-xl space-y-1">
+                        <h5 class="text-[10px] font-bold text-boss-emerald uppercase font-mono flex items-center gap-1.5">
+                            <i data-lucide="log-out" class="h-3 w-3"></i> Exit Criteria
+                        </h5>
+                        <p class="text-xs text-slate-300 leading-relaxed">${data.exitCriteria}</p>
+                    </div>
+
+                    <!-- Drop-off reason -->
+                    <div class="p-3.5 ${accentBg2} border rounded-xl space-y-1">
+                        <h5 class="text-[10px] font-bold text-red-400 uppercase font-mono flex items-center gap-1.5">
+                            <i data-lucide="trending-down" class="h-3 w-3"></i> Drop-Off Reason
+                        </h5>
+                        <p class="text-xs text-slate-300 leading-relaxed">${data.dropoffReason}</p>
+                    </div>
+
+                    <!-- Next step + KPI -->
+                    <div class="grid grid-cols-1 gap-2">
+                        <div class="p-3 bg-slate-950 border border-slate-800 rounded-xl flex items-start gap-2">
+                            <i data-lucide="arrow-right-circle" class="h-4 w-4 ${accentText} flex-shrink-0 mt-0.5"></i>
+                            <div>
+                                <span class="text-[10px] text-slate-400 uppercase font-mono font-bold">Next Step</span>
+                                <p class="text-xs text-slate-300 mt-0.5">${data.nextStep}</p>
+                            </div>
+                        </div>
+                        <div class="p-3 bg-slate-950 border ${currentMode==='boss'?'border-boss-gold/25':'border-boss-indigo/25'} rounded-xl flex items-start gap-2">
+                            <i data-lucide="target" class="h-4 w-4 ${accentText} flex-shrink-0 mt-0.5"></i>
+                            <div>
+                                <span class="text-[10px] text-slate-400 uppercase font-mono font-bold">Conversion KPI</span>
+                                <p class="text-xs text-slate-200 mt-0.5 font-medium">${data.kpi}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            `;
+            lucide.createIcons();
+        }
+
+        // Roadmap month selector
+        function selectRoadmapMonth(monthNum) {
+            let activeBorder = currentMode === 'boss' ? 'border-boss-gold' : 'border-boss-indigo';
+            for (let i = 1; i <= 12; i++) {
+                const btn = document.getElementById(`road-month-${i}`);
+                if (i === monthNum) {
+                    btn.className = `px-4 py-2 rounded-xl border ${activeBorder} bg-slate-900/90 text-white font-bold text-xs min-w-[95px] text-center transition`;
+                } else {
+                    btn.className = "px-4 py-2 rounded-xl border border-slate-800 bg-slate-900/40 text-slate-400 text-xs min-w-[95px] text-center transition hover:border-boss-gold";
+                }
+            }
+            renderRoadmapDetails(monthNum);
+        }
+
+        function renderRoadmapDetails(monthNum) {
+            const data = currentMode === 'boss' ? roadmapBoss[monthNum] : roadmapPartner[monthNum];
+            const container = document.getElementById('roadmap-detail-card');
+            
+            let colorBadge = currentMode === 'boss' ? 'text-boss-amber bg-boss-gold/10 border-boss-gold/20' : 'text-boss-indigo bg-boss-indigo/10 border-boss-indigo/20';
+            let activeIcon = currentMode === 'boss' ? 'text-boss-amber' : 'text-boss-indigo';
+
+            let checklistHtml = '';
+            data.checklist.forEach(item => {
+                checklistHtml += `
+                    <li class="flex items-start gap-2 text-xs text-slate-300">
+                        <span class="${activeIcon} mt-0.5">•</span>
+                        <span>${item}</span>
+                    </li>
+                `;
+            });
+
+            container.innerHTML = `
+                <!-- Left panel: details -->
+                <div class="md:col-span-7 space-y-4">
+                    <div class="space-y-1">
+                        <span class="text-[9px] font-bold ${colorBadge} px-2 py-0.5 rounded font-mono uppercase">Operational Milestone</span>
+                        <h4 class="text-base font-bold text-white font-display">${data.title}</h4>
+                    </div>
+
+                    <div class="space-y-2.5">
+                        <h5 class="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+                            <i data-lucide="list-todo" class="h-4 w-4 ${activeIcon}"></i> Target Milestones
+                        </h5>
+                        <ul class="space-y-2 pl-1">
+                            ${checklistHtml}
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Right panel: stats card -->
+                <div class="md:col-span-5 p-5 bg-slate-900 border border-slate-800 rounded-xl space-y-4">
+                    <div class="border-b border-slate-800 pb-2">
+                        <span class="text-[10px] text-slate-400 block uppercase font-bold font-mono">Milestone Target</span>
+                        <p class="text-sm font-bold text-white font-display mt-0.5">${data.target}</p>
+                    </div>
+                    <div>
+                        <span class="text-[10px] text-slate-400 block uppercase font-bold font-mono">Projected Monthly Revenue</span>
+                        <p class="text-2xl font-bold text-boss-emerald font-display mt-0.5">${data.mrr}</p>
+                        <span class="text-[10px] text-slate-500">${currentMode === 'boss' ? '100% retained direct margin' : 'Platform split after partner payouts'}</span>
+                    </div>
+                </div>
+            `;
+            lucide.createIcons();
+        }
+
+        // Render Static Timeline list (Updates depending on active mode)
+        function renderTimelineList() {
+            const timelineContainer = document.getElementById('timeline-list');
+            let colorBadge = currentMode === 'boss' ? 'text-boss-amber bg-boss-gold/15 border-boss-gold/30' : 'text-boss-indigo bg-boss-indigo/15 border-boss-indigo/30';
+            let dotColor = currentMode === 'boss' ? 'bg-boss-amber border-slate-950' : 'bg-boss-indigo border-slate-950';
+            let lineBorder = currentMode === 'boss' ? 'border-boss-gold/35' : 'border-boss-indigo/35';
+
+            if (currentMode === 'boss') {
+                timelineContainer.innerHTML = `
+                    <!-- Month 1 -->
+                    <div class="relative pl-6 border-l-2 ${lineBorder} pb-4 space-y-2">
+                        <div class="absolute -left-[7px] top-1.5 h-3.5 w-3.5 rounded-full ${dotColor} border flex items-center justify-center">
+                            <span class="h-1.5 w-1.5 rounded-full bg-slate-950"></span>
+                        </div>
+                        <span class="text-[10px] font-bold ${colorBadge} px-2 py-0.5 rounded-md uppercase font-mono">
+                            Month 1: Prep & Segmentation
+                        </span>
+                        <h4 class="text-sm font-bold text-white">Data Cleaning & CRM System Setup</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            Categorize the database, build tracking dashboards, draft customizable email pitches, configure demo sandboxes, and map school calendars.
+                        </p>
+                    </div>
+
+                    <!-- Month 2-3 -->
+                    <div class="relative pl-6 border-l-2 ${lineBorder} pb-4 space-y-2">
+                        <div class="absolute -left-[7px] top-1.5 h-3.5 w-3.5 rounded-full ${dotColor} border flex items-center justify-center">
+                            <span class="h-1.5 w-1.5 rounded-full bg-slate-950"></span>
+                        </div>
+                        <span class="text-[10px] font-bold ${colorBadge} px-2 py-0.5 rounded-md uppercase font-mono">
+                            Months 2-3: Initial Outreach
+                        </span>
+                        <h4 class="text-sm font-bold text-white">Multi-Channel Cold Campaigns</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            Launch segment-specific automated email funnels, start personalized high-impact WhatsApp conversations with Segment A, and connect with administrators via LinkedIn.
+                        </p>
+                    </div>
+
+                    <!-- Month 4-6 -->
+                    <div class="relative pl-6 border-l-2 ${lineBorder} pb-4 space-y-2">
+                        <div class="absolute -left-[7px] top-1.5 h-3.5 w-3.5 rounded-full ${dotColor} border flex items-center justify-center">
+                            <span class="h-1.5 w-1.5 rounded-full bg-slate-950"></span>
+                        </div>
+                        <span class="text-[10px] font-bold ${colorBadge} px-2 py-0.5 rounded-md uppercase font-mono">
+                            Months 4-6: B2B Funnel
+                        </span>
+                        <h4 class="text-sm font-bold text-white">Custom Portal Previews & Closing</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            Schedule customized product demos, negotiate pricing terms directly with school owners, and sign off on Pilot Program agreements.
+                        </p>
+                    </div>
+
+                    <!-- Month 7-9 -->
+                    <div class="relative pl-6 border-l-2 ${lineBorder} pb-4 space-y-2">
+                        <div class="absolute -left-[7px] top-1.5 h-3.5 w-3.5 rounded-full ${dotColor} border flex items-center justify-center">
+                            <span class="h-1.5 w-1.5 rounded-full bg-slate-950"></span>
+                        </div>
+                        <span class="text-[10px] font-bold ${colorBadge} px-2 py-0.5 rounded-md uppercase font-mono">
+                            Months 7-9: Operations Scaling
+                        </span>
+                        <h4 class="text-sm font-bold text-white">Onboarding & Migration Cycles</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            Drive student data migrations, train school support staffs, run parent townhall webinars, and scale the Customer Success Desk.
+                        </p>
+                    </div>
+
+                    <!-- Month 10-12 -->
+                    <div class="relative pl-6 pb-2 space-y-2">
+                        <div class="absolute -left-[5px] top-1.5 h-3 w-3 rounded-full bg-slate-600 border border-slate-950 flex items-center justify-center animate-none"></div>
+                        <span class="text-[10px] font-bold text-slate-400 bg-slate-800 border border-slate-700 px-2 py-0.5 rounded-md uppercase font-mono">
+                            Months 10-12: Client Optimization
+                        </span>
+                        <h4 class="text-sm font-bold text-white">System Upgrades & Credit Referrals</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            Introduce school credit referral awards, analyze usage data, deliver advanced upgrades, and plan Year 2 growth.
+                        </p>
+                    </div>
+                `;
+            } else {
+                timelineContainer.innerHTML = `
+                    <!-- Month 1 -->
+                    <div class="relative pl-6 border-l-2 ${lineBorder} pb-4 space-y-2">
+                        <div class="absolute -left-[7px] top-1.5 h-3.5 w-3.5 rounded-full ${dotColor} border flex items-center justify-center">
+                            <span class="h-1.5 w-1.5 rounded-full bg-slate-950"></span>
+                        </div>
+                        <span class="text-[10px] font-bold ${colorBadge} px-2 py-0.5 rounded-md uppercase font-mono">
+                            Month 1: Partner Prep
+                        </span>
+                        <h4 class="text-sm font-bold text-white">Partner Portal Config & Templates</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            Configure affiliate databases, draft partner recruiting slides, and compile marketing kits.
+                        </p>
+                    </div>
+
+                    <!-- Month 2-3 -->
+                    <div class="relative pl-6 border-l-2 ${lineBorder} pb-4 space-y-2">
+                        <div class="absolute -left-[7px] top-1.5 h-3.5 w-3.5 rounded-full ${dotColor} border flex items-center justify-center">
+                            <span class="h-1.5 w-1.5 rounded-full bg-slate-950"></span>
+                        </div>
+                        <span class="text-[10px] font-bold ${colorBadge} px-2 py-0.5 rounded-md uppercase font-mono">
+                            Months 2-3: Ambassador Recruiting
+                        </span>
+                        <h4 class="text-sm font-bold text-white">Partner Campaigns & Warm Leads</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            Launch automated partner recruiting sequences and sign up freelance sales agents and EdTech advocates.
+                        </p>
+                    </div>
+
+                    <!-- Month 4-6 -->
+                    <div class="relative pl-6 border-l-2 ${lineBorder} pb-4 space-y-2">
+                        <div class="absolute -left-[7px] top-1.5 h-3.5 w-3.5 rounded-full ${dotColor} border flex items-center justify-center">
+                            <span class="h-1.5 w-1.5 rounded-full bg-slate-950"></span>
+                        </div>
+                        <span class="text-[10px] font-bold ${colorBadge} px-2 py-0.5 rounded-md uppercase font-mono">
+                            Months 4-6: Referral Closing
+                        </span>
+                        <h4 class="text-sm font-bold text-white">Ambassador Referrals & Closing Demos</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            Ambassadors submit school leads; Skoola core sales team schedules demonstrations and closes Pilot contracts.
+                        </p>
+                    </div>
+
+                    <!-- Month 7-9 -->
+                    <div class="relative pl-6 border-l-2 ${lineBorder} pb-4 space-y-2">
+                        <div class="absolute -left-[7px] top-1.5 h-3.5 w-3.5 rounded-full ${dotColor} border flex items-center justify-center">
+                            <span class="h-1.5 w-1.5 rounded-full bg-slate-950"></span>
+                        </div>
+                        <span class="text-[10px] font-bold ${colorBadge} px-2 py-0.5 rounded-md uppercase font-mono">
+                            Months 7-9: School Deployments
+                        </span>
+                        <h4 class="text-sm font-bold text-white">Database Migration & Payout Launch</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            Execute school bulk imports, host teacher training webinars, and launch monthly recurring partner payouts.
+                        </p>
+                    </div>
+
+                    <!-- Month 10-12 -->
+                    <div class="relative pl-6 pb-2 space-y-2">
+                        <div class="absolute -left-[5px] top-1.5 h-3 w-3 rounded-full bg-slate-600 border border-slate-950 flex items-center justify-center animate-none"></div>
+                        <span class="text-[10px] font-bold text-slate-400 bg-slate-800 border border-slate-700 px-2 py-0.5 rounded-md uppercase font-mono">
+                            Months 10-12: Network Scaling
+                        </span>
+                        <h4 class="text-sm font-bold text-white">Tiered Incentives & Growth</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            Introduce tiered commission structures for top-performing partners and expand geographic marketing regions.
+                        </p>
+                    </div>
+                `;
+            }
+            lucide.createIcons();
+        }
+
+        // Copy to clipboard helper
+        function copyToClipboard(elementId) {
+            const text = document.getElementById(elementId).innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                alert("Outreach template copied to clipboard!");
+            }).catch(err => {
+                console.error("Could not copy text: ", err);
+            });
+        }
+
+        // PDF Generation
+        function downloadPDF() {
+            const element = document.body;
+            let filename = currentMode === 'boss' ? 'Skoola_Founder_Direct_Sales_Blueprint.pdf' : 'Skoola_Partner_Referral_Blueprint.pdf';
+            const opt = {
+                margin: 8,
+                filename: filename,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { 
+                    scale: 2,
+                    backgroundColor: currentMode === 'boss' ? '#06080F' : '#06080F',
+                    useCORS: true
+                },
+                jsPDF: { 
+                    unit: 'mm', 
+                    format: 'a4', 
+                    orientation: 'portrait' 
+                },
+                pagebreak: { mode: 'avoid-all', before: '.page-break' }
+            };
+            
+            html2pdf().set(opt).from(element).save();
+        }
+
+        // Initialize script
+        window.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+
+            // Cache DOM element references
+            slideContacts = document.getElementById('slide-contacts');
+            slideFee      = document.getElementById('slide-fee');
+            valContacts   = document.getElementById('val-contacts');
+            kpiContacts   = document.getElementById('kpi-contacts');
+            kpiSchools    = document.getElementById('kpi-schools');
+            kpiNetMrr     = document.getElementById('kpi-net-mrr');
+            calcOutput1   = document.getElementById('calc-output-1');
+            calcOutput2   = document.getElementById('calc-output-2');
+            calcArr       = document.getElementById('calc-arr');
+
+            // Listeners for sliders
+            [slideContacts, document.getElementById('slide-slider-1'), document.getElementById('slide-slider-2'), document.getElementById('slide-slider-3'), slideFee].forEach(slider => {
+                slider.addEventListener('input', calculate);
+            });
+
+            // Initialize Charts
+            const ctxGrowth = document.getElementById('chart-growth').getContext('2d');
+            growthChartInstance = new Chart(ctxGrowth, {
+                type: 'line',
+                data: {
+                    labels: ['M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7', 'M8', 'M9', 'M10', 'M11', 'M12'],
+                    datasets: [
+                        {
+                            label: 'Direct Net MRR ($)',
+                            data: [],
+                            borderColor: '#F59E0B',
+                            backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.3,
+                            pointBackgroundColor: '#F59E0B'
+                        },
+                        {
+                            label: 'Annualized Net Run-Rate ($)',
+                            data: [],
+                            borderColor: '#8B5CF6',
+                            backgroundColor: 'transparent',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            tension: 0.3,
+                            pointBackgroundColor: '#8B5CF6',
+                            yAxisID: 'arrAxis'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#94A3B8',
+                                font: { family: 'Inter', size: 11 }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            grid: { color: '#1F293D' },
+                            ticks: { color: '#94A3B8', font: { family: 'Inter' } }
+                        },
+                        arrAxis: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            grid: { drawOnChartArea: false },
+                            ticks: { color: '#94A3B8', font: { family: 'Inter' } }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: '#94A3B8', font: { family: 'Inter' } }
+                        }
+                    }
+                }
+            });
+
+            const ctxFunnel = document.getElementById('chart-funnel').getContext('2d');
+            funnelChartInstance = new Chart(ctxFunnel, {
+                type: 'bar',
+                data: {
+                    labels: ['Contacts Base', 'Interested Leads', 'Demos Booked', 'Paying Clients'],
+                    datasets: [{
+                        label: 'Direct Sales Funnel (Volume)',
+                        data: [],
+                        backgroundColor: [
+                            'rgba(79, 70, 229, 0.85)',
+                            'rgba(139, 92, 246, 0.85)',
+                            'rgba(245, 158, 11, 0.85)',
+                            'rgba(16, 185, 129, 0.85)'
+                        ],
+                        borderColor: [
+                            '#4F46E5',
+                            '#8B5CF6',
+                            '#F59E0B',
+                            '#10B981'
+                        ],
+                        borderWidth: 1.5,
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: {
+                            grid: { color: '#1F293D' },
+                            ticks: { color: '#94A3B8', font: { family: 'Inter' } }
+                        },
+                        y: {
+                            grid: { display: false },
+                            ticks: { color: '#94A3B8', font: { family: 'Inter', weight: 'bold' } }
+                        }
+                    }
+                }
+            });
+
+            // Initial load of Boss Mode specs
+            setDashboardMode('boss');
+        });
+    </script>
+</body>
+</html>

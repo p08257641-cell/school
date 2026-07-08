@@ -17,7 +17,7 @@ class OnboardingPDF(FPDF):
         self.set_y(6)
         self.set_font("Helvetica", "I", 7.5)
         self.set_text_color(160, 160, 170)
-        self.cell(0, 5, "Skoola School Onboarding Checklist  |  Decorum IT Solutions", align="R")
+        self.cell(0, 5, "Skoola School Onboarding Checklist  |  Oheneba Media", align="R")
         self.ln(10)
 
     def footer(self):
@@ -26,7 +26,7 @@ class OnboardingPDF(FPDF):
         self.set_y(-14)
         self.set_font("Helvetica", "", 7)
         self.set_text_color(170, 170, 180)
-        self.cell(95, 5, "Confidential  -  Decorum IT Solutions", align="L")
+        self.cell(95, 5, "Confidential  -  Oheneba Media", align="L")
         self.cell(95, 5, f"Page {self.page_no()} of {{nb}}", align="R")
 
 
@@ -138,7 +138,7 @@ def build_pdf():
     pdf.set_y(250)
     pdf.set_font("Helvetica", "B", 9)
     pdf.set_text_color(17, 24, 39)
-    pdf.cell(0, 5, "PUBLISHED & MAINTAINED BY DECORUM IT SOLUTIONS", align="C", new_x="LMARGIN", new_y="NEXT")
+    pdf.cell(0, 5, "PUBLISHED & MAINTAINED BY OHENEBA MEDIA", align="C", new_x="LMARGIN", new_y="NEXT")
     pdf.set_font("Helvetica", "", 8)
     pdf.set_text_color(156, 163, 175)
     pdf.cell(0, 5, "Official Onboarding Document  |  Version 2026.1", align="C")
@@ -171,7 +171,7 @@ def build_pdf():
     # ── PHASE 1 ──
     _section_title(pdf, "1", "Pre-Onboarding Requirements")
     _body(pdf, "Before the Skoola team begins portal configuration, the School must complete the following:")
-    _checkbox(pdf, "Pilot Agreement signed and returned to Decorum IT Solutions.")
+    _checkbox(pdf, "Pilot Agreement signed and returned to Oheneba Media.")
     _checkbox(pdf, "Initial 50% subscription payment confirmed (receipt or proof of transfer attached).")
     _checkbox(pdf, "Preferred subdomain name selected and communicated (e.g., greenhill.skoola.com).")
     _checkbox(pdf, "Primary system administrator identified (name, email, phone number provided above).")
@@ -229,7 +229,7 @@ def build_pdf():
     # ── PHASE 6 ──
     _section_title(pdf, "6", "Post-Setup Verification & Sign-Off")
     _body(pdf, (
-        "After Decorum IT Solutions completes portal setup and data import, the School administrator "
+        "After Oheneba Media completes portal setup and data import, the School administrator "
         "must verify the following before activating the portal for staff and students:"
     ))
     _checkbox(pdf, "All student records imported correctly (spot-check at least 10 records).")

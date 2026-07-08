@@ -477,7 +477,8 @@ function OrganizationForm({ initialData, isEdit = false, onRefresh, onBack }: { 
     term_end_date: initialData?.term_end_date || '',
     attendance_include_weekends: initialData?.attendance_include_weekends || false,
     attendance_total_days: initialData?.attendance_total_days || 0,
-    late_time: initialData?.late_time || '08:00:00'
+    late_time: initialData?.late_time || '08:00:00',
+    landing_page_enabled: initialData?.landing_page_enabled || false,
   });
 
   const [hasManuallyEditedSlug, setHasManuallyEditedSlug] = useState(false);
@@ -544,7 +545,8 @@ function OrganizationForm({ initialData, isEdit = false, onRefresh, onBack }: { 
           term_end_date: '',
           attendance_include_weekends: false,
           attendance_total_days: 0,
-          late_time: '08:00:00'
+          late_time: '08:00:00',
+          landing_page_enabled: false,
         });
       }
       onRefresh?.();
@@ -801,6 +803,47 @@ function OrganizationForm({ initialData, isEdit = false, onRefresh, onBack }: { 
                 </label>
               </div>
             </div>
+          </div>
+
+          {/* Public School Website Toggle — Super Admin only */}
+          <div className="border-t border-zinc-100 dark:border-zinc-800 pt-6">
+            <h3 className="text-lg font-bold text-zinc-900 dark:text-white mb-2">Public School Website</h3>
+            <p className="text-sm text-zinc-500 mb-4">
+              When enabled, visiting this school's subdomain (e.g. <span className="font-mono text-indigo-600">{formData.custom_domain || 'schoolname'}.skoola.online</span>) will
+              show a public landing page with an online admission inquiry form. Disable this if the school already has its own website and only needs the portal.
+            </p>
+            <label className="flex items-center gap-4 cursor-pointer select-none group">
+              <div className="relative">
+                <input
+                  type="checkbox"
+                  id="landing_page_enabled"
+                  checked={formData.landing_page_enabled}
+                  onChange={(e) => setFormData({ ...formData, landing_page_enabled: e.target.checked })}
+                  className="sr-only"
+                />
+                <div
+                  className={`w-12 h-6 rounded-full transition-colors duration-200 ${
+                    formData.landing_page_enabled ? 'bg-indigo-600' : 'bg-zinc-200 dark:bg-zinc-700'
+                  }`}
+                />
+                <div
+                  className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow transition-transform duration-200 ${
+                    formData.landing_page_enabled ? 'translate-x-6' : 'translate-x-0'
+                  }`}
+                />
+              </div>
+              <div>
+                <p className="text-sm font-bold text-zinc-800 dark:text-zinc-200">
+                  {formData.landing_page_enabled ? 'Public Website Enabled' : 'Public Website Disabled'}
+                </p>
+                <p className="text-xs text-zinc-400">
+                  {formData.landing_page_enabled
+                    ? 'Visitors will see the school landing page before the login portal.'
+                    : 'Visitors will go directly to the login portal (no public website).'
+                  }
+                </p>
+              </div>
+            </label>
           </div>
 
           <div className="pt-4 flex items-center justify-end gap-4">

@@ -19,7 +19,7 @@ class PrivacyPolicyPDF(FPDF):
         self.set_y(6)
         self.set_font("Helvetica", "I", 7.5)
         self.set_text_color(160, 160, 170)
-        self.cell(0, 5, "Skoola Data Protection & Privacy Policy  |  Decorum IT Solutions", align="R")
+        self.cell(0, 5, "Skoola Data Protection & Privacy Policy  |  Oheneba Media", align="R")
         self.ln(10)
 
     def footer(self):
@@ -28,7 +28,7 @@ class PrivacyPolicyPDF(FPDF):
         self.set_y(-14)
         self.set_font("Helvetica", "", 7)
         self.set_text_color(170, 170, 180)
-        self.cell(95, 5, "Confidential  -  Decorum IT Solutions", align="L")
+        self.cell(95, 5, "Confidential  -  Oheneba Media", align="L")
         self.cell(95, 5, f"Page {self.page_no()} of {{nb}}", align="R")
 
 
@@ -134,7 +134,7 @@ def build_pdf():
     pdf.set_y(250)
     pdf.set_font("Helvetica", "B", 9)
     pdf.set_text_color(17, 24, 39)
-    pdf.cell(0, 5, "PUBLISHED & MAINTEINED BY DECORUM IT SOLUTIONS", align="C", new_x="LMARGIN", new_y="NEXT")
+    pdf.cell(0, 5, "PUBLISHED & MAINTEINED BY OHENEBA MEDIA", align="C", new_x="LMARGIN", new_y="NEXT")
     pdf.set_font("Helvetica", "", 8)
     pdf.set_text_color(156, 163, 175)
     pdf.cell(0, 5, "Official Compliance Document  |  Version 2026.1", align="C")
@@ -159,7 +159,7 @@ def build_pdf():
 
     _body(pdf, (
         "This Data Protection & Privacy Policy (the \"Policy\") outlines the commitment of "
-        "Decorum IT Solutions, owned by Mr. Oheneba Michael Baah (referred to as the "
+        "Oheneba Media, owned by Mr. Oheneba Michael Baah (referred to as the "
         "\"Service Provider\"), to protect the privacy and personal data processed through "
         "the Skoola School Management System (the \"Software\" or \"Platform\")."
     ))
@@ -179,7 +179,7 @@ def build_pdf():
     _bullet(pdf, (
         "1.2  For the purposes of this Policy, the Client (the School) acts as the Data Controller, "
         "determining the purposes and means of processing student, staff, and parent data. "
-        "Decorum IT Solutions acts as the Data Processor, processing information strictly on "
+        "Oheneba Media acts as the Data Processor, processing information strictly on "
         "behalf of, and under instructions from, the School."
     ))
     _bullet(pdf, (
@@ -224,7 +224,7 @@ def build_pdf():
         "parental or guardian consents before entering any minor's personal data into the Skoola platform."
     ))
     _bullet(pdf, (
-        "3.3  Decorum IT Solutions will never utilize minor data for advertising, profiling, or behavioral "
+        "3.3  Oheneba Media will never utilize minor data for advertising, profiling, or behavioral "
         "marketing, and will never contact student users directly unless explicitly authorized for tech support."
     ))
 
@@ -242,7 +242,7 @@ def build_pdf():
     _section_title(pdf, "5", "Data Storage, Location, and Backups")
     _bullet(pdf, (
         "5.1  All data processed by Skoola is stored in secure cloud database servers with physical "
-        "and logical access control restricted strictly to authorized engineering staff of Decorum IT Solutions."
+        "and logical access control restricted strictly to authorized engineering staff of Oheneba Media."
     ))
     _bullet(pdf, (
         "5.2  Automated incremental database backups are executed daily. Backup files are encrypted "
@@ -256,7 +256,7 @@ def build_pdf():
     # ── SECTION 6 ──
     _section_title(pdf, "6", "Third-Party Data Sharing Limits")
     _bullet(pdf, (
-        "6.1  Decorum IT Solutions will never sell, lease, trade, rent, or monetize school data, student "
+        "6.1  Oheneba Media will never sell, lease, trade, rent, or monetize school data, student "
         "information, or parent contact details to any third-party marketing firms or external organizations."
     ))
     _bullet(pdf, (
@@ -279,7 +279,7 @@ def build_pdf():
     _bullet(pdf, (
         "7.2  Individuals wishing to exercise these rights must contact the School administrator (Data Controller) "
         "directly. The School administrator has full authority to edit, archive, or delete user records "
-        "via the admin dashboard. Decorum IT Solutions will assist the School in fulfilling such requests "
+        "via the admin dashboard. Oheneba Media will assist the School in fulfilling such requests "
         "if technical intervention is required."
     ))
 
@@ -302,11 +302,11 @@ def build_pdf():
     # ── SECTION 9 ──
     _section_title(pdf, "9", "Data Breach Protocols")
     _bullet(pdf, (
-        "9.1  Decorum IT Solutions maintains a robust incident response protocol to address any potential "
+        "9.1  Oheneba Media maintains a robust incident response protocol to address any potential "
         "unauthorized database access, leakage, or security breach."
     ))
     _bullet(pdf, (
-        "9.2  Upon confirming a data breach affecting the School's records, Decorum IT Solutions shall notify "
+        "9.2  Upon confirming a data breach affecting the School's records, Oheneba Media shall notify "
         "the School's designated administrator in writing within seventy-two (72) hours."
     ))
     _bullet(pdf, (
@@ -323,7 +323,7 @@ def build_pdf():
         "irrecoverably purged from our primary and secondary storage disks."
     ))
     _bullet(pdf, (
-        "10.2  POLICY AMENDMENTS: Decorum IT Solutions reserves the right to update this policy to align with "
+        "10.2  POLICY AMENDMENTS: Oheneba Media reserves the right to update this policy to align with "
         "changing regulatory standards. Significant updates will be communicated to the School's administrator."
     ))
     _bullet(pdf, (
@@ -335,7 +335,7 @@ def build_pdf():
     pdf.set_text_color(17, 24, 39)
     pdf.cell(0, 5, "Proprietor: Mr. Oheneba Michael Baah", new_x="LMARGIN", new_y="NEXT")
     pdf.set_x(25)
-    pdf.cell(0, 5, "Company: Decorum IT Solutions", new_x="LMARGIN", new_y="NEXT")
+    pdf.cell(0, 5, "Company: Oheneba Media", new_x="LMARGIN", new_y="NEXT")
     pdf.set_x(25)
     pdf.cell(0, 5, "Support Email: support@skoola.com", new_x="LMARGIN", new_y="NEXT")
     pdf.set_x(25)

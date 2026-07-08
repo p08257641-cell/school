@@ -19,7 +19,7 @@ class AgreementPDF(FPDF):
         self.set_y(6)
         self.set_font("Helvetica", "I", 7.5)
         self.set_text_color(160, 160, 170)
-        self.cell(0, 5, "Skoola Pilot Program Agreement  |  Decorum IT Solutions", align="R")
+        self.cell(0, 5, "Skoola Pilot Program Agreement  |  Oheneba Media", align="R")
         self.ln(10)
 
     def footer(self):
@@ -28,7 +28,7 @@ class AgreementPDF(FPDF):
         self.set_y(-14)
         self.set_font("Helvetica", "", 7)
         self.set_text_color(170, 170, 180)
-        self.cell(95, 5, "Confidential  -  Decorum IT Solutions", align="L")
+        self.cell(95, 5, "Confidential  -  Oheneba Media", align="L")
         self.cell(95, 5, f"Page {self.page_no()} of {{nb}}", align="R")
 
 
@@ -194,7 +194,7 @@ def build_pdf():
     pdf.set_y(250)
     pdf.set_font("Helvetica", "B", 9)
     pdf.set_text_color(17, 24, 39)
-    pdf.cell(0, 5, "DEVELOPED & PUBLISHED BY DECORUM IT SOLUTIONS", align="C", new_x="LMARGIN", new_y="NEXT")
+    pdf.cell(0, 5, "DEVELOPED & PUBLISHED BY OHENEBA MEDIA", align="C", new_x="LMARGIN", new_y="NEXT")
     pdf.set_font("Helvetica", "", 8)
     pdf.set_text_color(156, 163, 175)
     pdf.cell(0, 5, "Official Business Agreement  |  Version 2026.1", align="C")
@@ -226,7 +226,7 @@ def build_pdf():
     pdf.cell(0, 7, "PARTY A  -  THE SERVICE PROVIDER", new_x="LMARGIN", new_y="NEXT")
     pdf.ln(1)
     _body(pdf, (
-        "Decorum IT Solutions, a technology solutions company, represented herein by its Owner, "
+        "Oheneba Media, a technology solutions company, represented herein by its Owner, "
         "Proprietor, and Software Author, Mr. Oheneba Michael Baah (hereinafter referred to as "
         "the \"Service Provider\")."
     ))
@@ -245,7 +245,7 @@ def build_pdf():
     # ── SECTION 1 ──
     _section_title(pdf, "1", "Purpose & General Overview")
     _body(pdf, (
-        "Decorum IT Solutions is the sole developer and proprietor of Skoola, a comprehensive "
+        "Oheneba Media is the sole developer and proprietor of Skoola, a comprehensive "
         "role-based school management system (the \"Software\"). The School wishes to implement "
         "and utilize Skoola to automate and manage its academic, administrative, financial, and "
         "student data systems."
@@ -268,7 +268,7 @@ def build_pdf():
         "additional charge beyond the agreed subscription fee."
     ))
     _bullet(pdf, (
-        "2.3  Decorum IT Solutions will configure a custom subdomain (e.g. schoolname.skoola.com) "
+        "2.3  Oheneba Media will configure a custom subdomain (e.g. schoolname.skoola.com) "
         "for the School's exclusive use during and after the Pilot Period."
     ))
     _bullet(pdf, (
@@ -309,7 +309,7 @@ def build_pdf():
     # ── SECTION 4 ──
     _section_title(pdf, "4", "Default, Suspension & Data Retention")
     _bullet(pdf, (
-        "4.1  If the remaining fifty percent (50%) balance is not received by Decorum IT "
+        "4.1  If the remaining fifty percent (50%) balance is not received by Oheneba Media "
         "Solutions at the conclusion of the 3-month Pilot Period, the School's access to the "
         "Skoola portal may be temporarily suspended without prior notice."
     ))
@@ -320,7 +320,7 @@ def build_pdf():
     ))
     _bullet(pdf, (
         "4.3  If no payment or written arrangement is made within this 30-day grace period, "
-        "Decorum IT Solutions reserves the right to permanently terminate the School's account "
+        "Oheneba Media reserves the right to permanently terminate the School's account "
         "and delete all associated data. The Service Provider shall not be liable for any data "
         "loss after this period."
     ))
@@ -330,7 +330,7 @@ def build_pdf():
     _bullet(pdf, (
         "5.1  All intellectual property rights, source code, user interface designs, branding, "
         "and proprietary workflows of Skoola remain the exclusive property of Mr. Oheneba "
-        "Michael Baah and Decorum IT Solutions."
+        "Michael Baah and Oheneba Media."
     ))
     _bullet(pdf, (
         "5.2  The School is granted a non-exclusive, non-transferable, revocable license to "
@@ -342,7 +342,7 @@ def build_pdf():
     # ── SECTION 6 ──
     _section_title(pdf, "6", "Data Security & Confidentiality")
     _bullet(pdf, (
-        "6.1  Decorum IT Solutions shall employ industry-standard encryption, access controls, "
+        "6.1  Oheneba Media shall employ industry-standard encryption, access controls, "
         "and security protocols to safeguard the School's records, student personal information, "
         "and financial data."
     ))
@@ -355,7 +355,7 @@ def build_pdf():
     # ── SECTION 7 ──
     _section_title(pdf, "7", "Support & Maintenance")
     _bullet(pdf, (
-        "7.1  During the Pilot Period and throughout the active subscription term, Decorum IT "
+        "7.1  During the Pilot Period and throughout the active subscription term, Oheneba Media "
         "Solutions will provide standard technical support via email and messaging channels "
         "during business hours."
     ))
@@ -367,7 +367,7 @@ def build_pdf():
     # ── SECTION 8 ──
     _section_title(pdf, "8", "Limitation of Liability")
     _bullet(pdf, (
-        "8.1  Decorum IT Solutions shall not be liable for any indirect, incidental, or "
+        "8.1  Oheneba Media shall not be liable for any indirect, incidental, or "
         "consequential damages arising from the use or inability to use the Skoola platform, "
         "including but not limited to loss of data caused by circumstances beyond the Service "
         "Provider's reasonable control."
@@ -418,7 +418,7 @@ def build_pdf():
     # Service Provider signature
     _signature_block(
         pdf,
-        "FOR THE SERVICE PROVIDER  -  DECORUM IT SOLUTIONS",
+        "FOR THE SERVICE PROVIDER  -  OHENEBA MEDIA",
         "Mr. Oheneba Michael Baah  (Owner, Proprietor & Author)",
         extra_lines=[]
     )

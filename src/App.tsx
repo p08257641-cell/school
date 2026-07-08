@@ -79,6 +79,7 @@ import { GenericModuleView } from "./components/ModuleViews";
 import { InventoryAssetManagement } from "./components/module-views/InventoryAssetManagement";
 import LandingPage from "./components/LandingPage";
 import Login from "./components/Login";
+import PublicSchoolSite from "./components/PublicSchoolSite";
 import loadingBg1 from "./image/ChatGPT Image Jun 13, 2026, 02_05_55 PM.png";
 import loadingBg2 from "./image/ChatGPT Image Jun 13, 2026, 02_06_55 PM.png";
 // Module header background images for preloading
@@ -296,6 +297,7 @@ export default function App() {
   const { t, language, currency, setLanguage, setCurrency } = useLanguage();
   const [showLanding, setShowLanding] = useState(true);
   const [showLogin, setShowLogin] = useState(false);
+  const [showPublicSite, setShowPublicSite] = useState(false);
   const [showPartnerLogin, setShowPartnerLogin] = useState(false);
   const [subdomainOrg, setSubdomainOrg] = useState<any>(null);
   const [isSubdomainLoading, setIsSubdomainLoading] = useState(true);
@@ -404,7 +406,13 @@ export default function App() {
         const org = await fetchOrganizationByDomain(subdomain);
         setSubdomainOrg(org);
         setShowLanding(false);
-        setShowLogin(true);
+        if (org?.landing_page_enabled) {
+          setShowPublicSite(true);
+          setShowLogin(false);
+        } else {
+          setShowLogin(true);
+          setShowPublicSite(false);
+        }
 
         // Build list of image URLs to preload
         const urlsToPreload: string[] = [
@@ -565,6 +573,7 @@ export default function App() {
       setShowLanding(false);
       setShowLogin(false);
       setShowPartnerLogin(false);
+      setShowPublicSite(false);
       loadData(user.role);
 
       // Initialize Socket
@@ -4304,6 +4313,17 @@ export default function App() {
           }}
         />
       );
+    if (showPublicSite && subdomainOrg)
+      return (
+        <PublicSchoolSite
+          organization={subdomainOrg}
+          onGoToLogin={() => {
+            setShowPublicSite(false);
+            setShowLogin(true);
+          }}
+        />
+      );
+
     if (showLogin)
       return (
         <Login
@@ -4311,7 +4331,10 @@ export default function App() {
           organization={subdomainOrg}
           onBack={() => {
             if (subdomainOrg) {
-              // Under subdomain context, back button doesn't switch to default landing
+              if (subdomainOrg.landing_page_enabled) {
+                setShowLogin(false);
+                setShowPublicSite(true);
+              }
             } else {
               setShowLanding(true);
               setShowLogin(false);
@@ -4524,7 +4547,7 @@ export default function App() {
 
               {/* Powered By Branding */}
               <p className="mt-4 text-center text-[9px] font-black tracking-[1.4px] text-zinc-400/40 dark:text-zinc-500/30 uppercase select-none">
-                Powered by Decorum IT Solutions
+                Powered by Oheneba Media
               </p>
 
               <div className="h-4 pb-[max(env(safe-area-inset-bottom),16px)]" />
