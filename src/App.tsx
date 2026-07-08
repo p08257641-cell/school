@@ -371,11 +371,17 @@ export default function App() {
       const parts = hostname.split('.');
       
       let subdomain = null;
+      let isPublicUrl = false;
       if (parts.length > 2) {
         const sub = parts[0].toLowerCase();
         const ignored = ['www', 'api', 'admin', 'app'];
         if (!ignored.includes(sub)) {
-          subdomain = sub;
+          if (sub.endsWith('public')) {
+            subdomain = sub.substring(0, sub.length - 6); // remove 'public'
+            isPublicUrl = true;
+          } else {
+            subdomain = sub;
+          }
         }
       }
 
@@ -406,7 +412,7 @@ export default function App() {
         const org = await fetchOrganizationByDomain(subdomain);
         setSubdomainOrg(org);
         setShowLanding(false);
-        if (org?.landing_page_enabled) {
+        if (isPublicUrl && org?.landing_page_enabled) {
           setShowPublicSite(true);
           setShowLogin(false);
         } else {
