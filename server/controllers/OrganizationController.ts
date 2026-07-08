@@ -242,6 +242,8 @@ export const updateOrganization = async (req: AuthRequest, res: Response) => {
       updates.push(`${field} = $${paramIndex}`);
       if (field === 'background_images' && Array.isArray(req.body[field])) {
         values.push(JSON.stringify(req.body[field]));
+      } else if ((field === 'term_start_date' || field === 'term_end_date' || field === 'late_time') && req.body[field] === '') {
+        values.push(null);
       } else {
         values.push(req.body[field]);
       }
