@@ -129,6 +129,7 @@ export const NAVIGATION_CONFIG: NavItem[] = [
       { title: 'Result Analysis', href: 'Result Analysis', roles: ['STUDENT', 'PARENT'], icon: TrendingUp },
       { title: 'Report Card Builder', href: 'Report Card Builder', roles: ['SCHOOL_ADMIN', 'HOD'], icon: Layout },
       { title: 'Remarks Template', href: 'Remarks Template', roles: ['SCHOOL_ADMIN', 'HOD'], icon: MessageSquare },
+      { title: 'Academic Transcripts', href: 'Academic Transcripts', roles: ['SCHOOL_ADMIN'], icon: FileText },
     ]
   },
   // FINANCE MODULES

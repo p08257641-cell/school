@@ -1139,3 +1139,94 @@ export const getPublicPortfolioItems = async (req: express.Request, res: express
     res.status(500).json({ error: err.message });
   }
 };
+
+export const getTranscriptsData = async (req: AuthRequest, res: Response) => {
+  const { studentIds } = req.body;
+  const orgId = req.user.org_id;
+
+  if (!Array.isArray(studentIds) || studentIds.length === 0) {
+    return res.status(400).json({ error: 'Please provide an array of student IDs.' });
+  }
+
+  try {
+    // 1. Fetch Students Info
+    const studentsRes = await pool.query(
+      `SELECT s.*, c.name as current_class_name
+       FROM students s
+       LEFT JOIN classes c ON s.class_id = c.id
+       WHERE s.id = ANY($1) AND s.org_id = $2`,
+      [studentIds, orgId]
+    );
+
+    // 2. Fetch Results
+    const resultsRes = await pool.query(
+      `SELECT 
+         r.id as result_id,
+         r.student_id,
+         r.score,
+         r.grade,
+         r.status,
+         e.id as exam_id,
+         e.subject,
+         e.term,
+         e.academic_year,
+         e.class_id,
+         c.name as class_name,
+         s.name as subject_name
+       FROM results r
+       JOIN exams e ON r.exam_id = e.id
+       JOIN classes c ON e.class_id = c.id
+       LEFT JOIN subjects s ON e.subject_id = s.id
+       WHERE r.student_id = ANY($1) AND r.org_id = $2 AND r.status = 'Published'
+       ORDER BY e.academic_year ASC, e.term ASC, s.name ASC`,
+      [studentIds, orgId]
+    );
+
+    // 3. Fetch Grading Scales & Levels
+    const scalesRes = await pool.query(
+      `SELECT gs.*, gsl.id as level_id, gsl.grade as level_grade, gsl.min_score, gsl.max_score, gsl.description as level_description
+       FROM grading_scales gs
+       JOIN grading_scale_levels gsl ON gs.id = gsl.scale_id
+       WHERE gs.org_id = $1
+       ORDER BY gs.id, gsl.min_score DESC`,
+      [orgId]
+    );
+
+    // Group levels by grading scale
+    const gradingScalesMap: Record<string, any> = {};
+    scalesRes.rows.forEach(row => {
+      if (!gradingScalesMap[row.id]) {
+        gradingScalesMap[row.id] = {
+          id: row.id,
+          name: row.name,
+          description: row.description,
+          levels: []
+        };
+      }
+      gradingScalesMap[row.id].levels.push({
+        id: row.level_id,
+        grade: row.level_grade,
+        min_score: parseFloat(row.min_score),
+        max_score: parseFloat(row.max_score),
+        description: row.level_description
+      });
+    });
+
+    // 4. Fetch Organization Info
+    const orgRes = await pool.query(
+      `SELECT id, name, logo, logo_url, email, contact_number, address, signature, brand_color
+       FROM organizations
+       WHERE id = $1`,
+      [orgId]
+    );
+
+    res.json({
+      students: studentsRes.rows,
+      results: resultsRes.rows,
+      gradingScales: Object.values(gradingScalesMap),
+      organization: orgRes.rows[0] || null
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+};

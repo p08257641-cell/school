@@ -243,6 +243,7 @@ router.get('/academic/behavior', AcademicController.getBehaviorIncidents);
 router.post('/academic/behavior', checkRole(['STAFF', 'SCHOOL_ADMIN', 'HOD']), AcademicController.recordBehaviorIncident);
 router.patch('/academic/behavior/:id', checkRole(['STAFF', 'SCHOOL_ADMIN', 'HOD']), AcademicController.updateBehaviorIncident);
 router.delete('/academic/behavior/:id', checkRole(['SCHOOL_ADMIN', 'HOD']), AcademicController.deleteBehaviorIncident);
+router.post('/academic/transcripts', checkRole(['SCHOOL_ADMIN']), AcademicController.getTranscriptsData);
 router.get('/academic/grading-scales', GradingController.getGradingScales);
 router.post('/academic/grading-scales', checkRole(['SCHOOL_ADMIN', 'HOD']), GradingController.createGradingScale);
 router.patch('/academic/grading-scales/:id', checkRole(['SCHOOL_ADMIN', 'HOD']), GradingController.updateGradingScale);

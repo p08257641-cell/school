@@ -96,6 +96,7 @@ import { API_BASE_URL } from "./constants";
 import PortfolioView from "./components/module-views/PortfolioView";
 import PortfolioUpload from "./components/module-views/PortfolioUpload";
 import WhistleblowerView from "./components/module-views/WhistleblowerView";
+import AcademicTranscripts from "./components/module-views/AcademicTranscripts";
 import QRAttendanceScanner from "./components/QRAttendanceScanner";
 import { cn } from "./lib/utils";
 import { getFriendlyErrorMessage } from "./lib/errorHelper";
@@ -2980,6 +2981,14 @@ export default function App() {
           data={remarkTemplates}
           onSave={(data) => handleEntitySave("remark-template", data)}
           onDelete={(item) => handleEntityDelete("remark-template", item)}
+        />
+      ),
+
+      "Academic Transcripts": (
+        <AcademicTranscripts
+          students={studentList}
+          classes={classList}
+          organization={organizations.find((o) => o.id === currentUser?.org_id)}
         />
       ),
 

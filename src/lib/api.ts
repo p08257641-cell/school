@@ -547,6 +547,11 @@ export const deleteBehaviorIncident = async (id: string) => {
   return response.data;
 };
 
+export const fetchTranscriptsData = async (studentIds: string[]) => {
+  const response = await api.post('/academic/transcripts', { studentIds });
+  return response.data;
+};
+
 // Timetable
 export const fetchTimetables = async (classId?: string) => {
   const response = await api.get('/academic/timetables', { params: { classId } });
