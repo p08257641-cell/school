@@ -134,6 +134,44 @@ export const getOrganizationByDomain = async (req: Request, res: Response) => {
   }
 };
 
+// Public — returns school admin name & contact for the public landing page (no sensitive data)
+export const getPublicAdminContact = async (req: Request, res: Response) => {
+  const { orgId } = req.params;
+  try {
+    // First check landing_page_enabled to avoid data leaks on disabled orgs
+    const orgCheck = await pool.query(
+      'SELECT id, landing_page_enabled FROM organizations WHERE id = $1',
+      [orgId]
+    );
+    if (orgCheck.rows.length === 0) return res.status(404).json({ error: 'Not found.' });
+    if (!orgCheck.rows[0].landing_page_enabled) return res.status(403).json({ error: 'Forbidden.' });
+
+    // Fetch the first SCHOOL_ADMIN user name + org contact details
+    const result = await pool.query(
+      `SELECT u.name AS admin_name, o.contact_number, o.email, o.address
+       FROM users u
+       JOIN organizations o ON o.id = u.org_id
+       WHERE u.org_id = $1 AND u.role = 'SCHOOL_ADMIN'
+       ORDER BY u.created_at ASC
+       LIMIT 1`,
+      [orgId]
+    );
+
+    if (result.rows.length === 0) {
+      // No SCHOOL_ADMIN user yet — return org contact info only
+      const orgInfo = await pool.query(
+        'SELECT contact_number, email, address FROM organizations WHERE id = $1',
+        [orgId]
+      );
+      return res.json({ admin_name: null, ...orgInfo.rows[0] });
+    }
+
+    res.json(result.rows[0]);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
 export const createOrganization = async (req: AuthRequest, res: Response) => {
   const { name, type, email, contact_number, address, plan, language, timezone, custom_domain, logo_url, logo, background_image, background_images, signature, default_leave_limit, default_leave_limit_unit, landing_page_enabled } = req.body;
   try {
