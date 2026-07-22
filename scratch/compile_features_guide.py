@@ -63,17 +63,26 @@ def _body(pdf, text):
     pdf.ln(2)
 
 
-def _bullet(pdf, title, desc, indent=25):
-    """Render a bold-title bulleted item description."""
+def _bullet(pdf, title, desc, indent=25, title_w=42):
+    """Render a bold-title bulleted item description with a clean hanging indent."""
+    pdf.set_x(indent)
     pdf.set_font("Helvetica", "B", 10)
     pdf.set_text_color(17, 24, 39)
-    pdf.set_x(indent)
-    pdf.cell(45, 5.5, title + ": ", new_x="LMARGIN", new_y="LAST")
     
+    # Draw the title cell, staying on the same line
+    pdf.cell(title_w, 5.5, title + ": ")
+    
+    # Temporarily set left margin to create an aligned text block for description wrapping
+    orig_l_margin = pdf.l_margin
+    pdf.set_left_margin(indent + title_w)
+    
+    # Draw the description text
     pdf.set_font("Helvetica", "", 10)
     pdf.set_text_color(55, 65, 81)
-    pdf.set_x(indent + 45)
     pdf.multi_cell(0, 5.5, desc, new_x="LMARGIN", new_y="NEXT")
+    
+    # Restore original left margin and spacing
+    pdf.set_left_margin(orig_l_margin)
     pdf.ln(1.5)
 
 
@@ -158,12 +167,12 @@ def build_pdf():
     )
     
     pdf.ln(2)
-    _bullet(pdf, "1. Academic & Student Control", "Enrollment, course scheduling, smart timetables, class assignments, and card printing.", indent=22)
-    _bullet(pdf, "2. Assessment & Grading", "Report cards, exam schedulers, remarks templates, grading rules, and academic transcripts.", indent=22)
-    _bullet(pdf, "3. Business Office", "Fee structures, daily collection registry, invoices, sellable inventory, and receipts.", indent=22)
-    _bullet(pdf, "4. Human Resources & Payroll", "Staff salary computation, leave approvals, attendance logs, and recruitment tracking.", indent=22)
-    _bullet(pdf, "5. Interactive E-Learning", "Computer Based Testing (CBT), study material storage, assignments, and digital classrooms.", indent=22)
-    _bullet(pdf, "6. Security & Whistleblowing", "Anonymous reporting, event logging, auditing, and platform security tools.", indent=22)
+    _bullet(pdf, "1. Academic & Student Control", "Enrollment, course scheduling, smart timetables, class assignments, and card printing.", indent=22, title_w=58)
+    _bullet(pdf, "2. Assessment & Grading", "Report cards, exam schedulers, remarks templates, grading rules, and academic transcripts.", indent=22, title_w=58)
+    _bullet(pdf, "3. Business Office", "Fee structures, daily collection registry, invoices, sellable inventory, and receipts.", indent=22, title_w=58)
+    _bullet(pdf, "4. Human Resources & Payroll", "Staff salary computation, leave approvals, attendance logs, and recruitment tracking.", indent=22, title_w=58)
+    _bullet(pdf, "5. Interactive E-Learning", "Computer Based Testing (CBT), study material storage, assignments, and digital classrooms.", indent=22, title_w=58)
+    _bullet(pdf, "6. Security & Whistleblowing", "Anonymous reporting, event logging, auditing, and platform security tools.", indent=22, title_w=58)
 
     # ============================================================
     # PAGE 3 — ACADEMICS & STUDENT MANAGEMENT
