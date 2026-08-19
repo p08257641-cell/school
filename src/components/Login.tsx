@@ -109,9 +109,13 @@ export default function Login({ onLogin, onBack, organization }: LoginProps) {
               initial={{ opacity: 0, scale: 0.85 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.5 }}
-              className="w-14 h-14 bg-indigo-600 rounded-2xl flex items-center justify-center text-white mx-auto shadow-xl shadow-indigo-100"
+              className="w-20 h-20 rounded-2xl bg-white p-2.5 flex items-center justify-center mx-auto shadow-xl shadow-indigo-100 border border-zinc-100"
             >
-              <Zap className="w-7 h-7" />
+              <img
+                src="/assets/skoola_icon.png"
+                alt="Skoola Logo"
+                className="w-full h-full object-contain rounded-xl"
+              />
             </motion.div>
           )}
 

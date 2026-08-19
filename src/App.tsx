@@ -511,6 +511,22 @@ export default function App() {
     return () => clearInterval(interval);
   }, [isSubdomainLoading]);
 
+  // Synchronize browser tab title and favicon
+  useEffect(() => {
+    const faviconLink = document.querySelector("link[rel*='icon']") as HTMLLinkElement;
+    if (subdomainOrg) {
+      document.title = `${subdomainOrg.name} | Skoola`;
+      if (subdomainOrg.logo && faviconLink) {
+        faviconLink.href = subdomainOrg.logo;
+      }
+    } else {
+      document.title = "Skoola";
+      if (faviconLink) {
+        faviconLink.href = "/logo_icon.jpg";
+      }
+    }
+  }, [subdomainOrg]);
+
   useEffect(() => {
     const token = localStorage.getItem("token");
     const user = JSON.parse(localStorage.getItem("user") || "null");
